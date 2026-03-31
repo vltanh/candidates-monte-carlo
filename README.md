@@ -21,3 +21,14 @@ Results after 10,000 iterations.
 -   4.67% wins - Giri, Anish (2753 rating, current points: 0.5, wins: 467)        
 -   2.45% wins - Esipenko, Andrey (2698 rating, current points: 0.5, wins: 245)   
 ```
+
+# Note
+This is the part of my code that I'm using to generate [these images](https://old.reddit.com/r/chess/comments/1s7xyls/candidate_win_chances_caruana_now_at_44_hikaru/) I post on reddit. The code is a bit simplified because in the actual code it also generates some code to be used for the image generation...
+
+# ChessMonitor
+
+If you like statistics and data, also check out my project ChessMonitor: https://www.chessmonitor.com/
+
+# License
+
+MIT
