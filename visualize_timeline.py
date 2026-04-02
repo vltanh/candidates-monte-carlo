@@ -1,9 +1,36 @@
 import os
 import re
+import argparse
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.patches as mpatches
+
+parser = argparse.ArgumentParser(
+    description="Visualize Monte Carlo chess tournament predictions."
+)
+parser.add_argument(
+    "directory",
+    nargs="?",
+    default=".",
+    help="Directory containing round{i}.txt files (default: current directory)",
+)
+parser.add_argument(
+    "-o",
+    "--output",
+    default=None,
+    help="Output file path (default: round{N}.png in the input directory)",
+)
+parser.add_argument(
+    "-k",
+    "--max-round",
+    type=int,
+    default=None,
+    help="Only process up to this round number (default: all rounds found)",
+)
+args = parser.parse_args()
+
+input_dir = args.directory
 
 # 1. Player Aliases Mapping
 PLAYER_ALIASES = {
@@ -20,15 +47,21 @@ PLAYER_ALIASES = {
 # 2. Automatically detect and sort round{i}.txt files
 file_pattern = re.compile(r"round(\d+)\.txt")
 files = []
-for f in os.listdir("."):
+for f in os.listdir(input_dir):
     match = file_pattern.match(f)
     if match:
-        files.append((int(match.group(1)), f))
+        files.append((int(match.group(1)), os.path.join(input_dir, f)))
 
 files.sort()
 if not files:
     print("Error: No 'round{i}.txt' files found in the current directory.")
     exit(1)
+
+if args.max_round is not None:
+    files = [(k, f) for k, f in files if k <= args.max_round]
+    if not files:
+        print(f"Error: No round files found up to round {args.max_round}.")
+        exit(1)
 
 max_k = files[-1][0]
 latest_file = files[-1][1]
@@ -126,8 +159,8 @@ df_history = pd.DataFrame(win_history)
 all_rounds_data = []
 for r in range(1, 15):
     if r < max_k:
-        file_before = f"round{r}.txt"
-        file_after = f"round{r+1}.txt"
+        file_before = os.path.join(input_dir, f"round{r}.txt")
+        file_after = os.path.join(input_dir, f"round{r+1}.txt")
         matches = (
             parse_predictions(file_before, r) if os.path.exists(file_before) else []
         )
@@ -362,7 +395,9 @@ ax_legend.legend(
 
 plt.subplots_adjust(bottom=0.06)
 
-output_filename = f"command_center_round{max_k}.png"
+output_filename = (
+    args.output if args.output else os.path.join(input_dir, f"round{max_k}.png")
+)
 plt.savefig(output_filename, dpi=300, bbox_inches="tight")
 print(
     f"Successfully generated Center-Anchored 14-Round Command Center. Plot saved to '{output_filename}'"

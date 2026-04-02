@@ -59,13 +59,10 @@ static double drawProbability(double elo1, double elo2) {
 struct Probs { double win, draw, loss; };
 
 static Probs winProbability(double wElo, double bElo, double drawMult = 1.0) {
-    // Standard logistic curve. WHITE_ADV is omitted because it is natively baked into the split Elos.
     double expected = 1.0 / (1.0 + std::pow(10.0, (bElo - wElo) / 400.0));
-    
     double draw = drawProbability(wElo, bElo) * drawMult;
     double maxDraw = 2.0 * std::min(expected, 1.0 - expected);
     draw = std::min(draw, maxDraw);
-    
     return { expected - 0.5 * draw, draw, 1.0 - expected - 0.5 * draw };
 }
 
