@@ -1,6 +1,12 @@
 # Chess Monte Carlo Simulation
 
+A multi-threaded Monte Carlo simulator for 8-player round-robin chess tournaments. Models dynamic per-player ratings that update as games are played, then runs millions of simulated completions to estimate win probabilities.
+
+The included `tournament.json` models the **2026 FIDE Candidates Tournament** (Caruana, Nakamura, Giri, Yi Wei, Sindarov, Praggnanandhaa, Esipenko, Bluebaum).
+
 ## Visualizations
+
+<!-- Add new rounds here (most recent first): copy the <details> block and update the round number and image path -->
 
 <details>
 <summary>Round 5</summary>
@@ -36,10 +42,6 @@
 ![Round 1](results/r1.png)
 
 </details>
-
-A multi-threaded Monte Carlo simulator for 8-player round-robin chess tournaments. Models dynamic per-player ratings that update as games are played, then runs millions of simulated completions to estimate win probabilities.
-
-The included `tournament.json` models the **2026 FIDE Candidates Tournament** (Caruana, Nakamura, Giri, Yi Wei, Sindarov, Praggnanandhaa, Esipenko, Bluebaum).
 
 ## Features
 
