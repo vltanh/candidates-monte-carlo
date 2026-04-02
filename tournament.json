@@ -1,0 +1,85 @@
+{
+  "runs": 10000000,
+  "simulate_from_round": 5,
+  "players": [
+    { "fide_id": 2020009,  "name": "Caruana, Fabiano",   "rating": 2793, "rapid_rating": 2727, "blitz_rating": 2749 },
+    { "fide_id": 24116068, "name": "Giri, Anish",        "rating": 2753, "rapid_rating": 2689, "blitz_rating": 2666 },
+    { "fide_id": 24651516, "name": "Bluebaum, Matthias", "rating": 2695, "rapid_rating": 2587, "blitz_rating": 2634 },
+    { "fide_id": 14205483, "name": "Sindarov, Javokhir", "rating": 2745, "rapid_rating": 2727, "blitz_rating": 2662 },
+    { "fide_id": 8603405,  "name": "Yi, Wei",            "rating": 2754, "rapid_rating": 2726, "blitz_rating": 2698 },
+    { "fide_id": 24175439, "name": "Esipenko, Andrey",   "rating": 2698, "rapid_rating": 2657, "blitz_rating": 2651 },
+    { "fide_id": 25059530, "name": "Praggnanandhaa R",   "rating": 2741, "rapid_rating": 2663, "blitz_rating": 2698 },
+    { "fide_id": 2016192,  "name": "Nakamura, Hikaru",   "rating": 2810, "rapid_rating": 2742, "blitz_rating": 2838 }
+  ],
+  "schedule": [
+    { "white": 2020009,  "black": 2016192,  "result": "1-0"     },
+    { "white": 25059530, "black": 24116068, "result": "1-0"     },
+    { "white": 24651516, "black": 8603405,  "result": "1/2-1/2" },
+    { "white": 14205483, "black": 24175439, "result": "1-0"     },
+
+    { "white": 24175439, "black": 2016192,  "result": "1/2-1/2" },
+    { "white": 24116068, "black": 2020009,  "result": "1/2-1/2" },
+    { "white": 8603405,  "black": 25059530, "result": "1/2-1/2" },
+    { "white": 14205483, "black": 24651516, "result": "1/2-1/2" },
+
+    { "white": 25059530, "black": 14205483, "result": "0-1"     },
+    { "white": 2020009,  "black": 8603405,  "result": "1-0"     },
+    { "white": 2016192,  "black": 24116068, "result": "1/2-1/2" },
+    { "white": 24651516, "black": 24175439, "result": "1/2-1/2" },
+
+    { "white": 14205483, "black": 2020009,  "result": "1-0"     },
+    { "white": 24651516, "black": 25059530, "result": "1/2-1/2" },
+    { "white": 24175439, "black": 24116068, "result": "0-1"     },
+    { "white": 8603405,  "black": 2016192,  "result": "1/2-1/2" },
+
+    { "white": 25059530, "black": 24175439 },
+    { "white": 2020009,  "black": 24651516 },
+    { "white": 2016192,  "black": 14205483 },
+    { "white": 24116068, "black": 8603405  },
+
+    { "white": 2020009,  "black": 24175439 },
+    { "white": 2016192,  "black": 25059530 },
+    { "white": 24116068, "black": 24651516 },
+    { "white": 8603405,  "black": 14205483 },
+
+    { "white": 24175439, "black": 8603405  },
+    { "white": 14205483, "black": 24116068 },
+    { "white": 24651516, "black": 2016192  },
+    { "white": 25059530, "black": 2020009  },
+
+    { "white": 24175439, "black": 14205483 },
+    { "white": 8603405,  "black": 24651516 },
+    { "white": 24116068, "black": 25059530 },
+    { "white": 2016192,  "black": 2020009  },
+
+    { "white": 2016192,  "black": 24175439 },
+    { "white": 2020009,  "black": 24116068 },
+    { "white": 25059530, "black": 8603405  },
+    { "white": 24651516, "black": 14205483 },
+
+    { "white": 24175439, "black": 24651516 },
+    { "white": 14205483, "black": 25059530 },
+    { "white": 8603405,  "black": 2020009  },
+    { "white": 24116068, "black": 2016192  },
+
+    { "white": 24116068, "black": 24175439 },
+    { "white": 2016192,  "black": 8603405  },
+    { "white": 2020009,  "black": 14205483 },
+    { "white": 25059530, "black": 24651516 },
+
+    { "white": 24175439, "black": 25059530 },
+    { "white": 24651516, "black": 2020009  },
+    { "white": 14205483, "black": 2016192  },
+    { "white": 8603405,  "black": 24116068 },
+
+    { "white": 8603405,  "black": 24175439 },
+    { "white": 24116068, "black": 14205483 },
+    { "white": 2016192,  "black": 24651516 },
+    { "white": 2020009,  "black": 25059530 },
+
+    { "white": 24175439, "black": 2020009  },
+    { "white": 25059530, "black": 2016192  },
+    { "white": 24651516, "black": 24116068 },
+    { "white": 14205483, "black": 8603405  }
+  ]
+}
