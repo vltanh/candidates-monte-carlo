@@ -27,43 +27,29 @@ static constexpr int    N                 = 8;
 static constexpr int    GPR               = N / 2;   // games per round = 4
 static constexpr int    MAP_ITERS         = 100;     // Convergence iterations
 static constexpr double MAP_TOLERANCE     = 1e-8;    // Convergence threshold
-static constexpr double PRIOR_WEIGHT      = 1.0;     // beta: 10 virtual games of anchor
+static constexpr double PRIOR_WEIGHT      = 1.0;     // Strength of Elo prior vs. observed games
 static constexpr double INITIAL_WHITE_ADV = 35.0;    // Pre-tournament seed distribution
-static constexpr double RAPID_DRAW        = 0.65;    // Stage I:  15+10
-static constexpr double BLITZ_DRAW        = 0.40;    // Stage II/III: 3+2
+
+// Davidson Draw Affinities (nu). Higher = more draws.
+// nu = 2.5 yields ~55% draws. nu = 1.5 yields ~42% draws.
+static constexpr double CLASSICAL_NU      = 2.5;     
+static constexpr double RAPID_NU          = 1.5;     
+static constexpr double BLITZ_NU          = 0.8;     
 
 enum TimeControl { CLASSICAL, RAPID, BLITZ };
 
-// ─── Draw-probability table ───────────────────────────────────────────────────
-static constexpr double DRAW_TABLE[8][16] = {
-    {0.21, 0.24, 0.25, 0.24, 0.24, 0.22, 0.23, 0.24, 0.22, 0.22, 0.20, 0.20, 0.21, 0.19, 0.18, 0.17}, // 1400
-    {0.28, 0.29, 0.30, 0.29, 0.27, 0.27, 0.27, 0.26, 0.25, 0.25, 0.23, 0.22, 0.20, 0.20, 0.20, 0.19}, // 1600
-    {0.31, 0.32, 0.32, 0.32, 0.30, 0.30, 0.28, 0.27, 0.26, 0.25, 0.23, 0.23, 0.22, 0.22, 0.20, 0.20}, // 1800
-    {0.35, 0.35, 0.34, 0.33, 0.32, 0.31, 0.30, 0.29, 0.27, 0.25, 0.25, 0.24, 0.21, 0.21, 0.19, 0.19}, // 2000
-    {0.42, 0.42, 0.40, 0.39, 0.37, 0.36, 0.34, 0.32, 0.30, 0.28, 0.25, 0.24, 0.22, 0.20, 0.19, 0.17}, // 2200
-    {0.54, 0.53, 0.51, 0.50, 0.47, 0.45, 0.41, 0.38, 0.35, 0.33, 0.30, 0.26, 0.24, 0.22, 0.19, 0.18}, // 2400
-    {0.57, 0.54, 0.54, 0.52, 0.51, 0.50, 0.45, 0.42, 0.40, 0.37, 0.34, 0.31, 0.30, 0.28, 0.29, 0.25}, // 2600
-    {0.60, 0.57, 0.56, 0.54, 0.52, 0.51, 0.47, 0.44, 0.42, 0.39, 0.36, 0.34, 0.32, 0.30, 0.29, 0.27}, // 2800
-};
-
-static double drawProbability(double elo1, double elo2) {
-    int avg200 = static_cast<int>(std::floor((elo1 + elo2) * 0.5 / 200.0)) * 200;
-    avg200 = std::max(1400, std::min(2800, avg200));
-    int diff20 = static_cast<int>(std::floor(std::abs(elo1 - elo2) / 20.0)) * 20;
-    diff20 = std::max(0, std::min(300, diff20));
-    return DRAW_TABLE[(avg200 - 1400) / 200][diff20 / 20];
-}
-
-// ─── Win probability (Bipartite Native) ───────────────────────────────────────
+// ─── Win probability (Davidson Native) ────────────────────────────────────────
 
 struct Probs { double win, draw, loss; };
 
-static Probs winProbability(double wElo, double bElo, double drawMult = 1.0) {
-    double expected = 1.0 / (1.0 + std::pow(10.0, (bElo - wElo) / 400.0));
-    double draw = drawProbability(wElo, bElo) * drawMult;
-    double maxDraw = 2.0 * std::min(expected, 1.0 - expected);
-    draw = std::min(draw, maxDraw);
-    return { expected - 0.5 * draw, draw, 1.0 - expected - 0.5 * draw };
+static Probs winProbability(double lambdaW, double lambdaB, double nu) {
+    double p_white = lambdaW;
+    double p_black = lambdaB;
+    double p_draw  = nu * std::sqrt(lambdaW * lambdaB);
+    
+    double denom = p_white + p_black + p_draw;
+    
+    return { p_white / denom, p_draw / denom, p_black / denom };
 }
 
 // ─── Tournament config ────────────────────────────────────────────────────────
@@ -100,8 +86,7 @@ static Config buildConfig(const std::string& path) {
 
     const auto& players = doc.at("players");
     if ((int)players.size() != N)
-        throw std::runtime_error("Expected " + std::to_string(N) + " players, got "
-                                 + std::to_string(players.size()));
+        throw std::runtime_error("Expected " + std::to_string(N) + " players");
 
     std::unordered_map<int, int> idx;
     for (int i = 0; i < N; ++i) {
@@ -125,8 +110,7 @@ static Config buildConfig(const std::string& path) {
 
         if (round < cfg.simulateFromRound) {
             if (!g.contains("result") || g.at("result").is_null())
-                throw std::runtime_error("Missing result for historical game in round "
-                                         + std::to_string(round));
+                throw std::runtime_error("Missing result for historical game in round " + std::to_string(round));
             cfg.knownGames.push_back({w, b, parseResult(g.at("result").get<std::string>())});
         } else {
             cfg.schedule.push_back({w, b});
@@ -135,22 +119,22 @@ static Config buildConfig(const std::string& path) {
     return cfg;
 }
 
-// ─── Encounter table (Bipartite Model) ───────────────────────────────────────
+// ─── Encounter table (Pure Probability Space) ────────────────────────────────
 
 struct EncounterTable {
-    std::array<double, N> wRating, bRating;
-    std::array<double, N> initWRating, initBRating;
+    std::array<double, N> lambdaW, lambdaB; 
+    std::array<double, N> initLambdaW, initLambdaB;
     std::array<double, N> points;
 
-    double A_WB[N][N]; // Directed matrix: i played White, j played Black
-    double W_W[N];     // Points scored by player strictly as White
-    double W_B[N];     // Points scored by player strictly as Black
+    double A_WB[N][N]; 
+    double W_W[N];     
+    double W_B[N];     
 
     void init(const Config& cfg) {
         for (int i = 0; i < N; ++i) {
-            // Seed the split priors. 
-            initWRating[i] = wRating[i] = cfg.ratings[i] + INITIAL_WHITE_ADV / 2.0;
-            initBRating[i] = bRating[i] = cfg.ratings[i] - INITIAL_WHITE_ADV / 2.0;
+            // Convert FIDE Elo to pure latent strength strictly for prior initialization
+            initLambdaW[i] = lambdaW[i] = std::pow(10.0, (cfg.ratings[i] + INITIAL_WHITE_ADV / 2.0) / 400.0);
+            initLambdaB[i] = lambdaB[i] = std::pow(10.0, (cfg.ratings[i] - INITIAL_WHITE_ADV / 2.0) / 400.0);
             
             points[i] = 0.0;
             W_W[i] = 0.0;
@@ -170,27 +154,14 @@ struct EncounterTable {
         points[b] += 1.0 - whitePoints;
     }
 
-    // 2N Anchored MAP Estimator
-    void updateDynamicRatings(const Config& cfg) {
-        double meanElo = 0.0;
-        for (int i = 0; i < N; ++i) meanElo += cfg.ratings[i];
-        meanElo /= N;
-
-        std::array<double, N> alphaW, alphaB, lambdaW, lambdaB;
-        for (int i = 0; i < N; ++i) {
-            alphaW[i]  = std::pow(10.0, (initWRating[i] - meanElo) / 400.0);
-            alphaB[i]  = std::pow(10.0, (initBRating[i] - meanElo) / 400.0);
-            lambdaW[i] = std::pow(10.0, (wRating[i] - meanElo) / 400.0);
-            lambdaB[i] = std::pow(10.0, (bRating[i] - meanElo) / 400.0);
-        }
-
+    void updateDynamicRatings() {
         for (int iter = 0; iter < MAP_ITERS; ++iter) {
             std::array<double, N> nextW, nextB;
             double maxDiff = 0.0;
             
             for (int i = 0; i < N; ++i) {
                 // Update White Latent Strength
-                double denomW = (2.0 * PRIOR_WEIGHT) / (lambdaW[i] + alphaW[i]);
+                double denomW = (2.0 * PRIOR_WEIGHT) / (lambdaW[i] + initLambdaW[i]);
                 for (int j = 0; j < N; ++j) {
                     if (A_WB[i][j] > 0.0) {
                         denomW += A_WB[i][j] / (lambdaW[i] + lambdaB[j]);
@@ -199,7 +170,7 @@ struct EncounterTable {
                 nextW[i] = (PRIOR_WEIGHT + W_W[i]) / denomW;
                 
                 // Update Black Latent Strength
-                double denomB = (2.0 * PRIOR_WEIGHT) / (lambdaB[i] + alphaB[i]);
+                double denomB = (2.0 * PRIOR_WEIGHT) / (lambdaB[i] + initLambdaB[i]);
                 for (int j = 0; j < N; ++j) {
                     if (A_WB[j][i] > 0.0) { 
                         denomB += A_WB[j][i] / (lambdaW[j] + lambdaB[i]);
@@ -218,18 +189,18 @@ struct EncounterTable {
             if (maxDiff < MAP_TOLERANCE) break;
         }
 
-        double newMean = 0.0;
+        // Geometric Mean Rescaling to prevent float population drift
+        double prodInit = 1.0;
+        double prodCur = 1.0;
         for (int i = 0; i < N; ++i) {
-            wRating[i] = meanElo + 400.0 * std::log10(lambdaW[i]);
-            bRating[i] = meanElo + 400.0 * std::log10(lambdaB[i]);
-            newMean += (wRating[i] + bRating[i]) / 2.0;
+            prodInit *= (initLambdaW[i] * initLambdaB[i]);
+            prodCur  *= (lambdaW[i] * lambdaB[i]);
         }
-        newMean /= N;
-        double shift = meanElo - newMean;
+        double shift = std::pow(prodInit / prodCur, 1.0 / (2.0 * N));
         
         for (int i = 0; i < N; ++i) {
-            wRating[i] += shift;
-            bRating[i] += shift;
+            lambdaW[i] *= shift;
+            lambdaB[i] *= shift;
         }
     }
 };
@@ -246,23 +217,25 @@ struct Rng {
 // ─── Game simulation ──────────────────────────────────────────────────────────
 
 static double simulateGame(const EncounterTable& et, int w, int b, Rng& rng,
-                           TimeControl tc, const Config& cfg, double drawMult = 1.0) {
+                           TimeControl tc, const Config& cfg) {
                                 
-    double wElo, bElo;
+    double lW, lB, nu;
 
     if (tc == RAPID) {
-        wElo = cfg.rapidRatings[w] + INITIAL_WHITE_ADV / 2.0;
-        bElo = cfg.rapidRatings[b] - INITIAL_WHITE_ADV / 2.0;
+        lW = std::pow(10.0, (cfg.rapidRatings[w] + INITIAL_WHITE_ADV / 2.0) / 400.0);
+        lB = std::pow(10.0, (cfg.rapidRatings[b] - INITIAL_WHITE_ADV / 2.0) / 400.0);
+        nu = RAPID_NU;
     } else if (tc == BLITZ) {
-        wElo = cfg.blitzRatings[w] + INITIAL_WHITE_ADV / 2.0;
-        bElo = cfg.blitzRatings[b] - INITIAL_WHITE_ADV / 2.0;
+        lW = std::pow(10.0, (cfg.blitzRatings[w] + INITIAL_WHITE_ADV / 2.0) / 400.0);
+        lB = std::pow(10.0, (cfg.blitzRatings[b] - INITIAL_WHITE_ADV / 2.0) / 400.0);
+        nu = BLITZ_NU;
     } else {
-        // Main Event: Use the dynamically updated MAP White and Black Elos
-        wElo = et.wRating[w];
-        bElo = et.bRating[b];
+        lW = et.lambdaW[w];
+        lB = et.lambdaB[b];
+        nu = CLASSICAL_NU;
     }
     
-    auto p = winProbability(wElo, bElo, drawMult);
+    auto p = winProbability(lW, lB, nu);
     double r = rng();
     if (r < p.win)             return 1.0;
     if (r < p.win + p.draw)    return 0.5;
@@ -272,12 +245,12 @@ static double simulateGame(const EncounterTable& et, int w, int b, Rng& rng,
 // ─── Playoff simulation (FIDE 2026 Regulations 4.4.2) ────────────────────────
 
 static std::vector<int> playoffMatch(EncounterTable& et, int p1, int p2,
-                                     double dm, Rng& rng, TimeControl tc, const Config& cfg) {
+                                     Rng& rng, TimeControl tc, const Config& cfg) {
     double p1pts = 0.0;
     for (int g = 0; g < 2; ++g) {
         int w = (g == 0) ? p1 : p2;
         int b = (g == 0) ? p2 : p1;
-        double wp = simulateGame(et, w, b, rng, tc, cfg, dm);
+        double wp = simulateGame(et, w, b, rng, tc, cfg);
         p1pts += (w == p1) ? wp : 1.0 - wp;
     }
     if (p1pts > 1.0) return {p1};
@@ -287,14 +260,13 @@ static std::vector<int> playoffMatch(EncounterTable& et, int p1, int p2,
 
 static std::vector<int> playoffRoundRobin(EncounterTable& et,
                                           const std::vector<int>& ids,
-                                          double dm, Rng& rng, TimeControl tc, const Config& cfg) {
+                                          Rng& rng, TimeControl tc, const Config& cfg) {
     std::array<double, N> pts = {};
     for (int i = 0; i < (int)ids.size(); ++i) {
         for (int j = i + 1; j < (int)ids.size(); ++j) {
-            // FIDE 4.4.2.1.1: Single round robin
             int w = (rng() < 0.5) ? ids[i] : ids[j];
             int b = (w == ids[i]) ? ids[j] : ids[i];
-            double wp = simulateGame(et, w, b, rng, tc, cfg, dm);
+            double wp = simulateGame(et, w, b, rng, tc, cfg);
             pts[w] += wp;
             pts[b] += 1.0 - wp;
         }
@@ -312,28 +284,28 @@ static int knockoutMatch(EncounterTable& et, int p1, int p2, Rng& rng, const Con
     int w1 = (rng() < 0.5) ? p1 : p2;
     int b1 = (w1 == p1) ? p2 : p1;
 
-    double r1 = simulateGame(et, w1, b1, rng, BLITZ, cfg, BLITZ_DRAW);
+    double r1 = simulateGame(et, w1, b1, rng, BLITZ, cfg);
     if (r1 != 0.5) return (r1 == 1.0) ? w1 : b1;
 
     // 4.4.2.1.3 (b) - Colors reversed
-    double r2 = simulateGame(et, b1, w1, rng, BLITZ, cfg, BLITZ_DRAW);
+    double r2 = simulateGame(et, b1, w1, rng, BLITZ, cfg);
     if (r2 != 0.5) return (r2 == 1.0) ? b1 : w1;
 
     // 4.4.2.1.3 (c) - Sudden death. Draw = Black wins
     int sdw = (rng() < 0.5) ? w1 : b1;
     int sdb = (sdw == w1) ? b1 : w1;
-    return (simulateGame(et, sdw, sdb, rng, BLITZ, cfg, BLITZ_DRAW) == 1.0) ? sdw : sdb;
+    return (simulateGame(et, sdw, sdb, rng, BLITZ, cfg) == 1.0) ? sdw : sdb;
 }
 
 static int simulatePlayoff(EncounterTable& et, std::vector<int> tied, Rng& rng, const Config& cfg) {
     tied = (tied.size() == 2)
-        ? playoffMatch(et, tied[0], tied[1], RAPID_DRAW, rng, RAPID, cfg)
-        : playoffRoundRobin(et, tied, RAPID_DRAW, rng, RAPID, cfg);
+        ? playoffMatch(et, tied[0], tied[1], rng, RAPID, cfg)
+        : playoffRoundRobin(et, tied, rng, RAPID, cfg);
     if (tied.size() == 1) return tied[0];
 
     tied = (tied.size() == 2)
-        ? playoffMatch(et, tied[0], tied[1], BLITZ_DRAW, rng, BLITZ, cfg)
-        : playoffRoundRobin(et, tied, BLITZ_DRAW, rng, BLITZ, cfg);
+        ? playoffMatch(et, tied[0], tied[1], rng, BLITZ, cfg)
+        : playoffRoundRobin(et, tied, rng, BLITZ, cfg);
     if (tied.size() == 1) return tied[0];
 
     std::shuffle(tied.begin(), tied.end(), rng.eng);
@@ -355,24 +327,22 @@ static int runOneIteration(const Config& cfg, Rng& rng, int tracker[N][N][3]) {
     EncounterTable et;
     et.init(cfg);
 
-    // Warm-start historical games dynamically
     for (int i = 0; i < (int)cfg.knownGames.size(); ++i) {
         const auto& g = cfg.knownGames[i];
         et.setEncounter(g.w, g.b, g.whitePoints);
         if ((i + 1) % GPR == 0) {
-            et.updateDynamicRatings(cfg);
+            et.updateDynamicRatings();
         }
     }
     if (!cfg.knownGames.empty() && cfg.knownGames.size() % GPR != 0) {
-        et.updateDynamicRatings(cfg);
+        et.updateDynamicRatings();
     }
 
     const int nGames = static_cast<int>(cfg.schedule.size());
     for (int i = 0; i < nGames; ++i) {
         auto [w, b] = cfg.schedule[i];
         
-        // Main event games use the CLASSICAL time control enum
-        double wp = simulateGame(et, w, b, rng, CLASSICAL, cfg, 1.0);
+        double wp = simulateGame(et, w, b, rng, CLASSICAL, cfg);
 
         if      (wp == 1.0) tracker[w][b][0]++;
         else if (wp == 0.5) tracker[w][b][1]++;
@@ -380,9 +350,8 @@ static int runOneIteration(const Config& cfg, Rng& rng, int tracker[N][N][3]) {
 
         et.setEncounter(w, b, wp);
 
-        // Update dynamic ratings once per round
         int abs_game = static_cast<int>(cfg.knownGames.size()) + i + 1;
-        if (abs_game % GPR == 0) et.updateDynamicRatings(cfg);
+        if (abs_game % GPR == 0) et.updateDynamicRatings();
     }
 
     double maxPts = *std::max_element(et.points.begin(), et.points.end());
@@ -408,7 +377,6 @@ static void workerThread(const Config& cfg, int iters, uint64_t seed,
 }
 
 static void runMonteCarlo(const Config& cfg, int totalIters) {
-    // Print standings based on known games
     {
         EncounterTable et;
         et.init(cfg);
@@ -458,7 +426,6 @@ static void runMonteCarlo(const Config& cfg, int totalIters) {
     double elapsed = std::chrono::duration<double>(
         std::chrono::high_resolution_clock::now() - t0).count();
 
-    // Merge
     std::array<int, N> wins = {};
     int tracker[N][N][3] = {};
     for (const auto& r : results) {
@@ -472,7 +439,6 @@ static void runMonteCarlo(const Config& cfg, int totalIters) {
     std::cout << std::fixed << std::setprecision(2)
               << "Done in " << elapsed << "s\n";
 
-    // Match predictions
     int completedGames = static_cast<int>(cfg.knownGames.size());
     std::cout << "\n=== Monte Carlo Match Predictions ===";
     for (int i = 0; i < (int)cfg.schedule.size(); ++i) {
@@ -495,7 +461,6 @@ static void runMonteCarlo(const Config& cfg, int totalIters) {
                   << "% | 0-1: " << pb << "%\n";
     }
 
-    // Win probabilities
     std::array<int, N> order;
     std::iota(order.begin(), order.end(), 0);
     std::sort(order.begin(), order.end(),
