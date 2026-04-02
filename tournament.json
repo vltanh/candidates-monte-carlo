@@ -1,6 +1,6 @@
 {
   "runs": 10000000,
-  "simulate_from_round": 5,
+  "simulate_from_round": 1,
   "players": [
     { "fide_id": 2020009,  "name": "Caruana, Fabiano",   "rating": 2793, "rapid_rating": 2727, "blitz_rating": 2749 },
     { "fide_id": 24116068, "name": "Giri, Anish",        "rating": 2753, "rapid_rating": 2689, "blitz_rating": 2666 },
