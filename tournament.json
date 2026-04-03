@@ -4,6 +4,7 @@
   "map_tolerance": 1e-8,
   "prior_weight": 1.0,
   "initial_white_adv": 35.0,
+  "color_bleed": 0.1,
   "classical_nu": 2.5,
   "rapid_nu": 1.5,
   "blitz_nu": 0.8,
@@ -12,7 +13,8 @@
   "agg_prior_weight": 4.0,
   "default_aggression_w": 0.25,
   "default_aggression_b": 0.15,
-  "color_bleed": 0.1,
+  "streak_aggression_mod": 0.03,
+  "leader_caution_penalty": 0.05,
   "players": [
     { "fide_id": 2020009,  "name": "Caruana, Fabiano",   "rating": 2793, "rapid_rating": 2727, "blitz_rating": 2749 },
     { "fide_id": 24116068, "name": "Giri, Anish",        "rating": 2753, "rapid_rating": 2689, "blitz_rating": 2666 },
