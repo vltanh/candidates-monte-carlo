@@ -68,7 +68,11 @@ struct Config {
     double aggPriorWeight;
     double defaultAggW;
     double defaultAggB;
-    double colorBleed; // NEW: Cross-pollination factor
+    double colorBleed; 
+    
+    // Psychological Hyperparameters
+    double streakAggressionMod;  
+    double leaderCautionPenalty; 
 };
 
 static double parseResult(const std::string& s) {
@@ -85,22 +89,25 @@ static Config buildConfig(const std::string& path, int cliSimRound) {
     json doc = json::parse(f);
     Config cfg;
     
-    cfg.runs                 = doc.value("runs", 1'000'000);
+    // Applied the specific defaults requested
+    cfg.runs                 = doc.value("runs", 10'000'000);
     cfg.mapIters             = doc.value("map_iters", 100);
     cfg.mapTolerance         = doc.value("map_tolerance", 1e-8);
-    cfg.priorWeight          = doc.value("prior_weight", 8.0);
+    cfg.priorWeight          = doc.value("prior_weight", 1.0);
     cfg.initialWhiteAdv      = doc.value("initial_white_adv", 35.0);
-    cfg.classicalNu          = doc.value("classical_nu", 1.8);
+    cfg.classicalNu          = doc.value("classical_nu", 2.5);
     cfg.rapidNu              = doc.value("rapid_nu", 1.5);
     cfg.blitzNu              = doc.value("blitz_nu", 0.8);
-    cfg.overpushEscalation   = doc.value("overpush_escalation", 0.05);
+    cfg.overpushEscalation   = doc.value("overpush_escalation", 0.02);
     cfg.overpushNuMultiplier = doc.value("overpush_nu_multiplier", 0.20);
     cfg.aggPriorWeight       = doc.value("agg_prior_weight", 4.0);
     cfg.defaultAggW          = doc.value("default_aggression_w", 0.25);
     cfg.defaultAggB          = doc.value("default_aggression_b", 0.15);
+    cfg.colorBleed           = doc.value("color_bleed", 0.10); 
     
-    // Default 15% form bleed between colors
-    cfg.colorBleed           = doc.value("color_bleed", 0.15); 
+    // Maintained the psychological defaults from previous iteration
+    cfg.streakAggressionMod  = doc.value("streak_aggression_mod", 0.03);
+    cfg.leaderCautionPenalty = doc.value("leader_caution_penalty", 0.05);
 
     if (cliSimRound > 0) {
         cfg.simulateFromRound = cliSimRound;
@@ -160,6 +167,8 @@ struct EncounterTable {
     double totalW[N];
     double decisiveB[N];
     double totalB[N];
+    
+    int streak[N];
 
     void init(const Config& cfg) {
         for (int i = 0; i < N; ++i) {
@@ -174,6 +183,8 @@ struct EncounterTable {
             totalW[i] = 0.0;
             decisiveB[i] = 0.0;
             totalB[i] = 0.0;
+            
+            streak[i] = 0; 
         }
         for (int i = 0; i < N; ++i)
             for (int j = 0; j < N; ++j)
@@ -195,32 +206,36 @@ struct EncounterTable {
         
         decisiveB[b] += isDecisive;
         totalB[b]    += 1.0;
+        
+        if (whitePoints == 1.0) {
+            streak[w] = (streak[w] > 0) ? streak[w] + 1 : 1;
+            streak[b] = (streak[b] < 0) ? streak[b] - 1 : -1;
+        } else if (whitePoints == 0.0) {
+            streak[w] = (streak[w] < 0) ? streak[w] - 1 : -1;
+            streak[b] = (streak[b] > 0) ? streak[b] + 1 : 1;
+        } else {
+            streak[w] = 0;
+            streak[b] = 0;
+        }
     }
 
-    // Fetches the dynamically learned and cross-pollinated White aggression
     double getDynamicAggressionW(int p, const Config& cfg) const {
         double rawW = (cfg.aggW[p] * cfg.aggPriorWeight + decisiveW[p]) / 
                       (cfg.aggPriorWeight + totalW[p]);
-                      
         double rawB = (cfg.aggB[p] * cfg.aggPriorWeight + decisiveB[p]) / 
                       (cfg.aggPriorWeight + totalB[p]);
-                      
         return rawW * (1.0 - cfg.colorBleed) + rawB * cfg.colorBleed;
     }
     
-    // Fetches the dynamically learned and cross-pollinated Black aggression
     double getDynamicAggressionB(int p, const Config& cfg) const {
         double rawW = (cfg.aggW[p] * cfg.aggPriorWeight + decisiveW[p]) / 
                       (cfg.aggPriorWeight + totalW[p]);
-                      
         double rawB = (cfg.aggB[p] * cfg.aggPriorWeight + decisiveB[p]) / 
                       (cfg.aggPriorWeight + totalB[p]);
-                      
         return rawB * (1.0 - cfg.colorBleed) + rawW * cfg.colorBleed;
     }
 
     void updateDynamicRatings(const Config& cfg) {
-        // 1. Isolated Bipartite MAP Update
         for (int iter = 0; iter < cfg.mapIters; ++iter) {
             std::array<double, N> nextW, nextB;
             double maxDiff = 0.0;
@@ -249,7 +264,6 @@ struct EncounterTable {
             if (maxDiff < cfg.mapTolerance) break;
         }
 
-        // 2. NEW: Geometric Form Blending (Color Bleed)
         for (int i = 0; i < N; ++i) {
             double formW = lambdaW[i] / initLambdaW[i];
             double formB = lambdaB[i] / initLambdaB[i];
@@ -261,7 +275,6 @@ struct EncounterTable {
             lambdaB[i] = initLambdaB[i] * newFormB;
         }
 
-        // 3. Population Rescaling (Preventing Float Drift)
         double prodInit = 1.0;
         double prodCur = 1.0;
         for (int i = 0; i < N; ++i) {
@@ -306,10 +319,22 @@ static double simulateGame(const EncounterTable& et, int w, int b, Rng& rng,
         lB = et.lambdaB[b];
         nu = cfg.classicalNu;
         
-        double urgency = 1.0 + cfg.overpushEscalation * (currentRound - 1);
         double dynAggW = et.getDynamicAggressionW(w, cfg);
         double dynAggB = et.getDynamicAggressionB(b, cfg);
         
+        dynAggW += et.streak[w] * cfg.streakAggressionMod;
+        dynAggB += et.streak[b] * cfg.streakAggressionMod;
+        
+        double leaderPts = *std::max_element(et.points.begin(), et.points.end());
+        if (leaderPts > 0.0) {
+            if (et.points[w] >= leaderPts) dynAggW -= cfg.leaderCautionPenalty;
+            if (et.points[b] >= leaderPts) dynAggB -= cfg.leaderCautionPenalty;
+        }
+        
+        dynAggW = std::clamp(dynAggW, 0.0, 1.0);
+        dynAggB = std::clamp(dynAggB, 0.0, 1.0);
+        
+        double urgency = 1.0 + cfg.overpushEscalation * (currentRound - 1);
         double baseOverpush = (dynAggW + dynAggB) / 2.0;
         double p_chaos = std::min(1.0, baseOverpush * urgency);
         
