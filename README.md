@@ -4,6 +4,16 @@ A multi-threaded Monte Carlo simulator for 8-player round-robin chess tournament
 
 The included `tournament.json` models the **2026 FIDE Candidates Tournament** (Caruana, Nakamura, Giri, Yi Wei, Sindarov, Praggnanandhaa, Esipenko, Bluebaum).
 
+## Animated GIF
+
+![Animation](results/animation.gif)
+
+Run `make_gif.py` to combine all round PNGs in `results/` into `results/animation.gif`.
+
+```
+python3 make_gif.py
+```
+
 ## Visualizations
 
 <!-- Add new rounds here (most recent first): copy the <details> block and update the round number and image path -->
