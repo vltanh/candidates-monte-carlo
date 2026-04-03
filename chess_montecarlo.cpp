@@ -1,6 +1,6 @@
 // chess_montecarlo.cpp
 // Build: g++ -O3 -march=native -std=c++17 -pthread chess_montecarlo.cpp -o chess_montecarlo
-// Usage: ./chess_montecarlo [tournament.json]
+// Usage: ./chess_montecarlo [tournament.json] [simulate_from_round]
 
 #include <array>
 #include <vector>
@@ -21,24 +21,10 @@
 
 using json = nlohmann::json;
 
-// ─── Constants ────────────────────────────────────────────────────────────────
-
-static constexpr int    N                 = 8;
-static constexpr int    GPR               = N / 2;   // games per round = 4
-static constexpr int    MAP_ITERS         = 100;     // Convergence iterations
-static constexpr double MAP_TOLERANCE     = 1e-8;    // Convergence threshold
-static constexpr double PRIOR_WEIGHT      = 1.0;     // Strength of Elo prior vs. observed games
-static constexpr double INITIAL_WHITE_ADV = 35.0;    // Pre-tournament seed distribution
-
-// Davidson Draw Affinities (nu). Higher = more draws.
-// nu = 2.5 yields ~55% draws. nu = 1.5 yields ~42% draws.
-static constexpr double CLASSICAL_NU      = 2.5;     
-static constexpr double RAPID_NU          = 1.5;     
-static constexpr double BLITZ_NU          = 0.8;     
+static constexpr int N   = 8;
+static constexpr int GPR = N / 2;
 
 enum TimeControl { CLASSICAL, RAPID, BLITZ };
-
-// ─── Win probability (Davidson Native) ────────────────────────────────────────
 
 struct Probs { double win, draw, loss; };
 
@@ -62,10 +48,27 @@ struct Config {
     std::array<double, N>      ratings;
     std::array<double, N>      rapidRatings;
     std::array<double, N>      blitzRatings;
+    std::array<double, N>      aggW;          
+    std::array<double, N>      aggB;          
     std::vector<KnownGame>     knownGames;
     std::vector<ScheduledGame> schedule;
-    int runs              = 1'000'000;
-    int simulateFromRound = 1;
+    
+    // Configurable Hyperparameters
+    int    runs;
+    int    simulateFromRound;
+    int    mapIters;
+    double mapTolerance;
+    double priorWeight;
+    double initialWhiteAdv;
+    double classicalNu;
+    double rapidNu;
+    double blitzNu;
+    double overpushEscalation;
+    double overpushNuMultiplier;
+    double aggPriorWeight;
+    double defaultAggW;
+    double defaultAggB;
+    double colorBleed; // NEW: Cross-pollination factor
 };
 
 static double parseResult(const std::string& s) {
@@ -75,14 +78,35 @@ static double parseResult(const std::string& s) {
     throw std::runtime_error("Unknown result: \"" + s + "\"");
 }
 
-static Config buildConfig(const std::string& path) {
+static Config buildConfig(const std::string& path, int cliSimRound) {
     std::ifstream f(path);
     if (!f) throw std::runtime_error("Cannot open: " + path);
 
     json doc = json::parse(f);
     Config cfg;
-    cfg.runs              = doc.value("runs", 1'000'000);
-    cfg.simulateFromRound = doc.value("simulate_from_round", 1);
+    
+    cfg.runs                 = doc.value("runs", 1'000'000);
+    cfg.mapIters             = doc.value("map_iters", 100);
+    cfg.mapTolerance         = doc.value("map_tolerance", 1e-8);
+    cfg.priorWeight          = doc.value("prior_weight", 8.0);
+    cfg.initialWhiteAdv      = doc.value("initial_white_adv", 35.0);
+    cfg.classicalNu          = doc.value("classical_nu", 1.8);
+    cfg.rapidNu              = doc.value("rapid_nu", 1.5);
+    cfg.blitzNu              = doc.value("blitz_nu", 0.8);
+    cfg.overpushEscalation   = doc.value("overpush_escalation", 0.05);
+    cfg.overpushNuMultiplier = doc.value("overpush_nu_multiplier", 0.20);
+    cfg.aggPriorWeight       = doc.value("agg_prior_weight", 4.0);
+    cfg.defaultAggW          = doc.value("default_aggression_w", 0.25);
+    cfg.defaultAggB          = doc.value("default_aggression_b", 0.15);
+    
+    // Default 15% form bleed between colors
+    cfg.colorBleed           = doc.value("color_bleed", 0.15); 
+
+    if (cliSimRound > 0) {
+        cfg.simulateFromRound = cliSimRound;
+    } else {
+        cfg.simulateFromRound = doc.value("simulate_from_round", 1);
+    }
 
     const auto& players = doc.at("players");
     if ((int)players.size() != N)
@@ -96,9 +120,11 @@ static Config buildConfig(const std::string& path) {
         cfg.names[i]        = p.at("name").get<std::string>();
         cfg.ratings[i]      = p.at("rating").get<double>();
         
-        // Use rapid/blitz fallback to classical if missing in JSON
         cfg.rapidRatings[i] = p.value("rapid_rating", cfg.ratings[i]); 
         cfg.blitzRatings[i] = p.value("blitz_rating", cfg.ratings[i]); 
+        
+        cfg.aggW[i] = p.value("aggression_w", cfg.defaultAggW); 
+        cfg.aggB[i] = p.value("aggression_b", cfg.defaultAggB); 
     }
 
     const auto& schedule = doc.at("schedule");
@@ -119,7 +145,7 @@ static Config buildConfig(const std::string& path) {
     return cfg;
 }
 
-// ─── Encounter table (Pure Probability Space) ────────────────────────────────
+// ─── Encounter table ──────────────────────────────────────────────────────────
 
 struct EncounterTable {
     std::array<double, N> lambdaW, lambdaB; 
@@ -129,16 +155,25 @@ struct EncounterTable {
     double A_WB[N][N]; 
     double W_W[N];     
     double W_B[N];     
+    
+    double decisiveW[N];
+    double totalW[N];
+    double decisiveB[N];
+    double totalB[N];
 
     void init(const Config& cfg) {
         for (int i = 0; i < N; ++i) {
-            // Convert FIDE Elo to pure latent strength strictly for prior initialization
-            initLambdaW[i] = lambdaW[i] = std::pow(10.0, (cfg.ratings[i] + INITIAL_WHITE_ADV / 2.0) / 400.0);
-            initLambdaB[i] = lambdaB[i] = std::pow(10.0, (cfg.ratings[i] - INITIAL_WHITE_ADV / 2.0) / 400.0);
+            initLambdaW[i] = lambdaW[i] = std::pow(10.0, (cfg.ratings[i] + cfg.initialWhiteAdv / 2.0) / 400.0);
+            initLambdaB[i] = lambdaB[i] = std::pow(10.0, (cfg.ratings[i] - cfg.initialWhiteAdv / 2.0) / 400.0);
             
             points[i] = 0.0;
             W_W[i] = 0.0;
             W_B[i] = 0.0;
+            
+            decisiveW[i] = 0.0;
+            totalW[i] = 0.0;
+            decisiveB[i] = 0.0;
+            totalB[i] = 0.0;
         }
         for (int i = 0; i < N; ++i)
             for (int j = 0; j < N; ++j)
@@ -152,31 +187,56 @@ struct EncounterTable {
         
         points[w] += whitePoints;
         points[b] += 1.0 - whitePoints;
+        
+        double isDecisive = (whitePoints == 0.5) ? 0.0 : 1.0;
+        
+        decisiveW[w] += isDecisive;
+        totalW[w]    += 1.0;
+        
+        decisiveB[b] += isDecisive;
+        totalB[b]    += 1.0;
     }
 
-    void updateDynamicRatings() {
-        for (int iter = 0; iter < MAP_ITERS; ++iter) {
+    // Fetches the dynamically learned and cross-pollinated White aggression
+    double getDynamicAggressionW(int p, const Config& cfg) const {
+        double rawW = (cfg.aggW[p] * cfg.aggPriorWeight + decisiveW[p]) / 
+                      (cfg.aggPriorWeight + totalW[p]);
+                      
+        double rawB = (cfg.aggB[p] * cfg.aggPriorWeight + decisiveB[p]) / 
+                      (cfg.aggPriorWeight + totalB[p]);
+                      
+        return rawW * (1.0 - cfg.colorBleed) + rawB * cfg.colorBleed;
+    }
+    
+    // Fetches the dynamically learned and cross-pollinated Black aggression
+    double getDynamicAggressionB(int p, const Config& cfg) const {
+        double rawW = (cfg.aggW[p] * cfg.aggPriorWeight + decisiveW[p]) / 
+                      (cfg.aggPriorWeight + totalW[p]);
+                      
+        double rawB = (cfg.aggB[p] * cfg.aggPriorWeight + decisiveB[p]) / 
+                      (cfg.aggPriorWeight + totalB[p]);
+                      
+        return rawB * (1.0 - cfg.colorBleed) + rawW * cfg.colorBleed;
+    }
+
+    void updateDynamicRatings(const Config& cfg) {
+        // 1. Isolated Bipartite MAP Update
+        for (int iter = 0; iter < cfg.mapIters; ++iter) {
             std::array<double, N> nextW, nextB;
             double maxDiff = 0.0;
             
             for (int i = 0; i < N; ++i) {
-                // Update White Latent Strength
-                double denomW = (2.0 * PRIOR_WEIGHT) / (lambdaW[i] + initLambdaW[i]);
+                double denomW = (2.0 * cfg.priorWeight) / (lambdaW[i] + initLambdaW[i]);
                 for (int j = 0; j < N; ++j) {
-                    if (A_WB[i][j] > 0.0) {
-                        denomW += A_WB[i][j] / (lambdaW[i] + lambdaB[j]);
-                    }
+                    if (A_WB[i][j] > 0.0) denomW += A_WB[i][j] / (lambdaW[i] + lambdaB[j]);
                 }
-                nextW[i] = (PRIOR_WEIGHT + W_W[i]) / denomW;
+                nextW[i] = (cfg.priorWeight + W_W[i]) / denomW;
                 
-                // Update Black Latent Strength
-                double denomB = (2.0 * PRIOR_WEIGHT) / (lambdaB[i] + initLambdaB[i]);
+                double denomB = (2.0 * cfg.priorWeight) / (lambdaB[i] + initLambdaB[i]);
                 for (int j = 0; j < N; ++j) {
-                    if (A_WB[j][i] > 0.0) { 
-                        denomB += A_WB[j][i] / (lambdaW[j] + lambdaB[i]);
-                    }
+                    if (A_WB[j][i] > 0.0) denomB += A_WB[j][i] / (lambdaW[j] + lambdaB[i]);
                 }
-                nextB[i] = (PRIOR_WEIGHT + W_B[i]) / denomB;
+                nextB[i] = (cfg.priorWeight + W_B[i]) / denomB;
                 
                 double diffW = std::abs(nextW[i] - lambdaW[i]);
                 double diffB = std::abs(nextB[i] - lambdaB[i]);
@@ -186,10 +246,22 @@ struct EncounterTable {
             
             lambdaW = nextW;
             lambdaB = nextB;
-            if (maxDiff < MAP_TOLERANCE) break;
+            if (maxDiff < cfg.mapTolerance) break;
         }
 
-        // Geometric Mean Rescaling to prevent float population drift
+        // 2. NEW: Geometric Form Blending (Color Bleed)
+        for (int i = 0; i < N; ++i) {
+            double formW = lambdaW[i] / initLambdaW[i];
+            double formB = lambdaB[i] / initLambdaB[i];
+            
+            double newFormW = std::pow(formW, 1.0 - cfg.colorBleed) * std::pow(formB, cfg.colorBleed);
+            double newFormB = std::pow(formB, 1.0 - cfg.colorBleed) * std::pow(formW, cfg.colorBleed);
+            
+            lambdaW[i] = initLambdaW[i] * newFormW;
+            lambdaB[i] = initLambdaB[i] * newFormB;
+        }
+
+        // 3. Population Rescaling (Preventing Float Drift)
         double prodInit = 1.0;
         double prodCur = 1.0;
         for (int i = 0; i < N; ++i) {
@@ -217,22 +289,33 @@ struct Rng {
 // ─── Game simulation ──────────────────────────────────────────────────────────
 
 static double simulateGame(const EncounterTable& et, int w, int b, Rng& rng,
-                           TimeControl tc, const Config& cfg) {
+                           TimeControl tc, const Config& cfg, int currentRound = 1) {
                                 
     double lW, lB, nu;
 
     if (tc == RAPID) {
-        lW = std::pow(10.0, (cfg.rapidRatings[w] + INITIAL_WHITE_ADV / 2.0) / 400.0);
-        lB = std::pow(10.0, (cfg.rapidRatings[b] - INITIAL_WHITE_ADV / 2.0) / 400.0);
-        nu = RAPID_NU;
+        lW = std::pow(10.0, (cfg.rapidRatings[w] + cfg.initialWhiteAdv / 2.0) / 400.0);
+        lB = std::pow(10.0, (cfg.rapidRatings[b] - cfg.initialWhiteAdv / 2.0) / 400.0);
+        nu = cfg.rapidNu;
     } else if (tc == BLITZ) {
-        lW = std::pow(10.0, (cfg.blitzRatings[w] + INITIAL_WHITE_ADV / 2.0) / 400.0);
-        lB = std::pow(10.0, (cfg.blitzRatings[b] - INITIAL_WHITE_ADV / 2.0) / 400.0);
-        nu = BLITZ_NU;
+        lW = std::pow(10.0, (cfg.blitzRatings[w] + cfg.initialWhiteAdv / 2.0) / 400.0);
+        lB = std::pow(10.0, (cfg.blitzRatings[b] - cfg.initialWhiteAdv / 2.0) / 400.0);
+        nu = cfg.blitzNu;
     } else {
         lW = et.lambdaW[w];
         lB = et.lambdaB[b];
-        nu = CLASSICAL_NU;
+        nu = cfg.classicalNu;
+        
+        double urgency = 1.0 + cfg.overpushEscalation * (currentRound - 1);
+        double dynAggW = et.getDynamicAggressionW(w, cfg);
+        double dynAggB = et.getDynamicAggressionB(b, cfg);
+        
+        double baseOverpush = (dynAggW + dynAggB) / 2.0;
+        double p_chaos = std::min(1.0, baseOverpush * urgency);
+        
+        if (rng() < p_chaos) {
+            nu *= cfg.overpushNuMultiplier;
+        }
     }
     
     auto p = winProbability(lW, lB, nu);
@@ -280,18 +363,15 @@ static std::vector<int> playoffRoundRobin(EncounterTable& et,
 }
 
 static int knockoutMatch(EncounterTable& et, int p1, int p2, Rng& rng, const Config& cfg) {
-    // 4.4.2.1.3 (a) - One game, colors by lot
     int w1 = (rng() < 0.5) ? p1 : p2;
     int b1 = (w1 == p1) ? p2 : p1;
 
     double r1 = simulateGame(et, w1, b1, rng, BLITZ, cfg);
     if (r1 != 0.5) return (r1 == 1.0) ? w1 : b1;
 
-    // 4.4.2.1.3 (b) - Colors reversed
     double r2 = simulateGame(et, b1, w1, rng, BLITZ, cfg);
     if (r2 != 0.5) return (r2 == 1.0) ? b1 : w1;
 
-    // 4.4.2.1.3 (c) - Sudden death. Draw = Black wins
     int sdw = (rng() < 0.5) ? w1 : b1;
     int sdb = (sdw == w1) ? b1 : w1;
     return (simulateGame(et, sdw, sdb, rng, BLITZ, cfg) == 1.0) ? sdw : sdb;
@@ -331,18 +411,21 @@ static int runOneIteration(const Config& cfg, Rng& rng, int tracker[N][N][3]) {
         const auto& g = cfg.knownGames[i];
         et.setEncounter(g.w, g.b, g.whitePoints);
         if ((i + 1) % GPR == 0) {
-            et.updateDynamicRatings();
+            et.updateDynamicRatings(cfg);
         }
     }
     if (!cfg.knownGames.empty() && cfg.knownGames.size() % GPR != 0) {
-        et.updateDynamicRatings();
+        et.updateDynamicRatings(cfg);
     }
 
     const int nGames = static_cast<int>(cfg.schedule.size());
     for (int i = 0; i < nGames; ++i) {
         auto [w, b] = cfg.schedule[i];
         
-        double wp = simulateGame(et, w, b, rng, CLASSICAL, cfg);
+        int absolute_gi = static_cast<int>(cfg.knownGames.size()) + i;
+        int currentRound = (absolute_gi / GPR) + 1;
+        
+        double wp = simulateGame(et, w, b, rng, CLASSICAL, cfg, currentRound);
 
         if      (wp == 1.0) tracker[w][b][0]++;
         else if (wp == 0.5) tracker[w][b][1]++;
@@ -350,8 +433,7 @@ static int runOneIteration(const Config& cfg, Rng& rng, int tracker[N][N][3]) {
 
         et.setEncounter(w, b, wp);
 
-        int abs_game = static_cast<int>(cfg.knownGames.size()) + i + 1;
-        if (abs_game % GPR == 0) et.updateDynamicRatings();
+        if ((absolute_gi + 1) % GPR == 0) et.updateDynamicRatings(cfg);
     }
 
     double maxPts = *std::max_element(et.points.begin(), et.points.end());
@@ -479,7 +561,9 @@ static void runMonteCarlo(const Config& cfg, int totalIters) {
 
 int main(int argc, char* argv[]) {
     const std::string path = (argc > 1) ? argv[1] : "tournament.json";
-    Config cfg = buildConfig(path);
+    int cliSimRound = (argc > 2) ? std::stoi(argv[2]) : -1;
+    
+    Config cfg = buildConfig(path, cliSimRound);
     runMonteCarlo(cfg, cfg.runs);
     return 0;
 }
