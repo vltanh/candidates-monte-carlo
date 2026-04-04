@@ -19,6 +19,13 @@ python3 make_gif.py
 <!-- Add new rounds here (most recent first): copy the <details> block and update the round number and image path -->
 
 <details>
+<summary>Round 7</summary>
+
+![Round 7](results/r7.png)
+
+</details>
+
+<details>
 <summary>Round 6</summary>
 
 ![Round 6](results/r6.png)
