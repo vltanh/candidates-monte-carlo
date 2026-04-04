@@ -1,6 +1,6 @@
 # Chess Monte Carlo Simulation
 
-A multi-threaded Monte Carlo simulator for 8-player round-robin chess tournaments. Models dynamic per-player ratings that update as games are played, then runs millions of simulated completions to estimate win probabilities.
+A multi-threaded Monte Carlo simulator for 8-player round-robin chess tournaments. Uses an Ordered Logit model in log-odds (theta) space with hierarchical covariance shrinkage, then runs millions of simulated completions to estimate win probabilities.
 
 The included `tournament.json` models the **2026 FIDE Candidates Tournament** (Caruana, Nakamura, Giri, Yi Wei, Sindarov, Praggnanandhaa, Esipenko, Bluebaum).
 
@@ -17,6 +17,13 @@ python3 make_gif.py
 ## Visualizations
 
 <!-- Add new rounds here (most recent first): copy the <details> block and update the round number and image path -->
+
+<details>
+<summary>Round 7</summary>
+
+![Round 7](results/r7.png)
+
+</details>
 
 <details>
 <summary>Round 6</summary>
@@ -62,14 +69,13 @@ python3 make_gif.py
 
 ## Features
 
-- **Dynamic Bayesian ratings** — a 2N anchored MAP estimator maintains separate White and Black latent strengths per player, updated every round
-- **Parametric draw model** — draw probability proportional to ν·√(λW·λB), where ν is a time-control-specific tuning parameter (`classical_nu`, `rapid_nu`, `blitz_nu`)
-- **Overpush mechanics** — each player has separate White/Black aggression scores (fraction of decisive games as White/Black); when both players are likely to take risks, ν is reduced (more decisive games), scaled by round urgency
-- **Streak modifier** — players on a winning streak become more aggressive; players on a losing streak become more cautious (scaled by `streak_aggression_mod`); draws reset the streak
-- **Leader caution** — the tournament leader's aggression is reduced by `leader_caution_penalty`, modeling conservative play when protecting a lead
-- **Color bleed** — aggression and rating form cross-pollinate between colors: a player's White aggression is informed slightly by their Black results and vice versa; λW/λB are also geometrically blended after each MAP update and rescaled to prevent drift
-- **Time control support** — uses Classical, Rapid, or Blitz ratings for the appropriate stage
-- **FIDE 2026 playoff rules** — tiebreaks follow the official Rapid → Blitz → Sudden-death knockout sequence (Regulation 4.4.2)
+- **Ordered Logit outcome model** — win/draw/loss probabilities derived from a logistic CDF with calibrated draw thresholds; naturally handles the three-way outcome without separate draw-rate tuning per player pair
+- **Theta (log-odds) space** — all ratings are stored and compared in log-odds space (`Elo × ln(10)/400`), making differences directly interpretable as log-odds ratios
+- **Rating velocity projection** — time-decayed weighted least squares over historical rating lists estimates each player's current trajectory; the slope (theta/period) is projected forward by `lookahead_factor`
+- **Hierarchical covariance shrinkage** — a Laplace/Inverse-Wishart prior over the (Classical, Rapid, Blitz) theta vector shrinks Rapid/Blitz ratings toward the Classical estimate, regularizing players with sparse rapid/blitz history
+- **Separate time-control ratings** — Classical, Rapid, and Blitz thetas are tracked independently; the correct rating is used for each game type
+- **Streak momentum** — players on a consecutive win streak receive a positive theta boost; losing streaks apply a negative boost; draws reset the streak
+- **FIDE 2026 playoff rules** — tiebreaks follow a Blitz sudden-death knockout sequence
 - **Parallel simulation** — work is distributed across all hardware threads via `std::thread`
 
 ## Build
@@ -86,7 +92,7 @@ Requires a C++17-capable compiler. The only dependency is [`json.hpp`](https://g
 ./chess_montecarlo [tournament.json] [simulate_from_round]
 ```
 
-Defaults to `tournament.json` in the current directory. The optional second argument overrides `simulate_from_round` from the JSON. Output is printed to stdout.
+Defaults to `tournament.json` in the current directory. The optional second argument overrides which round to simulate from. Output is printed to stdout.
 
 Redirect to a file to feed into the visualizer:
 
@@ -99,37 +105,40 @@ Redirect to a file to feed into the visualizer:
 ```jsonc
 {
   "runs": 10000000,              // number of Monte Carlo iterations
-  "simulate_from_round": 3,      // rounds before this are treated as known history
 
-  // Model hyperparameters (all optional — defaults shown)
-  "prior_weight": 1.0,           // MAP prior strength anchoring ratings to initial values
-  "initial_white_adv": 35.0,     // Elo points of White advantage split ±17.5 per side
-  "classical_nu": 2.5,           // draw rate scaling for classical games
-  "rapid_nu": 1.5,               // draw rate scaling for rapid tiebreaks
-  "blitz_nu": 0.8,               // draw rate scaling for blitz tiebreaks
-  "overpush_escalation": 0.02,   // per-round urgency multiplier on overpush probability
-  "overpush_nu_multiplier": 0.20,// nu is multiplied by this when overpush triggers
-  "agg_prior_weight": 4.0,       // prior strength for per-player aggression estimates
-  "default_aggression_w": 0.25,  // prior decisive-game fraction as White
-  "default_aggression_b": 0.15,  // prior decisive-game fraction as Black
-  "streak_aggression_mod": 0.03, // aggression delta per consecutive win/loss in streak
-  "leader_caution_penalty": 0.05,// aggression reduction applied to the tournament leader
-  "color_bleed": 0.10,           // cross-pollination factor between White/Black form & aggression
-  "map_iters": 100,              // max MAP fixed-point iterations per round update
-  "map_tolerance": 1e-8,         // convergence threshold for MAP iteration
+  // Velocity projection
+  "lookahead_factor": 4.0,       // multiplier on the estimated rating slope
+  "velocity_time_decay": 0.95,   // exponential decay weight for older history entries
+
+  // Ordered Logit parameters
+  "initial_white_adv": 35.0,     // White advantage in Elo (converted to theta internally)
+  "draw_rate_classical": 0.55,   // empirical draw rate — calibrates the classical draw threshold
+  "draw_rate_rapid": 0.35,       // empirical draw rate — calibrates the rapid draw threshold
+  "draw_rate_blitz": 0.25,       // empirical draw rate — calibrates the blitz draw threshold
+
+  // Hierarchical shrinkage prior
+  "epistemic_variance": 0.5,     // tau² — prior variance on player theta vectors
+  "iw_degrees_of_freedom": 4,    // nu — Inverse-Wishart degrees of freedom
 
   "players": [
     {
       "fide_id": 2020009,
       "name": "Caruana, Fabiano",
-      "rating": 2793,
-      "rapid_rating": 2727,      // optional, falls back to rating
-      "blitz_rating": 2749,      // optional, falls back to rating
-      "aggression_w": 0.25,      // optional, prior decisive-game fraction as White
-      "aggression_b": 0.15       // optional, prior decisive-game fraction as Black
+      "rating": 2793,                          // FIDE classical rating
+      "rapid_rating": 2727,                    // optional, falls back to rating
+      "blitz_rating": 2749,                    // optional, falls back to rating
+
+      // Historical rating lists (oldest → newest) for velocity estimation
+      "history": [2795, 2795, 2795, 2793],     // classical
+      "games_played": [15, 0, 0, 16],          // games in each period (weights the WLS)
+      "rapid_history": [2751, 2727],
+      "rapid_games_played": [22, 2],
+      "blitz_history": [2751, 2769, 2749],
+      "blitz_games_played": [8, 23, 15]
     }
     // ... 7 more players (exactly 8 required)
   ],
+
   "schedule": [
     { "white": 2020009, "black": 2016192, "result": "1-0"     }, // known game
     { "white": 2020009, "black": 2016192, "result": "1/2-1/2" }, // known game
@@ -163,31 +172,37 @@ Output is saved as `round{N}.png` in the input directory by default.
 
 ## How the model works
 
-Each player has two latent strengths: λW (White) and λB (Black). Before any games are played, these are initialized from the FIDE classical rating ± 17.5 Elo (half of `initial_white_adv`).
+### Rating representation
 
-After each round, the simulator updates λW and λB in three steps:
+All ratings are stored in **theta space** (log-odds units): `θ = Elo × ln(10)/400`. Differences between thetas are directly interpretable as log-odds of one player winning. The population is mean-centered for identifiability.
 
-1. **MAP fixed-point iteration** — solves the anchored Bradley-Terry MAP equations given all games played so far. The prior pulls each λ back toward its initial value (strength controlled by `prior_weight`). Early upsets shift the posterior, revising expectations for future rounds.
+### Velocity projection
 
-2. **Geometric form blending (color bleed)** — a player's relative form as White (λW / λW₀) is blended with their relative form as Black (λB / λB₀), and vice versa, using a weighted geometric mean controlled by `color_bleed`. This lets a player who has been performing well in general also benefit slightly across both colors.
+For each player and time control (Classical, Rapid, Blitz), a **time-decayed weighted least squares** regression is run over the historical rating list. The slope (theta units per period) is the estimated rating velocity. This slope is projected forward by `lookahead_factor` and added to the current rating, modeling expected form at tournament time.
 
-3. **Population rescaling** — the geometric mean of all λ values is kept equal to the initial baseline, preventing floating-point drift over many rounds.
+### Hierarchical shrinkage
 
-Win and draw probabilities for a game between White player w and Black player b are:
+A **Laplace/Inverse-Wishart** prior over the 3-dimensional (Classical, Rapid, Blitz) theta vector is used to regularize ratings. Concretely, the Classical theta of each player is updated by a conditional shift derived from the Rapid and Blitz observations, weighted by the estimated cross-covariance. This pulls players with consistent rapid/blitz performance toward their implied classical strength, and regularizes outliers with sparse history.
+
+### Game outcome model
+
+Win/draw/loss probabilities follow an **Ordered Logit** model:
 
 ```
-p_win  = λW[w] / Z
-p_draw = ν · √(λW[w] · λB[b]) / Z
-p_loss = λB[b] / Z
+delta  = θW - θB + γ          (γ = white advantage in theta space)
+p_loss = σ((-c - delta))
+p_win  = 1 - σ((c - delta))
+p_draw = 1 - p_loss - p_win
 ```
 
-where Z is the normalizing sum and ν is the time-control draw-rate parameter.
+where `σ` is the logistic sigmoid and `c` is the draw threshold calibrated from the empirical draw rate for the time control:
 
-**Overpush mechanic:** before each classical game, the model assembles an effective aggression score for each player:
+```
+c = log((1 + draw_rate) / (1 - draw_rate))
+```
 
-1. Start from the Bayesian-smoothed decisive-game fraction for that color, cross-pollinated via `color_bleed` with the other color's estimate.
-2. Add `streak × streak_aggression_mod` — a winning streak (positive) raises aggression; a losing streak (negative) lowers it. A draw resets the streak to zero.
-3. Subtract `leader_caution_penalty` if the player is currently at or above the maximum points in the standings.
-4. Clamp to [0, 1].
+For classical games, a **streak momentum** term is added to each player's theta before computing probabilities: `+0.2 × streak` per consecutive win (negative for losses), modeling psychological momentum.
 
-The average aggression of both players, scaled by a round-urgency factor (1 + `overpush_escalation` × (round − 1)), gives a probability that both players will "overpush." When overpush triggers, ν is multiplied by `overpush_nu_multiplier`, sharply reducing draw probability to model high-stakes decisive play.
+### Tiebreaks
+
+When multiple players finish with equal points, a Blitz sudden-death playoff is simulated using each player's Blitz theta.

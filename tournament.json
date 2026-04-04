@@ -1,24 +1,16 @@
 {
-  "runs": 1000000,
-  "map_iters": 100,
-  "map_tolerance": 1e-8,
-  "prior_weight": 1.0,
-  "initial_white_adv": 35.0,
-  "color_bleed": 0.1,
-  "classical_nu": 2.5,
-  "rapid_nu": 1.5,
-  "blitz_nu": 0.8,
-  "overpush_escalation": 0.02,
-  "overpush_nu_multiplier": 0.20,
-  "agg_prior_weight": 4.0,
-  "default_aggression_w": 0.25,
-  "default_aggression_b": 0.15,
-  "streak_aggression_mod": 0.03,
-  "leader_caution_penalty": 0.05,
-  "lookahead_factor": 1.0,
-  "rapid_form_weight": 0.25, 
-  "blitz_form_weight": 0.15,
+  "runs": 10000000,
+
+  "lookahead_factor": 4.0,
   "velocity_time_decay": 0.95,
+  "initial_white_adv": 35.0,
+
+  "draw_rate_classical": 0.55,
+  "draw_rate_rapid": 0.35,
+  "draw_rate_blitz": 0.25,
+
+  "epistemic_variance": 0.5,
+  "iw_degrees_of_freedom": 4,
   "players": [
     { 
       "fide_id": 2020009,  
@@ -151,10 +143,10 @@
     { "white": 2016192,  "black": 14205483, "result": "0-1" },
     { "white": 24116068, "black": 8603405,  "result": "1/2-1/2" },
 
-    { "white": 2020009,  "black": 24175439 },
-    { "white": 2016192,  "black": 25059530 },
-    { "white": 24116068, "black": 24651516 },
-    { "white": 8603405,  "black": 14205483 },
+    { "white": 2020009,  "black": 24175439, "result": "1/2-1/2" },
+    { "white": 2016192,  "black": 25059530, "result": "1/2-1/2" },
+    { "white": 24116068, "black": 24651516, "result": "1/2-1/2" },
+    { "white": 8603405,  "black": 14205483, "result": "0-1" },
 
     { "white": 24175439, "black": 8603405  },
     { "white": 14205483, "black": 24116068 },
