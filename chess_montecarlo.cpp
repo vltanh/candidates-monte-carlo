@@ -150,7 +150,7 @@ static Config buildConfig(const std::string &path, int cliSimRound)
     if (!f)
         throw std::runtime_error("Cannot open: " + path);
 
-    json doc = json::parse(f);
+    json doc = json::parse(f, nullptr, true, true);
     Config cfg;
 
     cfg.runs = doc.value("runs", 10'000'000);
