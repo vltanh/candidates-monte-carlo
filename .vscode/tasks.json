@@ -1,0 +1,39 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "build",
+            "type": "shell",
+            "command": "g++",
+            "args": [
+                "-O3",
+                "-march=native",
+                "-std=c++17",
+                "-pthread",
+                "${workspaceFolder}/chess_montecarlo.cpp",
+                "-o",
+                "${workspaceFolder}/bin/chess_montecarlo"
+            ],
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "problemMatcher": "$gcc"
+        },
+        {
+            "label": "build (debug)",
+            "type": "shell",
+            "command": "g++",
+            "args": [
+                "-g",
+                "-std=c++17",
+                "-pthread",
+                "${workspaceFolder}/chess_montecarlo.cpp",
+                "-o",
+                "${workspaceFolder}/bin/chess_montecarlo_debug"
+            ],
+            "group": "build",
+            "problemMatcher": "$gcc"
+        }
+    ]
+}
