@@ -1,5 +1,5 @@
 {
-  "runs": 10000000,
+  "runs": 100000,
   "map_iters": 100,
   "map_tolerance": 1e-8,
   "prior_weight": 1.0,
@@ -126,74 +126,75 @@
     }
   ],
   "schedule": [
-    { "white": 2020009,  "black": 2016192,  "result": "1-0"     },
-    { "white": 25059530, "black": 24116068, "result": "1-0"     },
-    { "white": 24651516, "black": 8603405,  "result": "1/2-1/2" },
-    { "white": 14205483, "black": 24175439, "result": "1-0"     },
-
-    { "white": 24175439, "black": 2016192,  "result": "1/2-1/2" },
-    { "white": 24116068, "black": 2020009,  "result": "1/2-1/2" },
-    { "white": 8603405,  "black": 25059530, "result": "1/2-1/2" },
-    { "white": 14205483, "black": 24651516, "result": "1/2-1/2" },
-
-    { "white": 25059530, "black": 14205483, "result": "0-1"     },
-    { "white": 2020009,  "black": 8603405,  "result": "1-0"     },
-    { "white": 2016192,  "black": 24116068, "result": "1/2-1/2" },
-    { "white": 24651516, "black": 24175439, "result": "1/2-1/2" },
-
-    { "white": 14205483, "black": 2020009,  "result": "1-0"     },
-    { "white": 24651516, "black": 25059530, "result": "1/2-1/2" },
-    { "white": 24175439, "black": 24116068, "result": "0-1"     },
-    { "white": 8603405,  "black": 2016192,  "result": "1/2-1/2" },
-
-    { "white": 25059530, "black": 24175439, "result": "1/2-1/2" },
-    { "white": 2020009,  "black": 24651516, "result": "1-0" },
-    { "white": 2016192,  "black": 14205483, "result": "0-1" },
-    { "white": 24116068, "black": 8603405,  "result": "1/2-1/2" },
-
-    { "white": 2020009,  "black": 24175439, "result": "1/2-1/2" },
-    { "white": 2016192,  "black": 25059530, "result": "1/2-1/2" },
-    { "white": 24116068, "black": 24651516, "result": "1/2-1/2" },
-    { "white": 8603405,  "black": 14205483, "result": "0-1" },
-
-    { "white": 24175439, "black": 8603405  },
-    { "white": 14205483, "black": 24116068 },
-    { "white": 24651516, "black": 2016192  },
-    { "white": 25059530, "black": 2020009  },
-
-    { "white": 24175439, "black": 14205483 },
-    { "white": 8603405,  "black": 24651516 },
-    { "white": 24116068, "black": 25059530 },
-    { "white": 2016192,  "black": 2020009  },
-
-    { "white": 2016192,  "black": 24175439 },
-    { "white": 2020009,  "black": 24116068 },
-    { "white": 25059530, "black": 8603405  },
-    { "white": 24651516, "black": 14205483 },
-
-    { "white": 24175439, "black": 24651516 },
-    { "white": 14205483, "black": 25059530 },
-    { "white": 8603405,  "black": 2020009  },
-    { "white": 24116068, "black": 2016192  },
-
-    { "white": 24116068, "black": 24175439 },
-    { "white": 2016192,  "black": 8603405  },
-    { "white": 2020009,  "black": 14205483 },
-    { "white": 25059530, "black": 24651516 },
-
-    { "white": 24175439, "black": 25059530 },
-    { "white": 24651516, "black": 2020009  },
-    { "white": 14205483, "black": 2016192  },
-    { "white": 8603405,  "black": 24116068 },
-
-    { "white": 8603405,  "black": 24175439 },
-    { "white": 24116068, "black": 14205483 },
-    { "white": 2016192,  "black": 24651516 },
-    { "white": 2020009,  "black": 25059530 },
-
-    { "white": 24175439, "black": 2020009  },
-    { "white": 25059530, "black": 2016192  },
-    { "white": 24651516, "black": 24116068 },
-    { "white": 14205483, "black": 8603405  }
+    // Round 1
+    { "white": 2020009,  "black": 2016192,  "result": "1-0"     }, // Caruana vs Nakamura
+    { "white": 25059530, "black": 24116068, "result": "1-0"     }, // Pragg vs Anish
+    { "white": 24651516, "black": 8603405,  "result": "1/2-1/2" }, // Bluebaum vs Wei Yi
+    { "white": 14205483, "black": 24175439, "result": "1-0"     }, // Sindarov vs Esipenko
+    // Round 2
+    { "white": 24175439, "black": 2016192,  "result": "1/2-1/2" }, // Esipenko vs Nakamura
+    { "white": 24116068, "black": 2020009,  "result": "1/2-1/2" }, // Anish vs Caruana
+    { "white": 8603405,  "black": 25059530, "result": "1/2-1/2" }, // Wei Yi vs Pragg
+    { "white": 14205483, "black": 24651516, "result": "1/2-1/2" }, // Sindarov vs Bluebaum
+    // Round 3
+    { "white": 25059530, "black": 14205483, "result": "0-1"     }, // Pragg vs Sindarov
+    { "white": 2020009,  "black": 8603405,  "result": "1-0"     }, // Caruana vs Wei Yi
+    { "white": 2016192,  "black": 24116068, "result": "1/2-1/2" }, // Nakamura vs Anish
+    { "white": 24651516, "black": 24175439, "result": "1/2-1/2" }, // Bluebaum vs Esipenko
+    // Round 4
+    { "white": 14205483, "black": 2020009,  "result": "1-0"     }, // Sindarov vs Caruana
+    { "white": 24651516, "black": 25059530, "result": "1/2-1/2" }, // Bluebaum vs Pragg
+    { "white": 24175439, "black": 24116068, "result": "0-1"     }, // Esipenko vs Anish
+    { "white": 8603405,  "black": 2016192,  "result": "1/2-1/2" }, // Wei Yi vs Nakamura
+    // Round 5
+    { "white": 25059530, "black": 24175439, "result": "1/2-1/2" }, // Pragg vs Esipenko
+    { "white": 2020009,  "black": 24651516, "result": "1-0"     }, // Caruana vs Bluebaum
+    { "white": 2016192,  "black": 14205483, "result": "0-1"     }, // Nakamura vs Sindarov
+    { "white": 24116068, "black": 8603405,  "result": "1/2-1/2" }, // Anish vs Wei Yi
+    // Round 6
+    { "white": 2020009,  "black": 24175439, "result": "1/2-1/2" }, // Caruana vs Esipenko
+    { "white": 2016192,  "black": 25059530, "result": "1/2-1/2" }, // Nakamura vs Pragg
+    { "white": 24116068, "black": 24651516, "result": "1/2-1/2" }, // Anish vs Bluebaum
+    { "white": 8603405,  "black": 14205483, "result": "0-1"     }, // Wei Yi vs Sindarov
+    // Round 7
+    { "white": 24175439, "black": 8603405  }, // Esipenko vs Wei Yi
+    { "white": 14205483, "black": 24116068 }, // Sindarov vs Anish
+    { "white": 24651516, "black": 2016192  }, // Bluebaum vs Nakamura
+    { "white": 25059530, "black": 2020009  }, // Pragg vs Caruana
+    // Round 8
+    { "white": 24175439, "black": 14205483 }, // Esipenko vs Sindarov
+    { "white": 8603405,  "black": 24651516 }, // Wei Yi vs Bluebaum
+    { "white": 24116068, "black": 25059530 }, // Anish vs Pragg
+    { "white": 2016192,  "black": 2020009  }, // Nakamura vs Caruana
+    // Round 9
+    { "white": 2016192,  "black": 24175439 }, // Nakamura vs Esipenko
+    { "white": 2020009,  "black": 24116068 }, // Caruana vs Anish
+    { "white": 25059530, "black": 8603405  }, // Pragg vs Wei Yi
+    { "white": 24651516, "black": 14205483 }, // Bluebaum vs Sindarov
+    // Round 10
+    { "white": 24175439, "black": 24651516 }, // Esipenko vs Bluebaum
+    { "white": 14205483, "black": 25059530 }, // Sindarov vs Pragg
+    { "white": 8603405,  "black": 2020009  }, // Wei Yi vs Caruana
+    { "white": 24116068, "black": 2016192  }, // Anish vs Nakamura
+    // Round 11
+    { "white": 24116068, "black": 24175439 }, // Anish vs Esipenko
+    { "white": 2016192,  "black": 8603405  }, // Nakamura vs Wei Yi
+    { "white": 2020009,  "black": 14205483 }, // Caruana vs Sindarov
+    { "white": 25059530, "black": 24651516 }, // Pragg vs Bluebaum
+    // Round 12
+    { "white": 24175439, "black": 25059530 }, // Esipenko vs Pragg
+    { "white": 24651516, "black": 2020009  }, // Bluebaum vs Caruana
+    { "white": 14205483, "black": 2016192  }, // Sindarov vs Nakamura
+    { "white": 8603405,  "black": 24116068 }, // Wei Yi vs Anish
+    // Round 13
+    { "white": 8603405,  "black": 24175439 }, // Wei Yi vs Esipenko
+    { "white": 24116068, "black": 14205483 }, // Anish vs Sindarov
+    { "white": 2016192,  "black": 24651516 }, // Nakamura vs Bluebaum
+    { "white": 2020009,  "black": 25059530 }, // Caruana vs Pragg
+    // Round 14
+    { "white": 24175439, "black": 2020009  }, // Esipenko vs Caruana
+    { "white": 25059530, "black": 2016192  }, // Pragg vs Nakamura
+    { "white": 24651516, "black": 24116068 }, // Bluebaum vs Anish
+    { "white": 14205483, "black": 8603405  }  // Sindarov vs Wei Yi
   ]
 }
