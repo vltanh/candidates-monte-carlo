@@ -8,8 +8,8 @@ Yi, Wei: 1.5 pts
 Nakamura, Hikaru: 1.5 pts
 Esipenko, Andrey: 1 pts
 
-Running 1000000 iterations across 20 threads...
-Done in 20.57s
+Running 10000000 iterations across 20 threads...
+Done in 197.58s
 
 === Monte Carlo Match Predictions ===
 
@@ -19,38 +19,38 @@ Praggnanandhaa R vs Esipenko, Andrey
 Caruana, Fabiano vs Bluebaum, Matthias
   1-0: 44.7% | 1/2-1/2: 41.2% | 0-1: 14.1%
 Nakamura, Hikaru vs Sindarov, Javokhir
-  1-0: 22.0% | 1/2-1/2: 44.7% | 0-1: 33.3%
+  1-0: 22.0% | 1/2-1/2: 44.6% | 0-1: 33.3%
 Giri, Anish vs Yi, Wei
-  1-0: 31.7% | 1/2-1/2: 45.6% | 0-1: 22.7%
+  1-0: 31.8% | 1/2-1/2: 45.6% | 0-1: 22.7%
 
 
 --- ROUND 6 ---
 Caruana, Fabiano vs Esipenko, Andrey
-  1-0: 54.0% | 1/2-1/2: 34.3% | 0-1: 11.7%
+  1-0: 54.0% | 1/2-1/2: 34.4% | 0-1: 11.7%
 Nakamura, Hikaru vs Praggnanandhaa R
-  1-0: 32.8% | 1/2-1/2: 46.8% | 0-1: 20.4%
+  1-0: 32.7% | 1/2-1/2: 46.9% | 0-1: 20.4%
 Giri, Anish vs Bluebaum, Matthias
-  1-0: 26.7% | 1/2-1/2: 45.9% | 0-1: 27.4%
+  1-0: 26.6% | 1/2-1/2: 45.9% | 0-1: 27.5%
 Yi, Wei vs Sindarov, Javokhir
-  1-0: 18.6% | 1/2-1/2: 43.6% | 0-1: 37.8%
+  1-0: 18.6% | 1/2-1/2: 43.5% | 0-1: 37.8%
 
 
 --- ROUND 7 ---
 Esipenko, Andrey vs Yi, Wei
-  1-0: 24.5% | 1/2-1/2: 43.3% | 0-1: 32.1%
+  1-0: 24.6% | 1/2-1/2: 43.2% | 0-1: 32.2%
 Sindarov, Javokhir vs Giri, Anish
-  1-0: 44.0% | 1/2-1/2: 38.2% | 0-1: 17.9%
+  1-0: 44.0% | 1/2-1/2: 38.2% | 0-1: 17.8%
 Bluebaum, Matthias vs Nakamura, Hikaru
-  1-0: 25.6% | 1/2-1/2: 47.7% | 0-1: 26.8%
+  1-0: 25.5% | 1/2-1/2: 47.7% | 0-1: 26.8%
 Praggnanandhaa R vs Caruana, Fabiano
-  1-0: 34.4% | 1/2-1/2: 39.6% | 0-1: 26.0%
+  1-0: 34.4% | 1/2-1/2: 39.5% | 0-1: 26.1%
 
 
 --- ROUND 8 ---
 Esipenko, Andrey vs Sindarov, Javokhir
-  1-0: 14.6% | 1/2-1/2: 36.8% | 0-1: 48.6%
+  1-0: 14.6% | 1/2-1/2: 36.7% | 0-1: 48.6%
 Yi, Wei vs Bluebaum, Matthias
-  1-0: 28.2% | 1/2-1/2: 45.3% | 0-1: 26.6%
+  1-0: 28.1% | 1/2-1/2: 45.2% | 0-1: 26.6%
 Giri, Anish vs Praggnanandhaa R
   1-0: 28.6% | 1/2-1/2: 44.9% | 0-1: 26.5%
 Nakamura, Hikaru vs Caruana, Fabiano
@@ -61,55 +61,55 @@ Nakamura, Hikaru vs Caruana, Fabiano
 Nakamura, Hikaru vs Esipenko, Andrey
   1-0: 40.6% | 1/2-1/2: 39.6% | 0-1: 19.8%
 Caruana, Fabiano vs Giri, Anish
-  1-0: 47.1% | 1/2-1/2: 34.6% | 0-1: 18.3%
+  1-0: 47.1% | 1/2-1/2: 34.5% | 0-1: 18.4%
 Praggnanandhaa R vs Yi, Wei
   1-0: 37.9% | 1/2-1/2: 37.5% | 0-1: 24.6%
 Bluebaum, Matthias vs Sindarov, Javokhir
-  1-0: 18.5% | 1/2-1/2: 40.6% | 0-1: 40.8%
+  1-0: 18.5% | 1/2-1/2: 40.6% | 0-1: 40.9%
 
 
 --- ROUND 10 ---
 Esipenko, Andrey vs Bluebaum, Matthias
-  1-0: 22.7% | 1/2-1/2: 40.4% | 0-1: 36.8%
+  1-0: 22.8% | 1/2-1/2: 40.4% | 0-1: 36.8%
 Sindarov, Javokhir vs Praggnanandhaa R
   1-0: 43.1% | 1/2-1/2: 38.9% | 0-1: 18.0%
 Yi, Wei vs Caruana, Fabiano
   1-0: 31.0% | 1/2-1/2: 41.4% | 0-1: 27.6%
 Giri, Anish vs Nakamura, Hikaru
-  1-0: 31.5% | 1/2-1/2: 42.0% | 0-1: 26.5%
+  1-0: 31.6% | 1/2-1/2: 41.9% | 0-1: 26.5%
 
 
 --- ROUND 11 ---
 Giri, Anish vs Esipenko, Andrey
-  1-0: 37.4% | 1/2-1/2: 38.5% | 0-1: 24.1%
+  1-0: 37.5% | 1/2-1/2: 38.4% | 0-1: 24.1%
 Nakamura, Hikaru vs Yi, Wei
-  1-0: 38.4% | 1/2-1/2: 38.5% | 0-1: 23.0%
+  1-0: 38.5% | 1/2-1/2: 38.5% | 0-1: 23.0%
 Caruana, Fabiano vs Sindarov, Javokhir
   1-0: 38.1% | 1/2-1/2: 34.0% | 0-1: 27.9%
 Praggnanandhaa R vs Bluebaum, Matthias
-  1-0: 33.8% | 1/2-1/2: 37.2% | 0-1: 29.0%
+  1-0: 33.8% | 1/2-1/2: 37.3% | 0-1: 29.0%
 
 
 --- ROUND 12 ---
 Esipenko, Andrey vs Praggnanandhaa R
-  1-0: 24.3% | 1/2-1/2: 39.4% | 0-1: 36.3%
+  1-0: 24.3% | 1/2-1/2: 39.4% | 0-1: 36.4%
 Bluebaum, Matthias vs Caruana, Fabiano
-  1-0: 28.2% | 1/2-1/2: 41.2% | 0-1: 30.6%
+  1-0: 28.3% | 1/2-1/2: 41.2% | 0-1: 30.6%
 Sindarov, Javokhir vs Nakamura, Hikaru
-  1-0: 45.2% | 1/2-1/2: 36.5% | 0-1: 18.4%
+  1-0: 45.2% | 1/2-1/2: 36.5% | 0-1: 18.3%
 Yi, Wei vs Giri, Anish
-  1-0: 31.0% | 1/2-1/2: 39.0% | 0-1: 30.0%
+  1-0: 30.9% | 1/2-1/2: 39.0% | 0-1: 30.0%
 
 
 --- ROUND 13 ---
 Yi, Wei vs Esipenko, Andrey
-  1-0: 38.0% | 1/2-1/2: 38.0% | 0-1: 24.0%
+  1-0: 38.0% | 1/2-1/2: 37.9% | 0-1: 24.1%
 Giri, Anish vs Sindarov, Javokhir
   1-0: 23.7% | 1/2-1/2: 35.3% | 0-1: 41.0%
 Nakamura, Hikaru vs Bluebaum, Matthias
   1-0: 34.6% | 1/2-1/2: 38.5% | 0-1: 26.9%
 Caruana, Fabiano vs Praggnanandhaa R
-  1-0: 47.4% | 1/2-1/2: 33.7% | 0-1: 18.9%
+  1-0: 47.3% | 1/2-1/2: 33.8% | 0-1: 18.9%
 
 
 --- ROUND 14 ---
@@ -118,16 +118,16 @@ Esipenko, Andrey vs Caruana, Fabiano
 Praggnanandhaa R vs Nakamura, Hikaru
   1-0: 36.0% | 1/2-1/2: 35.6% | 0-1: 28.4%
 Bluebaum, Matthias vs Giri, Anish
-  1-0: 28.4% | 1/2-1/2: 39.0% | 0-1: 32.6%
+  1-0: 28.4% | 1/2-1/2: 38.9% | 0-1: 32.6%
 Sindarov, Javokhir vs Yi, Wei
-  1-0: 48.7% | 1/2-1/2: 33.0% | 0-1: 18.4%
+  1-0: 48.7% | 1/2-1/2: 33.0% | 0-1: 18.3%
 
 === Tournament Win Probabilities (from Round 5) ===
-  58.83% - Sindarov, Javokhir
-  20.17% - Caruana, Fabiano
-   5.31% - Praggnanandhaa R
+  58.80% - Sindarov, Javokhir
+  20.18% - Caruana, Fabiano
+   5.34% - Praggnanandhaa R
    4.95% - Giri, Anish
    4.33% - Nakamura, Hikaru
    3.59% - Bluebaum, Matthias
-   2.48% - Yi, Wei
-   0.34% - Esipenko, Andrey
+   2.46% - Yi, Wei
+   0.35% - Esipenko, Andrey
