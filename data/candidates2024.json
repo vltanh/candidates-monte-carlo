@@ -1,0 +1,84 @@
+{
+  "players": [
+    { "fide_id": 2020009, "name": "Caruana, Fabiano", "rating": 2803 },
+    { "fide_id": 2016192, "name": "Nakamura, Hikaru", "rating": 2789 },
+    { "fide_id": 12573981, "name": "Firouzja, Alireza", "rating": 2760 },
+    { "fide_id": 4168119, "name": "Nepomniachtchi, Ian", "rating": 2758 },
+    { "fide_id": 25059530, "name": "Praggnanandhaa R", "rating": 2747 },
+    { "fide_id": 46616543, "name": "Gukesh D", "rating": 2743 },
+    { "fide_id": 5029465, "name": "Vidit, Santosh Gujrathi", "rating": 2727 },
+    { "fide_id": 13402960, "name": "Abasov, Nijat", "rating": 2632 }
+  ],
+  "schedule": [
+    // Round 1
+    { "white": 2020009,  "black": 2016192,  "result": "1/2-1/2"}, // Caruana vs Nakamura
+    { "white": 13402960, "black": 4168119,  "result": "1/2-1/2"}, // Abasov vs Nepomniachtchi
+    { "white": 12573981, "black": 25059530, "result": "1/2-1/2"}, // Firouzja vs Praggnanandhaa R
+    { "white": 46616543, "black": 5029465,  "result": "1/2-1/2"}, // Gukesh D vs Vidit
+    // Round 2
+    { "white": 25059530, "black": 46616543, "result": "0-1"    }, // Praggnanandhaa R vs Gukesh D
+    { "white": 2016192,  "black": 5029465,  "result": "0-1"    }, // Nakamura vs Vidit
+    { "white": 4168119,  "black": 12573981, "result": "1-0"    }, // Nepomniachtchi vs Firouzja
+    { "white": 2020009,  "black": 13402960, "result": "1-0"    }, // Caruana vs Abasov
+    // Round 3
+    { "white": 46616543, "black": 4168119,  "result": "1/2-1/2"}, // Gukesh D vs Nepomniachtchi
+    { "white": 13402960, "black": 2016192,  "result": "1/2-1/2"}, // Abasov vs Nakamura
+    { "white": 12573981, "black": 2020009,  "result": "1/2-1/2"}, // Firouzja vs Caruana
+    { "white": 5029465,  "black": 25059530, "result": "0-1"    }, // Vidit vs Praggnanandhaa R
+    // Round 4
+    { "white": 2016192,  "black": 25059530, "result": "1/2-1/2"}, // Nakamura vs Praggnanandhaa R
+    { "white": 4168119,  "black": 5029465,  "result": "1-0"    }, // Nepomniachtchi vs Vidit
+    { "white": 2020009,  "black": 46616543, "result": "1/2-1/2"}, // Caruana vs Gukesh D
+    { "white": 13402960, "black": 12573981, "result": "1/2-1/2"}, // Abasov vs Firouzja
+    // Round 5
+    { "white": 25059530, "black": 4168119,  "result": "1/2-1/2"}, // Praggnanandhaa R vs Nepomniachtchi
+    { "white": 12573981, "black": 2016192,  "result": "0-1"    }, // Firouzja vs Nakamura
+    { "white": 46616543, "black": 13402960, "result": "1-0"    }, // Gukesh D vs Abasov
+    { "white": 5029465,  "black": 2020009,  "result": "1/2-1/2"}, // Vidit vs Caruana
+    // Round 6
+    { "white": 4168119,  "black": 2020009,  "result": "1/2-1/2"}, // Nepomniachtchi vs Caruana
+    { "white": 46616543, "black": 2016192,  "result": "1/2-1/2"}, // Gukesh D vs Nakamura
+    { "white": 5029465,  "black": 12573981, "result": "1-0"    }, // Vidit vs Firouzja
+    { "white": 25059530, "black": 13402960, "result": "1-0"    }, // Praggnanandhaa R vs Abasov
+    // Round 7
+    { "white": 12573981, "black": 46616543, "result": "1-0"    }, // Firouzja vs Gukesh D
+    { "white": 2016192,  "black": 4168119,  "result": "1/2-1/2"}, // Nakamura vs Nepomniachtchi
+    { "white": 2020009,  "black": 25059530, "result": "1/2-1/2"}, // Caruana vs Praggnanandhaa R
+    { "white": 13402960, "black": 5029465,  "result": "1/2-1/2"}, // Abasov vs Vidit
+    // Round 8
+    { "white": 25059530, "black": 12573981, "result": "1/2-1/2"}, // Praggnanandhaa R vs Firouzja
+    { "white": 5029465,  "black": 46616543, "result": "0-1"    }, // Vidit vs Gukesh D
+    { "white": 2016192,  "black": 2020009,  "result": "1-0"    }, // Nakamura vs Caruana
+    { "white": 4168119,  "black": 13402960, "result": "1/2-1/2"}, // Nepomniachtchi vs Abasov
+    // Round 9
+    { "white": 5029465,  "black": 2016192,  "result": "1-0"    }, // Vidit vs Nakamura
+    { "white": 46616543, "black": 25059530, "result": "1/2-1/2"}, // Gukesh D vs Praggnanandhaa R
+    { "white": 12573981, "black": 4168119,  "result": "1/2-1/2"}, // Firouzja vs Nepomniachtchi
+    { "white": 13402960, "black": 2020009,  "result": "1/2-1/2"}, // Abasov vs Caruana
+    // Round 10
+    { "white": 25059530, "black": 5029465,  "result": "1/2-1/2"}, // Praggnanandhaa R vs Vidit
+    { "white": 2016192,  "black": 13402960, "result": "1-0"    }, // Nakamura vs Abasov
+    { "white": 4168119,  "black": 46616543, "result": "1/2-1/2"}, // Nepomniachtchi vs Gukesh D
+    { "white": 2020009,  "black": 12573981, "result": "1-0"    }, // Caruana vs Firouzja
+    // Round 11
+    { "white": 25059530, "black": 2016192,  "result": "0-1"    }, // Praggnanandhaa R vs Nakamura
+    { "white": 5029465,  "black": 4168119,  "result": "0-1"    }, // Vidit vs Nepomniachtchi
+    { "white": 46616543, "black": 2020009,  "result": "1/2-1/2"}, // Gukesh D vs Caruana
+    { "white": 12573981, "black": 13402960, "result": "1-0"    }, // Firouzja vs Abasov
+    // Round 12
+    { "white": 4168119,  "black": 25059530, "result": "1/2-1/2"}, // Nepomniachtchi vs Praggnanandhaa R
+    { "white": 2016192,  "black": 12573981, "result": "1-0"    }, // Nakamura vs Firouzja
+    { "white": 13402960, "black": 46616543, "result": "0-1"    }, // Abasov vs Gukesh D
+    { "white": 2020009,  "black": 5029465,  "result": "1-0"    }, // Caruana vs Vidit
+    // Round 13
+    { "white": 4168119,  "black": 2016192,  "result": "1/2-1/2"}, // Nepomniachtchi vs Nakamura
+    { "white": 25059530, "black": 2020009,  "result": "0-1"    }, // Praggnanandhaa R vs Caruana
+    { "white": 5029465,  "black": 13402960, "result": "1/2-1/2"}, // Vidit vs Abasov
+    { "white": 46616543, "black": 12573981, "result": "1-0"    }, // Gukesh D vs Firouzja
+    // Round 14
+    { "white": 2016192,  "black": 46616543, "result": "1/2-1/2"}, // Nakamura vs Gukesh D
+    { "white": 2020009,  "black": 4168119,  "result": "1/2-1/2"}, // Caruana vs Nepomniachtchi
+    { "white": 12573981, "black": 5029465,  "result": "1/2-1/2"}, // Firouzja vs Vidit
+    { "white": 13402960, "black": 25059530, "result": "0-1"    } // Abasov vs Praggnanandhaa R
+  ]
+}
