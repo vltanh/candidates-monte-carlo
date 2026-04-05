@@ -434,6 +434,7 @@ plt.subplots_adjust(bottom=0.06)
 output_filename = (
     args.output if args.output else os.path.join(input_dir, f"round{max_k}.png")
 )
+os.makedirs(os.path.dirname(os.path.abspath(output_filename)), exist_ok=True)
 plt.savefig(output_filename, dpi=300, bbox_inches="tight")
 print(
     f"Successfully generated Center-Anchored 14-Round Command Center. Plot saved to '{output_filename}'"
