@@ -132,6 +132,7 @@ def plot_pareto(
     plt.tight_layout()
 
     if out_path:
+        out_path.parent.mkdir(parents=True, exist_ok=True)
         fig.savefig(out_path, dpi=150, bbox_inches="tight", facecolor=fig.get_facecolor())
         print(f"Plot saved to {out_path}")
     else:

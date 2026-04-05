@@ -37,6 +37,7 @@ def main():
         raise SystemExit(f"No PNG files found in {args.input_dir}")
 
     frames = [Image.open(p).convert("RGBA") for p in pngs]
+    output.parent.mkdir(parents=True, exist_ok=True)
     frames[0].save(
         output,
         save_all=True,
