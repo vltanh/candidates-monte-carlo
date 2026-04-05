@@ -1,6 +1,6 @@
 // chess_montecarlo.cpp
-// Build: g++ -O3 -march=native -std=c++17 -pthread chess_montecarlo.cpp -o chess_montecarlo
-// Usage: ./chess_montecarlo [hyperparameters.json] [tournament.json] [simulate_from_round]
+// Build: g++ -O3 -march=native -std=c++17 -pthread src/chess_montecarlo.cpp -o bin/chess_montecarlo
+// Usage: ./bin/chess_montecarlo [hyperparameters.json] [tournament.json] [simulate_from_round]
 
 #include <array>
 #include <vector>
