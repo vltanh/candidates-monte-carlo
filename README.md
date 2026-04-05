@@ -52,10 +52,19 @@ python3 scripts/make_gif.py results/candidates2026/ -d 3000 --last-duration 1000
 
 ![Round 8](results/candidates2026/r8.png)
 
-- Sindarov leads 6.0/7, model gives him **75.4%**; Caruana at 18.4% is the only realistic challenger
-- Sindarov is favored even as Black vs Esipenko, reflecting his accumulated form
-- Nakamura–Caruana is essentially a coin flip (~40/24/37); slight White edge for Nakamura offset by Caruana's higher baseline
-- Rounds 7 and 8 produce nearly identical win-probability distributions, suggesting the remaining schedule looks roughly symmetric for Sindarov
+*Round 7 results: Wei Yi beat Esipenko, Sindarov–Giri drew, Bluebaum–Nakamura drew, Pragg–Caruana drew*
+
+- ✓ **Wei Yi beat Esipenko** — model had Wei Yi at 43.6%, correct
+- ✓ **Bluebaum–Nakamura drew** — model near-even (37.5%/36.2%), reasonable
+- ✗ **Sindarov–Giri drew** — model had Sindarov at 43.3%; with a commanding lead Sindarov has no reason to press
+- ✗ **Pragg–Caruana drew** — model had Caruana at 47.8%; Caruana unable to convert yet again in a must-win situation
+- Sindarov's win prob **increases** to 75.4% despite only drawing in R7 — his 1.5-point lead means draws are now strategically optimal
+
+*Round 8 predictions:*
+- Esipenko–Sindarov: 24.6% / 26.4% / **49.0%** — Sindarov heavy favourite as Black
+- Wei Yi–Bluebaum: 37.2% / 26.6% / 36.2% — essentially a coin flip
+- Giri–Pragg: **43.8%** / 25.9% / 30.3% — Giri favoured
+- Nakamura–Caruana: 33.8% / 26.5% / **39.7%** — Caruana slight favourite
 
 </details>
 
@@ -64,9 +73,19 @@ python3 scripts/make_gif.py results/candidates2026/ -d 3000 --last-duration 1000
 
 ![Round 7](results/candidates2026/r7.png)
 
-- Sindarov stretches his lead to 5.5/6; model jumps to **75.1%**, up from 57% after round 5
-- Caruana drops to 18.5% despite being just 1.5 points behind — the gap is small but the model sees it as hard to close in the remaining rounds
-- The rest of the field is effectively eliminated (<3% each)
+*Round 6 results: Caruana–Esipenko drew, Nakamura–Pragg drew, Giri–Bluebaum drew, Sindarov beat Wei Yi*
+
+- ✓ **Sindarov beat Wei Yi** — model predicted (39.7%), correct
+- ✓ **Giri–Bluebaum drew** — model near-even (37.1%/36.5%), fine
+- ✗ **Caruana–Esipenko drew** — model's biggest miss: Caruana was a **53% favourite** for a win against a 2698-rated opponent; Caruana's repeated failure to convert against lower-rated players is the tournament's central story
+- ✗ **Nakamura–Pragg drew** — model had Nakamura at 45.3%
+- Win probs: Sindarov **72.6%**, Caruana 20.9%
+
+*Round 7 predictions:*
+- Esipenko–Wei Yi: 31.2% / 25.2% / **43.6%** — Wei Yi favoured
+- Sindarov–Giri: **43.3%** / 26.7% / 30.0% — Sindarov favoured
+- Bluebaum–Nakamura: 37.5% / 26.3% / 36.2% — near coin-flip
+- Pragg–Caruana: 27.4% / 24.8% / **47.8%** — Caruana strong favourite
 
 </details>
 
@@ -75,9 +94,19 @@ python3 scripts/make_gif.py results/candidates2026/ -d 3000 --last-duration 1000
 
 ![Round 6](results/candidates2026/r6.png)
 
-- Sindarov at 4.5/5, model now at **57.4%** — first time crossing the majority threshold
-- Caruana holds second at 29.9%; Giri is the last player above 4%
-- The gap between first and second is already 1 point with 8 rounds to go
+*Round 5 results: Pragg–Esipenko drew, Caruana beat Bluebaum, Sindarov beat Nakamura, Giri–Wei Yi drew*
+
+- ✓ **Caruana beat Bluebaum** — model predicted (43.6%), correct
+- ✓ **Sindarov beat Nakamura** — model had Sindarov as slight favourite (37.6%), correct
+- ✓ **Pragg–Esipenko drew** — model near-even (37.6%/35.9%), draw is the natural outcome
+- ✓ **Giri–Wei Yi drew** — model near-even (37.1%/36.4%), correct
+- Best round for the model — all 4 outcomes matched; win probs: Sindarov **56.8%**, Caruana 30.9%
+
+*Round 6 predictions:*
+- Caruana–Esipenko: **53.0%** / 24.6% / 22.4% — Caruana strong favourite
+- Nakamura–Pragg: **45.3%** / 25.5% / 29.2% — Nakamura favoured
+- Giri–Bluebaum: 37.1% / 26.4% / 36.5% — near coin-flip
+- Wei Yi–Sindarov: 32.9% / 27.4% / **39.7%** — Sindarov slight favourite
 
 </details>
 
@@ -86,9 +115,19 @@ python3 scripts/make_gif.py results/candidates2026/ -d 3000 --last-duration 1000
 
 ![Round 5](results/candidates2026/r5.png)
 
-- The **turning point**: Sindarov surges to 3.5/4 while Caruana stays at 2.5 — the model flips, with Sindarov becoming the new favorite at **45.3%** and Caruana dropping to 27.3%
-- Round 4 results suggest Sindarov likely won a critical game, possibly against Caruana directly
-- Giri, Nakamura, and Bluebaum are still in range (5–7%) but the window is narrowing
+*Round 4 results: Giri beat Esipenko, Wei Yi–Nakamura drew, Sindarov beat Caruana, Bluebaum–Pragg drew*
+
+- ✓ **Giri beat Esipenko** — model had Giri at 39.5%, correct
+- ✓ **Wei Yi–Nakamura drew** — model near-even (37.2%/35.2%), draw reasonable
+- ✗ **Sindarov beat Caruana** — model had Caruana as marginal favourite (36.1% vs 34.7%); **the tournament's turning point** — Sindarov opens a 1-point lead for the first time
+- ✗ **Bluebaum–Pragg drew** — model had Bluebaum at 44.7%, another expected win becoming a draw
+- Win probability flips: Sindarov 23.6% → **46.9%**, Caruana 33.8% → 26.7%
+
+*Round 5 predictions:*
+- Pragg–Esipenko: 37.2% / 26.9% / 35.9% — near coin-flip, slight Pragg edge
+- Caruana–Bluebaum: **43.1%** / 27.6% / 29.3% — Caruana favoured
+- Nakamura–Sindarov: 34.8% / 27.3% / **37.9%** — Sindarov slight favourite
+- Giri–Wei Yi: 36.8% / 26.3% / 36.9% — near coin-flip
 
 </details>
 
@@ -97,9 +136,19 @@ python3 scripts/make_gif.py results/candidates2026/ -d 3000 --last-duration 1000
 
 ![Round 4](results/candidates2026/r4.png)
 
-- Caruana and Sindarov tied at 2.5/3, model has Caruana at **41.8%** and Sindarov at 31.0%
-- Caruana's higher Elo anchor still outweighs Sindarov's equal score at this early stage
-- Bluebaum and Nakamura still in contention at ~7% each; Pragg has faded to 2.5%
+*Round 3 results: Bluebaum–Esipenko drew, Sindarov beat Pragg, Caruana beat Wei Yi, Nakamura–Giri drew*
+
+- ✓ **Sindarov beat Pragg** — model predicted (43.8%), correct
+- ✓ **Caruana beat Wei Yi** — model predicted (42.4%), correct
+- ✗ **Bluebaum–Esipenko drew** — model had Bluebaum at 44.2%; another expected win becomes a draw
+- ✗ **Nakamura–Giri drew** — model had Nakamura at 40.8%, same pattern; early draws are consistently underestimated
+- Win probs: Caruana **33.8%**, Sindarov 23.6% — both leaders won so their relative order holds
+
+*Round 4 predictions:*
+- Esipenko–Giri: 33.0% / 27.4% / **39.6%** — Giri slight favourite
+- Wei Yi–Nakamura: **37.0%** / 27.9% / 35.1% — near coin-flip, Wei Yi marginal edge
+- Sindarov–Caruana: 34.9% / 28.7% / **36.4%** — near coin-flip, slight Caruana edge
+- Bluebaum–Pragg: **44.5%** / 27.3% / 28.1% — Bluebaum favoured
 
 </details>
 
@@ -108,9 +157,17 @@ python3 scripts/make_gif.py results/candidates2026/ -d 3000 --last-duration 1000
 
 ![Round 3](results/candidates2026/r3.png)
 
-- Three-way tie at the top (Caruana, Sindarov, Pragg at 1.5); Caruana remains the model favorite at **34.1%**
-- The field is still relatively open — five players above 5%
-- Nakamura (0.5/2) and Giri (0.5/2) are already in an early hole
+*Round 2 results: ALL FOUR games drew — Esipenko–Nakamura, Giri–Caruana, Wei Yi–Pragg, Sindarov–Bluebaum*
+
+- ✗ **All 4 Round 2 games drew** — model had the higher-rated player winning in each: Nakamura 42.6%, Caruana 41.1%, Wei Yi 44.8%, Sindarov 40.1%
+- Early-round draws are systematically underestimated; no score pressure yet, players play solidly
+- Win probs barely shift (Caruana 33.8%, Sindarov 23.6%) — correct, since both leaders drew
+
+*Round 3 predictions:*
+- Bluebaum–Esipenko: **44.3%** / 27.8% / 28.0% — Bluebaum favoured
+- Pragg–Sindarov: 27.9% / 28.2% / **43.8%** — Sindarov favoured
+- Caruana–Wei Yi: **42.4%** / 27.8% / 29.8% — Caruana favoured
+- Nakamura–Giri: **40.8%** / 26.9% / 32.2% — Nakamura favoured
 
 </details>
 
@@ -119,8 +176,19 @@ python3 scripts/make_gif.py results/candidates2026/ -d 3000 --last-duration 1000
 
 ![Round 2](results/candidates2026/r2.png)
 
-- After round 1: Caruana, Sindarov, Pragg on 1.0; Wei Yi and Bluebaum on 0.5; Nakamura, Giri, Esipenko on 0.0
-- Caruana leads the model at **32.3%**, Sindarov second at 24.4% — the early wins reinforce their pre-tournament ratings
+*Round 1 results: Caruana beat Nakamura, Pragg beat Giri, Bluebaum–Wei Yi drew, Sindarov beat Esipenko*
+
+- ✓ **Caruana beat Nakamura** — model's top pick (40.4%), correct
+- ✓ **Sindarov beat Esipenko** — strongly predicted (46.1%), correct
+- ✓ **Bluebaum–Wei Yi drew** — model near-even (36.6%/35.1%), draw is reasonable
+- ✗ **Pragg beat Giri** — model had Giri at 41.4%; Pragg punching above his pre-tournament rating
+- Pragg wins but only moves 3.6% → 6.0% — low prior absorbs results slowly; Giri drops from 10.2% → 4.8%
+
+*Round 2 predictions:*
+- Esipenko–Nakamura: 30.4% / 27.8% / **41.9%** — Nakamura favoured
+- Giri–Caruana: 30.5% / 28.3% / **41.1%** — Caruana favoured
+- Wei Yi–Pragg: **44.8%** / 27.7% / 27.5% — Wei Yi favoured
+- Sindarov–Bluebaum: **40.1%** / 27.9% / 32.0% — Sindarov favoured
 
 </details>
 
@@ -129,9 +197,19 @@ python3 scripts/make_gif.py results/candidates2026/ -d 3000 --last-duration 1000
 
 ![Round 1](results/candidates2026/r1.png)
 
-- Pre-tournament: Caruana the clear favorite at **24.3%**, followed by Sindarov at 18.8% and Nakamura at 15.1%
-- Sindarov's second-place ranking may seem surprising given his lower Elo, but his strong rapid/blitz ratings and recent classical form trend are factored in
-- Pragg starts as a long shot at 3.2%, despite his strong results in 2024
+*Pre-tournament predictions*
+
+- **Caruana** is the favourite at **24.4%** despite not having the highest classical Elo (Nakamura leads at 2810 vs Caruana's 2793) — stable flat rating history and balanced overall profile
+- **Nakamura at only 15.0%** despite the highest classical Elo — his rapid/blitz velocity parameters slightly dampen his classical projection; his rating is stable-to-declining [2813→2810]
+- **Sindarov at 17.7%** with only 2745 Elo — strongly rising classical trend [2721→2745, +24 pts] and improving rapid history [2688→2727]; the model rewards momentum
+- **Bluebaum at 11.7%** seems elevated for a 2695-rated player — positive classical trend [2680→2695] and no rapid/blitz data, so no penalty for potential weakness there
+- **Pragg at 3.6%** despite his FIDE ranking — classical rating has been **falling** [2768→2741, −27 pts]; the model tracks the downtrend, not the name
+
+*Round 1 predictions:*
+- Caruana–Nakamura: **40.4%** / 28.8% / 30.8% — Caruana slight favourite
+- Pragg–Giri: 30.5% / 28.1% / **41.4%** — Giri favoured
+- Bluebaum–Wei Yi: 36.6% / 28.3% / 35.1% — near coin-flip
+- Sindarov–Esipenko: **46.1%** / 27.4% / 26.5% — Sindarov clear favourite
 
 </details>
 
