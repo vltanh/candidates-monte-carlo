@@ -427,8 +427,40 @@ static double simulateGame(const EncounterTable &et, int w, int b, Rng &rng,
                 leaderPts = p;
         }
 
-        double combinedDeficit = (leaderPts - et.points[w]) + (leaderPts - et.points[b]);
-        double standingsMultiplier = std::max(0.40, 1.0 - (cfg.standingsAggression * combinedDeficit));
+        // Calculate total rounds dynamically based on the schedule sizes
+        int totalRounds = (cfg.knownGames.size() + cfg.schedule.size()) / GPR;
+
+        auto calcMotivation = [&](int p)
+        {
+            double gamesPlayed = et.totalW[p] + et.totalB[p];
+            double roundsLeft = std::max(1.0, static_cast<double>(totalRounds) - gamesPlayed);
+            double deficit = leaderPts - et.points[p];
+
+            // R represents the ratio of points needed vs absolute maximum points available
+            // R >= 1.0 means the player is mathematically eliminated.
+            double R = deficit / roundsLeft;
+
+            if (R <= 0.0)
+                return 1.0; // The leader plays standard (baseline 1.0)
+
+            if (R < 0.75)
+            {
+                // CONTENDER MODE: Desperation peaks when R is ~0.375
+                // Returns a multiplier < 1.0, which shrinks the draw band (Higher Aggression)
+                double dist = std::abs(R - 0.375) / 0.375;
+                return 1.0 - cfg.standingsAggression * (1.0 - dist);
+            }
+            else
+            {
+                // ELIMINATED / CHILL MODE: Approaches or exceeds mathematical elimination
+                // Returns a multiplier > 1.0, which widens the draw band (Plays safe / More draws)
+                double chillFactor = std::min(1.0, (R - 0.75) / 0.25);
+                return 1.0 + (cfg.standingsAggression * 1.5) * chillFactor;
+            }
+        };
+
+        // Average the motivation states of both players
+        double standingsMultiplier = (calcMotivation(w) + calcMotivation(b)) / 2.0;
 
         // 3. Combine to dynamically scale the draw band
         nu = cfg.classicalNu * styleMultiplier * standingsMultiplier;

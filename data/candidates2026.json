@@ -137,10 +137,10 @@
     { "white": 24116068, "black": 24651516, "result": "1/2-1/2" }, // Giri vs Bluebaum
     { "white": 8603405, "black": 14205483, "result": "0-1" }, // Wei vs Sindarov
     // Round 7
-    { "white": 24175439, "black": 8603405 }, // Esipenko vs Wei
-    { "white": 14205483, "black": 24116068 }, // Sindarov vs Giri
-    { "white": 24651516, "black": 2016192 }, // Bluebaum vs Nakamura
-    { "white": 25059530, "black": 2020009 }, // Praggnanandhaa R vs Caruana
+    { "white": 24175439, "black": 8603405, "result": "0-1" }, // Esipenko vs Wei
+    { "white": 14205483, "black": 24116068, "result": "1/2-1/2" }, // Sindarov vs Giri
+    { "white": 24651516, "black": 2016192, "result": "1/2-1/2" }, // Bluebaum vs Nakamura
+    { "white": 25059530, "black": 2020009, "result": "1/2-1/2" }, // Praggnanandhaa R vs Caruana
     // Round 8
     { "white": 24175439, "black": 14205483 }, // Esipenko vs Sindarov
     { "white": 8603405, "black": 24651516 }, // Wei vs Bluebaum

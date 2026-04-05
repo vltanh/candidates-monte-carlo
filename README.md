@@ -48,9 +48,25 @@ python3 scripts/make_gif.py results/candidates2026/ -d 3000 --last-duration 1000
 <!-- Add new rounds here (most recent first): copy the <details> block and update the round number and image path -->
 
 <details>
+<summary>Round 8 — predictions</summary>
+
+![Round 8](results/candidates2026/r8.png)
+
+- Sindarov leads 6.0/7, model gives him **75.4%**; Caruana at 18.4% is the only realistic challenger
+- Sindarov is favored even as Black vs Esipenko, reflecting his accumulated form
+- Nakamura–Caruana is essentially a coin flip (~40/24/37); slight White edge for Nakamura offset by Caruana's higher baseline
+- Rounds 7 and 8 produce nearly identical win-probability distributions, suggesting the remaining schedule looks roughly symmetric for Sindarov
+
+</details>
+
+<details>
 <summary>Round 7</summary>
 
 ![Round 7](results/candidates2026/r7.png)
+
+- Sindarov stretches his lead to 5.5/6; model jumps to **75.1%**, up from 57% after round 5
+- Caruana drops to 18.5% despite being just 1.5 points behind — the gap is small but the model sees it as hard to close in the remaining rounds
+- The rest of the field is effectively eliminated (<3% each)
 
 </details>
 
@@ -59,12 +75,20 @@ python3 scripts/make_gif.py results/candidates2026/ -d 3000 --last-duration 1000
 
 ![Round 6](results/candidates2026/r6.png)
 
+- Sindarov at 4.5/5, model now at **57.4%** — first time crossing the majority threshold
+- Caruana holds second at 29.9%; Giri is the last player above 4%
+- The gap between first and second is already 1 point with 8 rounds to go
+
 </details>
 
 <details>
 <summary>Round 5</summary>
 
 ![Round 5](results/candidates2026/r5.png)
+
+- The **turning point**: Sindarov surges to 3.5/4 while Caruana stays at 2.5 — the model flips, with Sindarov becoming the new favorite at **45.3%** and Caruana dropping to 27.3%
+- Round 4 results suggest Sindarov likely won a critical game, possibly against Caruana directly
+- Giri, Nakamura, and Bluebaum are still in range (5–7%) but the window is narrowing
 
 </details>
 
@@ -73,12 +97,20 @@ python3 scripts/make_gif.py results/candidates2026/ -d 3000 --last-duration 1000
 
 ![Round 4](results/candidates2026/r4.png)
 
+- Caruana and Sindarov tied at 2.5/3, model has Caruana at **41.8%** and Sindarov at 31.0%
+- Caruana's higher Elo anchor still outweighs Sindarov's equal score at this early stage
+- Bluebaum and Nakamura still in contention at ~7% each; Pragg has faded to 2.5%
+
 </details>
 
 <details>
 <summary>Round 3</summary>
 
 ![Round 3](results/candidates2026/r3.png)
+
+- Three-way tie at the top (Caruana, Sindarov, Pragg at 1.5); Caruana remains the model favorite at **34.1%**
+- The field is still relatively open — five players above 5%
+- Nakamura (0.5/2) and Giri (0.5/2) are already in an early hole
 
 </details>
 
@@ -87,12 +119,19 @@ python3 scripts/make_gif.py results/candidates2026/ -d 3000 --last-duration 1000
 
 ![Round 2](results/candidates2026/r2.png)
 
+- After round 1: Caruana, Sindarov, Pragg on 1.0; Wei Yi and Bluebaum on 0.5; Nakamura, Giri, Esipenko on 0.0
+- Caruana leads the model at **32.3%**, Sindarov second at 24.4% — the early wins reinforce their pre-tournament ratings
+
 </details>
 
 <details>
 <summary>Round 1</summary>
 
 ![Round 1](results/candidates2026/r1.png)
+
+- Pre-tournament: Caruana the clear favorite at **24.3%**, followed by Sindarov at 18.8% and Nakamura at 15.1%
+- Sindarov's second-place ranking may seem surprising given his lower Elo, but his strong rapid/blitz ratings and recent classical form trend are factored in
+- Pragg starts as a long shot at 3.2%, despite his strong results in 2024
 
 </details>
 
@@ -101,7 +140,7 @@ python3 scripts/make_gif.py results/candidates2026/ -d 3000 --last-duration 1000
 - **Dynamic Bayesian ratings** — a 2N anchored MAP estimator maintains separate White and Black latent strengths per player, updated every round
 - **Parametric draw model** — draw probability proportional to ν·√(λW·λB), where ν is a time-control-specific tuning parameter (`classical_nu`, `rapid_nu`, `blitz_nu`)
 - **Style multiplier** — each player has Bayesian-smoothed White/Black aggression scores (fraction of decisive games); ν is scaled by `baselineAgg / matchAgg`, shrinking the draw band when both players play sharply and inflating it when they play solidly
-- **Standings multiplier** — players further behind the leader are more desperate; ν is additionally scaled by `max(0.4, 1 − standings_aggression × combinedDeficit)`, where `combinedDeficit` is the sum of both players' point gaps to the leader
+- **Standings multiplier** — ν is scaled by each player's *motivation*, then averaged. Motivation is computed from `R = deficit / roundsLeft` (points needed as a fraction of points still available): leaders (R ≤ 0) play at baseline (×1.0); contenders (0 < R < 0.75) get a desperation boost that peaks at R = 0.375 (multiplier ≈ `1 − standings_aggression`); near-eliminated or fully eliminated players (R ≥ 0.75) widen their draw band up to `1 + 1.5 × standings_aggression` as they relax pressure
 - **Color bleed** — aggression and rating form cross-pollinate between colors: a player's White aggression is informed slightly by their Black results and vice versa; λW/λB are also geometrically blended after each MAP update and rescaled to prevent drift
 - **Velocity projection** — per-player rating trends across all three time controls are estimated via time-decayed weighted least-squares regression; projected ratings initialize λW/λB, with rapid/blitz deltas blended in via `rapid_form_weight` and `blitz_form_weight`
 - **Time control support** — uses Classical, Rapid, or Blitz ratings for the appropriate stage
@@ -242,11 +281,11 @@ python tune.py configs/hyperparameters.json data/candidates2024.json \
 
 **Evaluation strategy — multi-objective progressive round scoring:** for each round K with known results, the binary is run with `simulate_from_round = K` so rounds 1…K−1 are treated as history and rounds K onward are the held-out predictions. Two independent objectives are minimized simultaneously:
 
-1. **Weighted Game Brier Score** — multi-class Brier score (`(pw − actual_w)² + (pd − actual_d)² + (pb − actual_b)²`) over all predicted games, decay-weighted by `FUTURE_DECAY_WEIGHT^distance` for games further in the future. Decisive outcomes (wins/losses) are up-weighted by `DECISIVE_GAME_WEIGHT` to combat the lazy-draw problem. Each round's score is normalized by its own weight sum, then averaged uniformly across all simulation points.
+1. **Weighted Game Brier Score** — multi-class Brier score (`(pw − actual_w)² + (pd − actual_d)² + (pb − actual_b)²`) over all predicted games, decay-weighted by `FUTURE_DECAY_WEIGHT^distance` for games further in the future. Decisive outcomes (wins/losses) are up-weighted by `DECISIVE_GAME_WEIGHT` to combat the lazy-draw problem. Each round's score is normalized by its own weight sum.
 
-2. **Winner Brier Score** — Brier score over tournament win probability predictions, averaged uniformly across all simulation points.
+2. **Winner Brier Score** — Brier score over tournament win probability predictions.
 
-Both objectives are averaged across simulation points **weighted by round number**: a prediction error at round 13 counts 13× more than one at round 1, reflecting that you should be increasingly accurate as more results are known.
+Both objectives are accumulated **weighted by round number** (`score × r / Σr`): a prediction error at round 13 counts 13× more than one at round 1, reflecting that you should be increasingly accurate as more results are known.
 
 Optuna returns a **Pareto front** of trials offering unique trade-offs between the two objectives. `EVAL_RUNS` at the top of the script controls Monte Carlo iterations per trial (default 10 000 — fast; raise to 200 000+ for a final search).
 
@@ -263,7 +302,13 @@ python scripts/pareto_front.py db/tuning_2024.db chess_montecarlo
 python scripts/pareto_front.py --save results/pareto.png
 ```
 
-The plot shows all completed trials as blue-gradient dots (darker = earlier trial), Pareto-optimal trials as highlighted points connected by a staircase line, and each optimal trial's number as a label. The console table prints all 15 parameters for each Pareto-optimal trial, sorted by combined objective score.
+The plot shows all completed trials as blue-gradient dots (darker = later trial), Pareto-optimal trials as highlighted points connected by a staircase line, and each optimal trial's number as a label. The console table prints all 15 parameters for each Pareto-optimal trial, sorted by combined objective score.
+
+**Example (2024 Candidates — 1 000 trials):**
+
+![Pareto Front](results/candidates2024/pareto.png)
+
+The Optuna #1 ranked trial from this front (Trial 979, Game Brier: 0.2991, Winner Brier: 0.2531) is saved as `configs/best_hyperparameters_candidates2024.json` and used as the base config for the 2026 Candidates predictions.
 
 ## Visualization
 
@@ -314,4 +359,9 @@ where Z is the normalizing sum and ν is the time-control draw-rate parameter.
 
 1. **Style multiplier** — `baselineAgg / matchAgg`, where `matchAgg` is the average Bayesian-smoothed aggression (decisive-game fraction, cross-pollinated via `color_bleed`) of both players. Aggressive pairings shrink the draw band; solid pairings widen it.
 
-2. **Standings multiplier** — `max(0.4, 1 − standings_aggression × combinedDeficit)`, where `combinedDeficit` is the sum of both players' point gaps to the current leader. Games between players deep in the standings become more decisive; games between frontrunners remain near the baseline draw rate.
+2. **Standings multiplier** — each player's motivation is computed from `R = (leaderPoints − playerPoints) / roundsLeft`:
+   - **R ≤ 0** (leader): motivation = 1.0 (standard play)
+   - **0 < R < 0.75** (contender): motivation = `1 − standings_aggression × (1 − |R − 0.375| / 0.375)`, which peaks in desperation at R = 0.375 (roughly half the remaining points needed)
+   - **R ≥ 0.75** (near/fully eliminated): motivation = `1 + 1.5 × standings_aggression × clamp((R − 0.75) / 0.25)`, widening the draw band as the player relaxes
+
+   The final multiplier is the average of both players' motivation values.

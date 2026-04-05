@@ -8,7 +8,7 @@ Vidit, Santosh Gujrathi: 6 pts
 Firouzja, Alireza: 5 pts
 Abasov, Nijat: 3.5 pts
 
-Running 100000 iterations across 20 threads...
+Running 1000000 iterations across 20 threads...
 Done in 0.00s
 
 === Monte Carlo Match Predictions ===

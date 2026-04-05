@@ -1,3 +1,4 @@
+import json
 import os
 import re
 import argparse
@@ -20,6 +21,12 @@ parser.add_argument(
     "--output",
     default=None,
     help="Output file path (default: round{N}.png in the input directory)",
+)
+parser.add_argument(
+    "-t",
+    "--tournament",
+    default=None,
+    help="Path to tournament JSON to show pre-tournament Elo in the bar chart",
 )
 parser.add_argument(
     "-k",
@@ -49,7 +56,20 @@ PLAYER_ALIASES = {
     "Abasov, Nijat": "Abasov",
 }
 
-# 2. Automatically detect and sort round{i}.txt files
+# 2. Load pre-tournament Elo ratings from tournament JSON (optional)
+def load_elos(tournament_path: str) -> dict[str, int]:
+    text = re.sub(r"//[^\n]*", "", open(tournament_path, encoding="utf-8").read())
+    data = json.loads(text)
+    result = {}
+    for p in data["players"]:
+        raw = p["name"]
+        alias = PLAYER_ALIASES.get(raw, raw.split(",")[0].strip())
+        result[alias] = int(p["rating"])
+    return result
+
+player_elos = load_elos(args.tournament) if args.tournament else {}
+
+# 3. Automatically detect and sort round{i}.txt files
 file_pattern = re.compile(r"round(\d+)\.txt")
 files = []
 for f in os.listdir(input_dir):
@@ -190,7 +210,7 @@ for r in range(1, 15):
         all_rounds_data.append((r, matches, False))
 
 # 6. Build the Command Center Grid Layout
-fig = plt.figure(figsize=(34, 16))
+fig = plt.figure(figsize=(30, 16))
 fig.suptitle(
     f"Monte Carlo Predictions: State Before Round {max_k}",
     fontsize=26,
@@ -201,7 +221,7 @@ fig.suptitle(
 gs_main = fig.add_gridspec(4, 1, height_ratios=[1.3, 1, 1, 1], hspace=0.45)
 
 # ─── ROW 0: Timeline & Bar Chart ───
-gs_top = gs_main[0].subgridspec(1, 2, width_ratios=[3, 1], wspace=0.15)
+gs_top = gs_main[0].subgridspec(1, 2, width_ratios=[2, 1.5], wspace=0.25)
 ax_line = fig.add_subplot(gs_top[0])
 ax_bar = fig.add_subplot(gs_top[1])
 
@@ -247,13 +267,18 @@ bar_handles = ax_bar.barh(
 )
 
 ax_bar.set_title(f"Tournament Win %", fontsize=18, weight="bold", pad=10)
-ax_bar.set_xlim(0, max(latest_probs["Win %"].max() + 15, 100))
+ax_bar.set_xlim(0, max(latest_probs["Win %"].max() + 25, 110))
 ax_bar.set_yticks(range(len(latest_probs)))
-ax_bar.set_yticklabels(
-    [f"{p} ({current_standings.get(p, '?')})" for p in latest_probs["Player"]],
-    fontsize=12,
-    weight="bold",
-)
+if player_elos:
+    bar_labels = [
+        f"{p} ({player_elos.get(p, '?')}) · {current_standings.get(p, '?')}"
+        for p in latest_probs["Player"]
+    ]
+else:
+    bar_labels = [
+        f"{p} ({current_standings.get(p, '?')})" for p in latest_probs["Player"]
+    ]
+ax_bar.set_yticklabels(bar_labels, fontsize=12, weight="bold")
 ax_bar.tick_params(axis="y", length=0)
 ax_bar.grid(axis="x", linestyle="--", alpha=0.5)
 ax_bar.set_axisbelow(True)
@@ -274,9 +299,9 @@ for bar in bar_handles:
     )
 
 # ─── ROWS 1-3: Match Predictions Layout ───
-gs_bot1 = gs_main[1].subgridspec(1, 5, wspace=0.6)
-gs_bot2 = gs_main[2].subgridspec(1, 5, wspace=0.6)
-gs_bot3 = gs_main[3].subgridspec(1, 5, wspace=0.6)
+gs_bot1 = gs_main[1].subgridspec(1, 5, wspace=0.7)
+gs_bot2 = gs_main[2].subgridspec(1, 5, wspace=0.7)
+gs_bot3 = gs_main[3].subgridspec(1, 5, wspace=0.7)
 
 
 def plot_matches(ax, df, title, is_history=False):

@@ -8,60 +8,60 @@ Vidit, Santosh Gujrathi: 5 pts
 Firouzja, Alireza: 3.5 pts
 Abasov, Nijat: 3 pts
 
-Running 100000 iterations across 20 threads...
-Done in 1.22s
+Running 1000000 iterations across 20 threads...
+Done in 4.83s
 
 === Monte Carlo Match Predictions ===
 
 --- ROUND 11 ---
 Praggnanandhaa R vs Nakamura, Hikaru
-  1-0: 23.7% | 1/2-1/2: 47.8% | 0-1: 28.6%
+  1-0: 46.1% | 1/2-1/2: 24.2% | 0-1: 29.7%
 Vidit, Santosh Gujrathi vs Nepomniachtchi, Ian
-  1-0: 29.0% | 1/2-1/2: 45.5% | 0-1: 25.5%
+  1-0: 45.0% | 1/2-1/2: 23.5% | 0-1: 31.5%
 Gukesh D vs Caruana, Fabiano
-  1-0: 31.1% | 1/2-1/2: 48.7% | 0-1: 20.2%
+  1-0: 45.8% | 1/2-1/2: 23.8% | 0-1: 30.4%
 Firouzja, Alireza vs Abasov, Nijat
-  1-0: 60.4% | 1/2-1/2: 23.2% | 0-1: 16.5%
+  1-0: 50.4% | 1/2-1/2: 26.6% | 0-1: 23.0%
 
 
 --- ROUND 12 ---
 Nepomniachtchi, Ian vs Praggnanandhaa R
-  1-0: 22.7% | 1/2-1/2: 49.7% | 0-1: 27.7%
+  1-0: 35.3% | 1/2-1/2: 24.5% | 0-1: 40.1%
 Nakamura, Hikaru vs Firouzja, Alireza
-  1-0: 53.5% | 1/2-1/2: 27.6% | 0-1: 18.8%
+  1-0: 50.9% | 1/2-1/2: 25.1% | 0-1: 24.0%
 Abasov, Nijat vs Gukesh D
-  1-0: 21.0% | 1/2-1/2: 31.2% | 0-1: 47.8%
+  1-0: 23.8% | 1/2-1/2: 26.3% | 0-1: 49.9%
 Caruana, Fabiano vs Vidit, Santosh Gujrathi
-  1-0: 43.3% | 1/2-1/2: 34.9% | 0-1: 21.8%
+  1-0: 58.0% | 1/2-1/2: 22.5% | 0-1: 19.5%
 
 
 --- ROUND 13 ---
 Nepomniachtchi, Ian vs Nakamura, Hikaru
-  1-0: 30.4% | 1/2-1/2: 44.8% | 0-1: 24.8%
+  1-0: 39.3% | 1/2-1/2: 25.1% | 0-1: 35.6%
 Praggnanandhaa R vs Caruana, Fabiano
-  1-0: 29.3% | 1/2-1/2: 40.4% | 0-1: 30.3%
+  1-0: 38.2% | 1/2-1/2: 26.5% | 0-1: 35.3%
 Vidit, Santosh Gujrathi vs Abasov, Nijat
-  1-0: 61.1% | 1/2-1/2: 20.5% | 0-1: 18.4%
+  1-0: 50.1% | 1/2-1/2: 27.2% | 0-1: 22.7%
 Gukesh D vs Firouzja, Alireza
-  1-0: 54.7% | 1/2-1/2: 28.4% | 0-1: 16.9%
+  1-0: 57.8% | 1/2-1/2: 24.5% | 0-1: 17.7%
 
 
 --- ROUND 14 ---
 Nakamura, Hikaru vs Gukesh D
-  1-0: 25.7% | 1/2-1/2: 40.4% | 0-1: 33.9%
+  1-0: 34.1% | 1/2-1/2: 27.0% | 0-1: 38.9%
 Caruana, Fabiano vs Nepomniachtchi, Ian
-  1-0: 41.5% | 1/2-1/2: 39.7% | 0-1: 18.8%
+  1-0: 55.5% | 1/2-1/2: 26.5% | 0-1: 18.0%
 Firouzja, Alireza vs Vidit, Santosh Gujrathi
-  1-0: 35.4% | 1/2-1/2: 28.4% | 0-1: 36.2%
+  1-0: 40.3% | 1/2-1/2: 29.7% | 0-1: 30.0%
 Abasov, Nijat vs Praggnanandhaa R
-  1-0: 22.0% | 1/2-1/2: 32.1% | 0-1: 45.9%
+  1-0: 26.8% | 1/2-1/2: 30.1% | 0-1: 43.1%
 
 === Tournament Win Probabilities (from Round 11) ===
-  39.99% - Gukesh D
-  18.83% - Nepomniachtchi, Ian
-  13.96% - Caruana, Fabiano
-  13.60% - Nakamura, Hikaru
-  10.14% - Praggnanandhaa R
-   3.48% - Vidit, Santosh Gujrathi
+  38.16% - Gukesh D
+  18.21% - Caruana, Fabiano
+  15.50% - Nepomniachtchi, Ian
+  13.67% - Praggnanandhaa R
+  12.15% - Nakamura, Hikaru
+   2.31% - Vidit, Santosh Gujrathi
    0.00% - Firouzja, Alireza
    0.00% - Abasov, Nijat

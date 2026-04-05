@@ -447,21 +447,28 @@ def main():
     )
 
     if not study.trials:
+        ps = hyper_base.get("prior_weight_sim", 1.0)
+        pk = hyper_base.get("prior_weight_known", 1.0)
+        nc = hyper_base.get("classical_nu", 2.1)
+        nr = hyper_base.get("rapid_nu", 3.9)
+        nb = hyper_base.get("blitz_nu", 1.6)
+        aw = hyper_base.get("default_aggression_w", 0.60)
+        ab = hyper_base.get("default_aggression_b", 0.50)
         baseline = {
-            "prior_weight_known": hyper_base.get("prior_weight_known", 1.0),
-            "prior_weight_sim": hyper_base.get("prior_weight_sim", 1.0),
+            "prior_weight_sim": ps,
+            "prior_weight_known_ratio": pk / ps,
             "initial_white_adv": hyper_base.get("initial_white_adv", 32.0),
             "velocity_time_decay": hyper_base.get("velocity_time_decay", 0.70),
             "lookahead_factor": hyper_base.get("lookahead_factor", 0.60),
             "rapid_form_weight": hyper_base.get("rapid_form_weight", 0.40),
             "blitz_form_weight": hyper_base.get("blitz_form_weight", 0.15),
             "color_bleed": hyper_base.get("color_bleed", 0.05),
-            "classical_nu": hyper_base.get("classical_nu", 2.1),
-            "rapid_nu": hyper_base.get("rapid_nu", 3.9),
-            "blitz_nu": hyper_base.get("blitz_nu", 1.6),
+            "classical_nu": nc,
+            "rapid_nu_ratio": nr / nc,
+            "blitz_nu_ratio": nb / nr,
             "agg_prior_weight": hyper_base.get("agg_prior_weight", 15.5),
-            "default_aggression_w": hyper_base.get("default_aggression_w", 0.60),
-            "default_aggression_b": hyper_base.get("default_aggression_b", 0.50),
+            "default_aggression_w": aw,
+            "default_aggression_b_ratio": ab / aw,
             "standings_aggression": hyper_base.get("standings_aggression", 0.15),
         }
         study.enqueue_trial(baseline)
