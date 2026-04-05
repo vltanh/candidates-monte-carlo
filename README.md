@@ -71,10 +71,10 @@ python3 make_gif.py
 
 - **Dynamic Bayesian ratings** — a 2N anchored MAP estimator maintains separate White and Black latent strengths per player, updated every round
 - **Parametric draw model** — draw probability proportional to ν·√(λW·λB), where ν is a time-control-specific tuning parameter (`classical_nu`, `rapid_nu`, `blitz_nu`)
-- **Overpush mechanics** — each player has separate White/Black aggression scores (fraction of decisive games as White/Black); when both players are likely to take risks, ν is reduced (more decisive games), scaled by round urgency
-- **Streak modifier** — players on a winning streak become more aggressive; players on a losing streak become more cautious (scaled by `streak_aggression_mod`); draws reset the streak
-- **Leader caution** — the tournament leader's aggression is reduced by `leader_caution_penalty`, modeling conservative play when protecting a lead
+- **Style multiplier** — each player has Bayesian-smoothed White/Black aggression scores (fraction of decisive games); ν is scaled by `baselineAgg / matchAgg`, shrinking the draw band when both players play sharply and inflating it when they play solidly
+- **Standings multiplier** — players further behind the leader are more desperate; ν is additionally scaled by `max(0.4, 1 − standings_aggression × combinedDeficit)`, where `combinedDeficit` is the sum of both players' point gaps to the leader
 - **Color bleed** — aggression and rating form cross-pollinate between colors: a player's White aggression is informed slightly by their Black results and vice versa; λW/λB are also geometrically blended after each MAP update and rescaled to prevent drift
+- **Velocity projection** — per-player rating trends across all three time controls are estimated via time-decayed weighted least-squares regression; projected ratings initialize λW/λB, with rapid/blitz deltas blended in via `rapid_form_weight` and `blitz_form_weight`
 - **Time control support** — uses Classical, Rapid, or Blitz ratings for the appropriate stage
 - **FIDE 2026 playoff rules** — tiebreaks follow the official Rapid → Blitz → Sudden-death knockout sequence (Regulation 4.4.2)
 - **Parallel simulation** — work is distributed across all hardware threads via `std::thread`
@@ -90,50 +90,75 @@ Requires a C++17-capable compiler. The only dependency is [`json.hpp`](https://g
 ## Usage
 
 ```bash
-./chess_montecarlo [tournament.json] [simulate_from_round]
+./chess_montecarlo [hyperparameters.json] [tournament.json] [simulate_from_round]
 ```
 
-Defaults to `tournament.json` in the current directory. The optional second argument overrides `simulate_from_round` from the JSON. Output is printed to stdout.
+Both files default to their names in the current directory. `simulate_from_round` must be passed as a CLI argument. Output is printed to stdout.
 
 Redirect to a file to feed into the visualizer:
 
 ```bash
-./chess_montecarlo tournament.json > results/rounds/round5.txt
+./chess_montecarlo hyperparameters.json tournament.json 8 > results/rounds/round8.txt
 ```
 
-## Tournament JSON format
+## JSON format
+
+### `hyperparameters.json`
 
 ```jsonc
 {
-  "runs": 10000000,              // number of Monte Carlo iterations
-  "simulate_from_round": 3,      // rounds before this are treated as known history
+  // ── Simulation ───────────────────────────────────────────────────────────
+  "runs": 1000000,
+  "map_iters": 100,
+  "map_tolerance": 1e-8,
 
-  // Model hyperparameters (all optional — defaults shown)
-  "prior_weight": 1.0,           // MAP prior strength anchoring ratings to initial values
+  // ── MAP prior weights ────────────────────────────────────────────────────
+  "prior_weight": 1.0,           // sets both known and sim; override individually below
+  "prior_weight_known": 0.5,
+  "prior_weight_sim": 2.0,
+
+  // ── Rating initialization & velocity ────────────────────────────────────
   "initial_white_adv": 35.0,     // Elo points of White advantage split ±17.5 per side
-  "classical_nu": 2.5,           // draw rate scaling for classical games
-  "rapid_nu": 1.5,               // draw rate scaling for rapid tiebreaks
-  "blitz_nu": 0.8,               // draw rate scaling for blitz tiebreaks
-  "overpush_escalation": 0.02,   // per-round urgency multiplier on overpush probability
-  "overpush_nu_multiplier": 0.20,// nu is multiplied by this when overpush triggers
-  "agg_prior_weight": 4.0,       // prior strength for per-player aggression estimates
-  "default_aggression_w": 0.25,  // prior decisive-game fraction as White
-  "default_aggression_b": 0.15,  // prior decisive-game fraction as Black
-  "streak_aggression_mod": 0.03, // aggression delta per consecutive win/loss in streak
-  "leader_caution_penalty": 0.05,// aggression reduction applied to the tournament leader
-  "color_bleed": 0.10,           // cross-pollination factor between White/Black form & aggression
-  "map_iters": 100,              // max MAP fixed-point iterations per round update
-  "map_tolerance": 1e-8,         // convergence threshold for MAP iteration
+  "velocity_time_decay": 0.95,
+  "lookahead_factor": 1.0,
 
+  // ── Cross-time-control blending ──────────────────────────────────────────
+  "rapid_form_weight": 0.25,
+  "blitz_form_weight": 0.15,
+  "color_bleed": 0.20,
+
+  // ── Draw model ───────────────────────────────────────────────────────────
+  "classical_nu": 2.5,
+  "rapid_nu": 1.5,
+  "blitz_nu": 0.8,
+
+  // ── Aggression & overpush ────────────────────────────────────────────────
+  "agg_prior_weight": 3.0,
+  "default_aggression_w": 0.30,
+  "default_aggression_b": 0.10,
+  "standings_aggression": 0.15
+}
+```
+
+### `tournament.json`
+
+```jsonc
+{
   "players": [
     {
       "fide_id": 2020009,
       "name": "Caruana, Fabiano",
       "rating": 2793,
-      "rapid_rating": 2727,      // optional, falls back to rating
-      "blitz_rating": 2749,      // optional, falls back to rating
-      "aggression_w": 0.25,      // optional, prior decisive-game fraction as White
-      "aggression_b": 0.15       // optional, prior decisive-game fraction as Black
+      "rapid_rating": 2727,             // optional, falls back to rating
+      "blitz_rating": 2749,             // optional, falls back to rating
+      "aggression_w": 0.25,             // optional, prior decisive-game fraction as White
+      "aggression_b": 0.15,             // optional, prior decisive-game fraction as Black
+      "history": [2780, 2790, 2793],    // optional, classical rating history for velocity (oldest → newest)
+      "games_played": [10, 12, 11],     // optional, game counts per history entry (used as weights)
+      "rapid_history": [2720, 2727],    // optional, rapid rating history
+      "rapid_games_played": [8, 9],     // optional, rapid game counts per history entry
+      "blitz_history": [2740, 2749],    // optional, blitz rating history
+      "blitz_games_played": [15, 14]    // optional, blitz game counts per history entry
     }
     // ... 7 more players (exactly 8 required)
   ],
@@ -145,7 +170,30 @@ Redirect to a file to feed into the visualizer:
 }
 ```
 
-Games are grouped into rounds of 4 (`N/2`). Games before `simulate_from_round` must have a `result`; games from that round onward are simulated.
+Games are grouped into rounds of 4 (`N/2`). Games with a `result` are treated as known history up to `simulate_from_round` (passed via CLI); games from that round onward are simulated.
+
+## Hyperparameter tuning
+
+`tune.py` uses [Optuna](https://optuna.org) to search for the best model parameters.
+
+```bash
+pip install optuna
+python tune.py              # 200 trials, saves to optuna.db
+python tune.py --trials 50  # fewer trials
+python tune.py              # re-run to resume (always continues existing study)
+```
+
+**Evaluation strategy — progressive round scoring:** for each round K with known results, the binary is run with `simulate_from_round = K` so rounds 1…K−1 are treated as history and round K is the held-out prediction. Log loss is averaged across all scored games. This gives every parameter meaningful signal: `prior_weight_known` and `prior_weight_sim` both affect how historical rounds update the MAP ratings.
+
+`EVAL_RUNS` at the top of the script controls the number of Monte Carlo iterations per trial (default 10 000 — very fast; raise to 200 000+ for a final search once good regions are found).
+
+Results are stored in `optuna.db`. To inspect:
+
+```python
+import optuna
+s = optuna.load_study("chess_montecarlo", "sqlite:///optuna.db")
+print(s.best_params)
+```
 
 ## Visualization
 
@@ -170,11 +218,13 @@ Output is saved as `round{N}.png` in the input directory by default.
 
 ## How the model works
 
-Each player has two latent strengths: λW (White) and λB (Black). Before any games are played, these are initialized from the FIDE classical rating ± 17.5 Elo (half of `initial_white_adv`).
+Each player has two latent strengths: λW (White) and λB (Black). Before any games are played, these are initialized from a projected rating derived from FIDE ratings ± 17.5 Elo (half of `initial_white_adv`).
+
+**Rating velocity and form anchor:** if a player has rating history entries (`history`, `rapid_history`, `blitz_history`), the simulator fits a time-decayed weighted least-squares slope to estimate a velocity (rating points per period). The initial λW/λB are anchored to `projC + speedAdj`, where `projC = classical_rating + velC × lookahead_factor` and `speedAdj = rapid_form_weight × (projR − projC) + blitz_form_weight × (projB − projC)`. This lets rapid and blitz trends inform the classical form anchor.
 
 After each round, the simulator updates λW and λB in three steps:
 
-1. **MAP fixed-point iteration** — solves the anchored Bradley-Terry MAP equations given all games played so far. The prior pulls each λ back toward its initial value (strength controlled by `prior_weight`). Early upsets shift the posterior, revising expectations for future rounds.
+1. **MAP fixed-point iteration** — solves the anchored Bradley-Terry MAP equations given all games played so far. The prior pulls each λ back toward its initial value (strength controlled by `prior_weight_known` for historical rounds, `prior_weight_sim` for simulated rounds). Early upsets shift the posterior, revising expectations for future rounds.
 
 2. **Geometric form blending (color bleed)** — a player's relative form as White (λW / λW₀) is blended with their relative form as Black (λB / λB₀), and vice versa, using a weighted geometric mean controlled by `color_bleed`. This lets a player who has been performing well in general also benefit slightly across both colors.
 
@@ -190,11 +240,8 @@ p_loss = λB[b] / Z
 
 where Z is the normalizing sum and ν is the time-control draw-rate parameter.
 
-**Overpush mechanic:** before each classical game, the model assembles an effective aggression score for each player:
+**Draw band scaling:** before each classical game, ν is scaled by two independent multipliers:
 
-1. Start from the Bayesian-smoothed decisive-game fraction for that color, cross-pollinated via `color_bleed` with the other color's estimate.
-2. Add `streak × streak_aggression_mod` — a winning streak (positive) raises aggression; a losing streak (negative) lowers it. A draw resets the streak to zero.
-3. Subtract `leader_caution_penalty` if the player is currently at or above the maximum points in the standings.
-4. Clamp to [0, 1].
+1. **Style multiplier** — `baselineAgg / matchAgg`, where `matchAgg` is the average Bayesian-smoothed aggression (decisive-game fraction, cross-pollinated via `color_bleed`) of both players. Aggressive pairings shrink the draw band; solid pairings widen it.
 
-The average aggression of both players, scaled by a round-urgency factor (1 + `overpush_escalation` × (round − 1)), gives a probability that both players will "overpush." When overpush triggers, ν is multiplied by `overpush_nu_multiplier`, sharply reducing draw probability to model high-stakes decisive play.
+2. **Standings multiplier** — `max(0.4, 1 − standings_aggression × combinedDeficit)`, where `combinedDeficit` is the sum of both players' point gaps to the current leader. Games between players deep in the standings become more decisive; games between frontrunners remain near the baseline draw rate.

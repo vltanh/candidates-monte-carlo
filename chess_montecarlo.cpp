@@ -1,6 +1,6 @@
 // chess_montecarlo.cpp
 // Build: g++ -O3 -march=native -std=c++17 -pthread chess_montecarlo.cpp -o chess_montecarlo
-// Usage: ./chess_montecarlo [tournament.json] [simulate_from_round]
+// Usage: ./chess_montecarlo [hyperparameters.json] [tournament.json] [simulate_from_round]
 
 #include <array>
 #include <vector>
@@ -52,19 +52,14 @@ static double calculateVelocity(const std::vector<double> &h, const std::vector<
 {
     int L = h.size();
     if (L < 2)
-        return 0.0; // Cannot calculate a slope with fewer than 2 points
+        return 0.0;
 
-    double sumW = 0.0;
-    double sumXW = 0.0;
-    double sumX2W = 0.0;
-    double sumYW = 0.0;
-    double sumXYW = 0.0;
+    double sumW = 0.0, sumXW = 0.0, sumX2W = 0.0, sumYW = 0.0, sumXYW = 0.0;
 
     for (int i = 0; i < L; ++i)
     {
         double timeWeight = std::pow(timeDecay, (L - 1) - i);
         double w = (1.0 + games[i]) * timeWeight;
-
         double x = static_cast<double>(i);
         double y = h[i];
 
@@ -99,10 +94,9 @@ struct Config
     std::array<double, N> ratings;
     std::array<double, N> rapidRatings;
     std::array<double, N> blitzRatings;
+
     std::array<double, N> aggW;
     std::array<double, N> aggB;
-
-    // Independent velocities for all time controls
     std::array<double, N> velC;
     std::array<double, N> velR;
     std::array<double, N> velB;
@@ -114,19 +108,20 @@ struct Config
     int simulateFromRound;
     int mapIters;
     double mapTolerance;
-    double priorWeight;
+
+    double priorWeightKnown;
+    double priorWeightSim;
+    double colorBleed;
+
     double initialWhiteAdv;
     double classicalNu;
     double rapidNu;
     double blitzNu;
-    double overpushEscalation;
-    double overpushNuMultiplier;
     double aggPriorWeight;
     double defaultAggW;
     double defaultAggB;
-    double colorBleed;
-    double streakAggressionMod;
-    double leaderCautionPenalty;
+    double standingsAggression;
+
     double lookaheadFactor;
     double velocityTimeDecay;
     double rapidFormWeight;
@@ -144,64 +139,70 @@ static double parseResult(const std::string &s)
     throw std::runtime_error("Unknown result: \"" + s + "\"");
 }
 
-static Config buildConfig(const std::string &path, int cliSimRound)
+static Config buildConfig(const std::string &hyperPath, const std::string &tourneyPath, int cliSimRound)
 {
-    std::ifstream f(path);
-    if (!f)
-        throw std::runtime_error("Cannot open: " + path);
+    // 1. Parse Hyperparameters
+    std::ifstream fh(hyperPath);
+    if (!fh)
+        throw std::runtime_error("Cannot open hyperparameters: " + hyperPath);
+    json hDoc = json::parse(fh, nullptr, true, true);
 
-    json doc = json::parse(f, nullptr, true, true);
+    // 2. Parse Tournament Data
+    std::ifstream ft(tourneyPath);
+    if (!ft)
+        throw std::runtime_error("Cannot open tournament: " + tourneyPath);
+    json tDoc = json::parse(ft, nullptr, true, true);
+
     Config cfg;
 
-    cfg.runs = doc.value("runs", 10'000'000);
-    cfg.mapIters = doc.value("map_iters", 100);
-    cfg.mapTolerance = doc.value("map_tolerance", 1e-8);
-    cfg.priorWeight = doc.value("prior_weight", 1.0);
-    cfg.initialWhiteAdv = doc.value("initial_white_adv", 35.0);
-    cfg.classicalNu = doc.value("classical_nu", 2.5);
-    cfg.rapidNu = doc.value("rapid_nu", 1.5);
-    cfg.blitzNu = doc.value("blitz_nu", 0.8);
-    cfg.overpushEscalation = doc.value("overpush_escalation", 0.02);
-    cfg.overpushNuMultiplier = doc.value("overpush_nu_multiplier", 0.20);
-    cfg.aggPriorWeight = doc.value("agg_prior_weight", 4.0);
-    cfg.defaultAggW = doc.value("default_aggression_w", 0.25);
-    cfg.defaultAggB = doc.value("default_aggression_b", 0.15);
-    cfg.colorBleed = doc.value("color_bleed", 0.10);
-    cfg.streakAggressionMod = doc.value("streak_aggression_mod", 0.03);
-    cfg.leaderCautionPenalty = doc.value("leader_caution_penalty", 0.05);
-    cfg.lookaheadFactor = doc.value("lookahead_factor", 1.0);
-    cfg.velocityTimeDecay = doc.value("velocity_time_decay", 0.85);
-    cfg.rapidFormWeight = doc.value("rapid_form_weight", 0.10);
-    cfg.blitzFormWeight = doc.value("blitz_form_weight", 0.05);
+    // Load from Hyperparameters JSON
+    cfg.runs = hDoc.value("runs", 10'000'000);
+    cfg.mapIters = hDoc.value("map_iters", 100);
+    cfg.mapTolerance = hDoc.value("map_tolerance", 1e-8);
 
-    cfg.simulateFromRound = (cliSimRound > 0) ? cliSimRound : doc.value("simulate_from_round", 1);
+    double fallbackWeight = hDoc.value("prior_weight", 1.0);
+    cfg.priorWeightKnown = hDoc.value("prior_weight_known", fallbackWeight);
+    cfg.priorWeightSim = hDoc.value("prior_weight_sim", fallbackWeight);
 
-    const auto &players = doc.at("players");
+    cfg.colorBleed = hDoc.value("color_bleed", 0.10);
+    cfg.initialWhiteAdv = hDoc.value("initial_white_adv", 35.0);
+    cfg.classicalNu = hDoc.value("classical_nu", 2.5);
+    cfg.rapidNu = hDoc.value("rapid_nu", 1.5);
+    cfg.blitzNu = hDoc.value("blitz_nu", 0.8);
+
+    cfg.aggPriorWeight = hDoc.value("agg_prior_weight", 3.0);
+    cfg.defaultAggW = hDoc.value("default_aggression_w", 0.25);
+    cfg.defaultAggB = hDoc.value("default_aggression_b", 0.15);
+    cfg.standingsAggression = hDoc.value("standings_aggression", 0.15);
+
+    cfg.lookaheadFactor = hDoc.value("lookahead_factor", 1.0);
+    cfg.velocityTimeDecay = hDoc.value("velocity_time_decay", 0.85);
+    cfg.rapidFormWeight = hDoc.value("rapid_form_weight", 0.10);
+    cfg.blitzFormWeight = hDoc.value("blitz_form_weight", 0.05);
+
+    // Load purely from CLI argument
+    cfg.simulateFromRound = cliSimRound;
+
+    const auto &players = tDoc.at("players");
     if ((int)players.size() != N)
-        throw std::runtime_error("Expected " + std::to_string(N) + " players");
+        throw std::runtime_error("Expected 8 players");
 
-    // Dynamic History Parsing Lambda
     auto parseVelocity = [&](const json &p, const std::string &histKey, const std::string &gamesKey)
     {
         if (!p.contains(histKey))
             return 0.0;
-
         std::vector<double> h = p.at(histKey).get<std::vector<double>>();
         std::vector<int> g;
-
         if (p.contains(gamesKey))
         {
             g = p.at(gamesKey).get<std::vector<int>>();
             if (g.size() != h.size())
-            {
-                throw std::runtime_error("Length mismatch between " + histKey + " and " + gamesKey);
-            }
+                throw std::runtime_error("Length mismatch");
         }
         else
         {
-            g.assign(h.size(), 0); // Default zero games (weight = 1.0) if missing
+            g.assign(h.size(), 0);
         }
-
         return calculateVelocity(h, g, cfg.velocityTimeDecay);
     };
 
@@ -213,20 +214,18 @@ static Config buildConfig(const std::string &path, int cliSimRound)
         idx[fideId] = i;
         cfg.names[i] = p.at("name").get<std::string>();
         cfg.ratings[i] = p.at("rating").get<double>();
-
         cfg.rapidRatings[i] = p.value("rapid_rating", cfg.ratings[i]);
         cfg.blitzRatings[i] = p.value("blitz_rating", cfg.ratings[i]);
 
         cfg.aggW[i] = p.value("aggression_w", cfg.defaultAggW);
         cfg.aggB[i] = p.value("aggression_b", cfg.defaultAggB);
 
-        // Safely parse all three time control histories (dynamic length)
         cfg.velC[i] = parseVelocity(p, "history", "games_played");
         cfg.velR[i] = parseVelocity(p, "rapid_history", "rapid_games_played");
         cfg.velB[i] = parseVelocity(p, "blitz_history", "blitz_games_played");
     }
 
-    const auto &schedule = doc.at("schedule");
+    const auto &schedule = tDoc.at("schedule");
     for (int gi = 0; gi < (int)schedule.size(); ++gi)
     {
         const auto &g = schedule[gi];
@@ -257,23 +256,20 @@ struct EncounterTable
     std::array<double, N> points;
 
     double A_WB[N][N], W_W[N], W_B[N];
+
     double decisiveW[N], totalW[N], decisiveB[N], totalB[N];
-    int streak[N];
 
     void init(const Config &cfg)
     {
         for (int i = 0; i < N; ++i)
         {
-            // 1. Independent Velocity Projections
             double projC = cfg.ratings[i] + (cfg.velC[i] * cfg.lookaheadFactor);
             double projR = cfg.rapidRatings[i] + (cfg.velR[i] * cfg.lookaheadFactor);
             double projB = cfg.blitzRatings[i] + (cfg.velB[i] * cfg.lookaheadFactor);
 
-            // 2. Universal Speed Adjustment via Projected Deltas
             double speedAdj = cfg.rapidFormWeight * (projR - projC) +
                               cfg.blitzFormWeight * (projB - projC);
 
-            // 3. Final Form Anchor
             double adjRating = projC + speedAdj;
 
             initLambdaW[i] = lambdaW[i] = std::pow(10.0, (adjRating + cfg.initialWhiteAdv / 2.0) / 400.0);
@@ -282,7 +278,7 @@ struct EncounterTable
             points[i] = 0.0;
             W_W[i] = 0.0;
             W_B[i] = 0.0;
-            streak[i] = 0;
+
             decisiveW[i] = 0.0;
             totalW[i] = 0.0;
             decisiveB[i] = 0.0;
@@ -307,22 +303,6 @@ struct EncounterTable
         totalW[w] += 1.0;
         decisiveB[b] += isDecisive;
         totalB[b] += 1.0;
-
-        if (whitePoints == 1.0)
-        {
-            streak[w] = (streak[w] > 0) ? streak[w] + 1 : 1;
-            streak[b] = (streak[b] < 0) ? streak[b] - 1 : -1;
-        }
-        else if (whitePoints == 0.0)
-        {
-            streak[w] = (streak[w] < 0) ? streak[w] - 1 : -1;
-            streak[b] = (streak[b] > 0) ? streak[b] + 1 : 1;
-        }
-        else
-        {
-            streak[w] = 0;
-            streak[b] = 0;
-        }
     }
 
     double getDynamicAggressionW(int p, const Config &cfg) const
@@ -339,7 +319,7 @@ struct EncounterTable
         return rawB * (1.0 - cfg.colorBleed) + rawW * cfg.colorBleed;
     }
 
-    void updateDynamicRatings(const Config &cfg)
+    void updateDynamicRatings(const Config &cfg, double currentWeight)
     {
         for (int iter = 0; iter < cfg.mapIters; ++iter)
         {
@@ -347,17 +327,17 @@ struct EncounterTable
             double maxDiff = 0.0;
             for (int i = 0; i < N; ++i)
             {
-                double denomW = (2.0 * cfg.priorWeight) / (lambdaW[i] + initLambdaW[i]);
+                double denomW = (2.0 * currentWeight) / (lambdaW[i] + initLambdaW[i]);
                 for (int j = 0; j < N; ++j)
                     if (A_WB[i][j] > 0.0)
                         denomW += A_WB[i][j] / (lambdaW[i] + lambdaB[j]);
-                nextW[i] = (cfg.priorWeight + W_W[i]) / denomW;
+                nextW[i] = (currentWeight + W_W[i]) / denomW;
 
-                double denomB = (2.0 * cfg.priorWeight) / (lambdaB[i] + initLambdaB[i]);
+                double denomB = (2.0 * currentWeight) / (lambdaB[i] + initLambdaB[i]);
                 for (int j = 0; j < N; ++j)
                     if (A_WB[j][i] > 0.0)
                         denomB += A_WB[j][i] / (lambdaW[j] + lambdaB[i]);
-                nextB[i] = (cfg.priorWeight + W_B[i]) / denomB;
+                nextB[i] = (currentWeight + W_B[i]) / denomB;
 
                 double diffW = std::abs(nextW[i] - lambdaW[i]);
                 double diffB = std::abs(nextB[i] - lambdaB[i]);
@@ -410,7 +390,7 @@ struct Rng
 // ─── Game simulation ──────────────────────────────────────────────────────────
 
 static double simulateGame(const EncounterTable &et, int w, int b, Rng &rng,
-                           TimeControl tc, const Config &cfg, int currentRound = 1)
+                           TimeControl tc, const Config &cfg)
 {
     double lW, lB, nu;
 
@@ -430,32 +410,28 @@ static double simulateGame(const EncounterTable &et, int w, int b, Rng &rng,
     {
         lW = et.lambdaW[w];
         lB = et.lambdaB[b];
-        nu = cfg.classicalNu;
 
+        // 1. Intrinsic Player Style Multiplier
         double dynAggW = et.getDynamicAggressionW(w, cfg);
         double dynAggB = et.getDynamicAggressionB(b, cfg);
 
-        dynAggW += et.streak[w] * cfg.streakAggressionMod;
-        dynAggB += et.streak[b] * cfg.streakAggressionMod;
+        double baselineAgg = (cfg.defaultAggW + cfg.defaultAggB) / 2.0;
+        double matchAgg = (dynAggW + dynAggB) / 2.0;
+        double styleMultiplier = baselineAgg / std::max(0.01, matchAgg);
 
-        double leaderPts = *std::max_element(et.points.begin(), et.points.end());
-        if (leaderPts > 0.0)
+        // 2. Standings Game Theory Multiplier
+        double leaderPts = 0.0;
+        for (double p : et.points)
         {
-            if (et.points[w] >= leaderPts)
-                dynAggW -= cfg.leaderCautionPenalty;
-            if (et.points[b] >= leaderPts)
-                dynAggB -= cfg.leaderCautionPenalty;
+            if (p > leaderPts)
+                leaderPts = p;
         }
 
-        dynAggW = std::clamp(dynAggW, 0.0, 1.0);
-        dynAggB = std::clamp(dynAggB, 0.0, 1.0);
+        double combinedDeficit = (leaderPts - et.points[w]) + (leaderPts - et.points[b]);
+        double standingsMultiplier = std::max(0.40, 1.0 - (cfg.standingsAggression * combinedDeficit));
 
-        double urgency = 1.0 + cfg.overpushEscalation * (currentRound - 1);
-        double baseOverpush = (dynAggW + dynAggB) / 2.0;
-        double p_chaos = std::min(1.0, baseOverpush * urgency);
-
-        if (rng() < p_chaos)
-            nu *= cfg.overpushNuMultiplier;
+        // 3. Combine to dynamically scale the draw band
+        nu = cfg.classicalNu * styleMultiplier * standingsMultiplier;
     }
 
     auto p = winProbability(lW, lB, nu);
@@ -520,9 +496,11 @@ static int knockoutMatch(EncounterTable &et, int p1, int p2, Rng &rng, const Con
     double r1 = simulateGame(et, w1, b1, rng, BLITZ, cfg);
     if (r1 != 0.5)
         return (r1 == 1.0) ? w1 : b1;
+
     double r2 = simulateGame(et, b1, w1, rng, BLITZ, cfg);
     if (r2 != 0.5)
         return (r2 == 1.0) ? b1 : w1;
+
     int sdw = (rng() < 0.5) ? w1 : b1;
     int sdb = (sdw == w1) ? b1 : w1;
     return (simulateGame(et, sdw, sdb, rng, BLITZ, cfg) == 1.0) ? sdw : sdb;
@@ -559,31 +537,15 @@ static int simulatePlayoff(EncounterTable &et, std::vector<int> tied, Rng &rng, 
 
 // ─── One Monte Carlo iteration ────────────────────────────────────────────────
 
-static int runOneIteration(const Config &cfg, Rng &rng, int tracker[N][N][3])
+static int runOneIteration(const Config &cfg, Rng &rng, int tracker[N][N][3], EncounterTable et)
 {
-    EncounterTable et;
-    et.init(cfg);
-
-    for (int i = 0; i < (int)cfg.knownGames.size(); ++i)
-    {
-        const auto &g = cfg.knownGames[i];
-        et.setEncounter(g.w, g.b, g.whitePoints);
-        if ((i + 1) % GPR == 0)
-            et.updateDynamicRatings(cfg);
-    }
-    if (!cfg.knownGames.empty() && cfg.knownGames.size() % GPR != 0)
-    {
-        et.updateDynamicRatings(cfg);
-    }
-
     const int nGames = static_cast<int>(cfg.schedule.size());
     for (int i = 0; i < nGames; ++i)
     {
         auto [w, b] = cfg.schedule[i];
         int absolute_gi = static_cast<int>(cfg.knownGames.size()) + i;
-        int currentRound = (absolute_gi / GPR) + 1;
 
-        double wp = simulateGame(et, w, b, rng, CLASSICAL, cfg, currentRound);
+        double wp = simulateGame(et, w, b, rng, CLASSICAL, cfg);
         if (wp == 1.0)
             tracker[w][b][0]++;
         else if (wp == 0.5)
@@ -593,7 +555,7 @@ static int runOneIteration(const Config &cfg, Rng &rng, int tracker[N][N][3])
 
         et.setEncounter(w, b, wp);
         if ((absolute_gi + 1) % GPR == 0)
-            et.updateDynamicRatings(cfg);
+            et.updateDynamicRatings(cfg, cfg.priorWeightSim);
     }
 
     double maxPts = *std::max_element(et.points.begin(), et.points.end());
@@ -601,6 +563,7 @@ static int runOneIteration(const Config &cfg, Rng &rng, int tracker[N][N][3])
     for (int i = 0; i < N; ++i)
         if (et.points[i] == maxPts)
             top.push_back(i);
+
     return (top.size() == 1) ? top[0] : simulatePlayoff(et, top, rng, cfg);
 }
 
@@ -612,35 +575,41 @@ struct ThreadResult
     int tracker[N][N][3] = {};
 };
 
-static void workerThread(const Config &cfg, int iters, uint64_t seed, ThreadResult &out)
+static void workerThread(const Config &cfg, int iters, uint64_t seed, ThreadResult &out, const EncounterTable &base_et)
 {
     Rng rng(seed);
     for (int i = 0; i < iters; ++i)
-        out.wins[runOneIteration(cfg, rng, out.tracker)]++;
+        out.wins[runOneIteration(cfg, rng, out.tracker, base_et)]++;
 }
 
 static void runMonteCarlo(const Config &cfg, int totalIters)
 {
+    EncounterTable base_et;
+    base_et.init(cfg);
+    for (int i = 0; i < (int)cfg.knownGames.size(); ++i)
     {
-        EncounterTable et;
-        et.init(cfg);
-        for (int i = 0; i < (int)cfg.knownGames.size(); ++i)
-        {
-            const auto &g = cfg.knownGames[i];
-            et.setEncounter(g.w, g.b, g.whitePoints);
-        }
-        std::array<int, N> order;
-        std::iota(order.begin(), order.end(), 0);
-        std::sort(order.begin(), order.end(), [&](int a, int b)
-                  { return et.points[a] > et.points[b]; });
-        int completedGames = static_cast<int>(cfg.knownGames.size());
-        int currentRound = completedGames / GPR + 1;
-        bool isMidRound = (completedGames % GPR != 0);
-        std::cout << "=== Current Standings (" << (isMidRound ? "Mid-Round " : "Before Round ")
-                  << currentRound << ") ===\n";
-        for (int i : order)
-            std::cout << cfg.names[i] << ": " << et.points[i] << " pts\n";
+        const auto &g = cfg.knownGames[i];
+        base_et.setEncounter(g.w, g.b, g.whitePoints);
+        if ((i + 1) % GPR == 0)
+            base_et.updateDynamicRatings(cfg, cfg.priorWeightKnown);
     }
+    if (!cfg.knownGames.empty() && cfg.knownGames.size() % GPR != 0)
+    {
+        base_et.updateDynamicRatings(cfg, cfg.priorWeightKnown);
+    }
+
+    std::array<int, N> standingsOrder;
+    std::iota(standingsOrder.begin(), standingsOrder.end(), 0);
+    std::sort(standingsOrder.begin(), standingsOrder.end(), [&](int a, int b)
+              { return base_et.points[a] > base_et.points[b]; });
+
+    int completedGames = static_cast<int>(cfg.knownGames.size());
+    int currentRound = completedGames / GPR + 1;
+    bool isMidRound = (completedGames % GPR != 0);
+    std::cout << "=== Current Standings (" << (isMidRound ? "Mid-Round " : "Before Round ")
+              << currentRound << ") ===\n";
+    for (int i : standingsOrder)
+        std::cout << cfg.names[i] << ": " << base_et.points[i] << " pts\n";
 
     int nThreads = static_cast<int>(std::thread::hardware_concurrency());
     if (nThreads <= 0)
@@ -657,10 +626,11 @@ static void runMonteCarlo(const Config &cfg, int totalIters)
     for (int t = 0; t < nThreads; ++t)
     {
         int iters = base + (t < rem ? 1 : 0);
-        threads.emplace_back(workerThread, std::cref(cfg), iters, seedGen(), std::ref(results[t]));
+        threads.emplace_back(workerThread, std::cref(cfg), iters, seedGen(), std::ref(results[t]), std::cref(base_et));
     }
     for (auto &th : threads)
         th.join();
+
     double elapsed = std::chrono::duration<double>(std::chrono::high_resolution_clock::now() - t0).count();
 
     std::array<int, N> wins = {};
@@ -676,7 +646,7 @@ static void runMonteCarlo(const Config &cfg, int totalIters)
     }
 
     std::cout << std::fixed << std::setprecision(2) << "Done in " << elapsed << "s\n";
-    int completedGames = static_cast<int>(cfg.knownGames.size());
+
     std::cout << "\n=== Monte Carlo Match Predictions ===";
     for (int i = 0; i < (int)cfg.schedule.size(); ++i)
     {
@@ -696,14 +666,14 @@ static void runMonteCarlo(const Config &cfg, int totalIters)
                   << "% | 1/2-1/2: " << pd << "% | 0-1: " << pb << "%\n";
     }
 
-    std::array<int, N> order;
-    std::iota(order.begin(), order.end(), 0);
-    std::sort(order.begin(), order.end(), [&](int a, int b)
+    std::array<int, N> winOrder;
+    std::iota(winOrder.begin(), winOrder.end(), 0);
+    std::sort(winOrder.begin(), winOrder.end(), [&](int a, int b)
               { return wins[a] > wins[b]; });
 
     int r_out = completedGames / GPR + 1;
     std::cout << "\n=== Tournament Win Probabilities (from Round " << r_out << ") ===\n";
-    for (int i : order)
+    for (int i : winOrder)
     {
         double perc = 100.0 * wins[i] / totalIters;
         std::cout << std::setw(7) << std::setprecision(2) << std::fixed
@@ -715,9 +685,20 @@ static void runMonteCarlo(const Config &cfg, int totalIters)
 
 int main(int argc, char *argv[])
 {
-    const std::string path = (argc > 1) ? argv[1] : "tournament.json";
-    int cliSimRound = (argc > 2) ? std::stoi(argv[2]) : -1;
-    Config cfg = buildConfig(path, cliSimRound);
-    runMonteCarlo(cfg, cfg.runs);
+    const std::string hyperPath = (argc > 1) ? argv[1] : "hyperparameters.json";
+    const std::string tourneyPath = (argc > 2) ? argv[2] : "tournament.json";
+    int cliSimRound = (argc > 3) ? std::stoi(argv[3]) : 1;
+
+    try
+    {
+        Config cfg = buildConfig(hyperPath, tourneyPath, cliSimRound);
+        runMonteCarlo(cfg, cfg.runs);
+    }
+    catch (const std::exception &e)
+    {
+        std::cerr << "Error: " << e.what() << "\n";
+        return 1;
+    }
+
     return 0;
 }
