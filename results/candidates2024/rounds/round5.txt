@@ -1,0 +1,133 @@
+=== Current Standings (Before Round 5) ===
+Nepomniachtchi, Ian: 3 pts
+Caruana, Fabiano: 2.5 pts
+Gukesh D: 2.5 pts
+Praggnanandhaa R: 2 pts
+Nakamura, Hikaru: 1.5 pts
+Firouzja, Alireza: 1.5 pts
+Vidit, Santosh Gujrathi: 1.5 pts
+Abasov, Nijat: 1.5 pts
+
+Running 100000 iterations across 20 threads...
+Done in 1.57s
+
+=== Monte Carlo Match Predictions ===
+
+--- ROUND 5 ---
+Praggnanandhaa R vs Nepomniachtchi, Ian
+  1-0: 18.7% | 1/2-1/2: 42.4% | 0-1: 38.9%
+Firouzja, Alireza vs Nakamura, Hikaru
+  1-0: 35.6% | 1/2-1/2: 29.7% | 0-1: 34.7%
+Gukesh D vs Abasov, Nijat
+  1-0: 59.5% | 1/2-1/2: 27.7% | 0-1: 12.8%
+Vidit, Santosh Gujrathi vs Caruana, Fabiano
+  1-0: 15.8% | 1/2-1/2: 28.5% | 0-1: 55.7%
+
+
+--- ROUND 6 ---
+Nepomniachtchi, Ian vs Caruana, Fabiano
+  1-0: 65.7% | 1/2-1/2: 29.2% | 0-1: 5.1%
+Gukesh D vs Nakamura, Hikaru
+  1-0: 32.6% | 1/2-1/2: 30.7% | 0-1: 36.7%
+Vidit, Santosh Gujrathi vs Firouzja, Alireza
+  1-0: 17.9% | 1/2-1/2: 21.8% | 0-1: 60.3%
+Praggnanandhaa R vs Abasov, Nijat
+  1-0: 47.1% | 1/2-1/2: 23.9% | 0-1: 29.1%
+
+
+--- ROUND 7 ---
+Firouzja, Alireza vs Gukesh D
+  1-0: 21.9% | 1/2-1/2: 33.2% | 0-1: 44.9%
+Nakamura, Hikaru vs Nepomniachtchi, Ian
+  1-0: 24.4% | 1/2-1/2: 35.7% | 0-1: 39.9%
+Caruana, Fabiano vs Praggnanandhaa R
+  1-0: 46.0% | 1/2-1/2: 30.0% | 0-1: 24.0%
+Abasov, Nijat vs Vidit, Santosh Gujrathi
+  1-0: 27.7% | 1/2-1/2: 26.4% | 0-1: 45.9%
+
+
+--- ROUND 8 ---
+Praggnanandhaa R vs Firouzja, Alireza
+  1-0: 25.3% | 1/2-1/2: 26.8% | 0-1: 47.8%
+Vidit, Santosh Gujrathi vs Gukesh D
+  1-0: 9.2% | 1/2-1/2: 20.2% | 0-1: 70.5%
+Nakamura, Hikaru vs Caruana, Fabiano
+  1-0: 24.9% | 1/2-1/2: 27.5% | 0-1: 47.5%
+Nepomniachtchi, Ian vs Abasov, Nijat
+  1-0: 85.6% | 1/2-1/2: 11.8% | 0-1: 2.6%
+
+
+--- ROUND 9 ---
+Vidit, Santosh Gujrathi vs Nakamura, Hikaru
+  1-0: 16.3% | 1/2-1/2: 19.8% | 0-1: 64.0%
+Gukesh D vs Praggnanandhaa R
+  1-0: 33.5% | 1/2-1/2: 32.2% | 0-1: 34.3%
+Firouzja, Alireza vs Nepomniachtchi, Ian
+  1-0: 38.1% | 1/2-1/2: 32.0% | 0-1: 29.9%
+Abasov, Nijat vs Caruana, Fabiano
+  1-0: 34.4% | 1/2-1/2: 25.2% | 0-1: 40.4%
+
+
+--- ROUND 10 ---
+Praggnanandhaa R vs Vidit, Santosh Gujrathi
+  1-0: 18.9% | 1/2-1/2: 21.3% | 0-1: 59.7%
+Nakamura, Hikaru vs Abasov, Nijat
+  1-0: 54.0% | 1/2-1/2: 21.6% | 0-1: 24.4%
+Nepomniachtchi, Ian vs Gukesh D
+  1-0: 54.0% | 1/2-1/2: 31.7% | 0-1: 14.3%
+Caruana, Fabiano vs Firouzja, Alireza
+  1-0: 53.9% | 1/2-1/2: 25.4% | 0-1: 20.7%
+
+
+--- ROUND 11 ---
+Praggnanandhaa R vs Nakamura, Hikaru
+  1-0: 21.0% | 1/2-1/2: 23.2% | 0-1: 55.8%
+Vidit, Santosh Gujrathi vs Nepomniachtchi, Ian
+  1-0: 18.8% | 1/2-1/2: 23.5% | 0-1: 57.7%
+Gukesh D vs Caruana, Fabiano
+  1-0: 36.5% | 1/2-1/2: 28.5% | 0-1: 35.0%
+Firouzja, Alireza vs Abasov, Nijat
+  1-0: 64.3% | 1/2-1/2: 18.6% | 0-1: 17.1%
+
+
+--- ROUND 12 ---
+Nepomniachtchi, Ian vs Praggnanandhaa R
+  1-0: 68.4% | 1/2-1/2: 21.3% | 0-1: 10.4%
+Nakamura, Hikaru vs Firouzja, Alireza
+  1-0: 32.4% | 1/2-1/2: 24.3% | 0-1: 43.3%
+Abasov, Nijat vs Gukesh D
+  1-0: 21.7% | 1/2-1/2: 23.0% | 0-1: 55.3%
+Caruana, Fabiano vs Vidit, Santosh Gujrathi
+  1-0: 44.0% | 1/2-1/2: 24.5% | 0-1: 31.6%
+
+
+--- ROUND 13 ---
+Nepomniachtchi, Ian vs Nakamura, Hikaru
+  1-0: 66.7% | 1/2-1/2: 21.9% | 0-1: 11.4%
+Praggnanandhaa R vs Caruana, Fabiano
+  1-0: 24.9% | 1/2-1/2: 21.5% | 0-1: 53.7%
+Vidit, Santosh Gujrathi vs Abasov, Nijat
+  1-0: 41.6% | 1/2-1/2: 19.5% | 0-1: 38.9%
+Gukesh D vs Firouzja, Alireza
+  1-0: 44.2% | 1/2-1/2: 24.9% | 0-1: 30.9%
+
+
+--- ROUND 14 ---
+Nakamura, Hikaru vs Gukesh D
+  1-0: 17.5% | 1/2-1/2: 21.9% | 0-1: 60.6%
+Caruana, Fabiano vs Nepomniachtchi, Ian
+  1-0: 47.1% | 1/2-1/2: 30.4% | 0-1: 22.5%
+Firouzja, Alireza vs Vidit, Santosh Gujrathi
+  1-0: 34.7% | 1/2-1/2: 24.0% | 0-1: 41.4%
+Abasov, Nijat vs Praggnanandhaa R
+  1-0: 33.4% | 1/2-1/2: 24.4% | 0-1: 42.2%
+
+=== Tournament Win Probabilities (from Round 5) ===
+  52.09% - Nepomniachtchi, Ian
+  19.18% - Caruana, Fabiano
+  17.03% - Gukesh D
+   3.87% - Firouzja, Alireza
+   2.99% - Praggnanandhaa R
+   2.21% - Nakamura, Hikaru
+   1.98% - Vidit, Santosh Gujrathi
+   0.65% - Abasov, Nijat

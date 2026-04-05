@@ -2,16 +2,45 @@
 
 A multi-threaded Monte Carlo simulator for 8-player round-robin chess tournaments. Models dynamic per-player ratings that update as games are played, then runs millions of simulated completions to estimate win probabilities.
 
-The included `tournament.json` models the **2026 FIDE Candidates Tournament** (Caruana, Nakamura, Giri, Yi Wei, Sindarov, Praggnanandhaa, Esipenko, Bluebaum).
+The included `data/candidates2026.json` holds the true data of the **2026 FIDE Candidates Tournament**.
+
+## Repository Layout
+
+```
+src/                     C++ source and bundled json.hpp header
+bin/                     Compiled binary (chess_montecarlo)
+configs/                 hyperparameters.json and tuning snapshots
+data/                    Tournament JSON files and raw PGN downloads
+  raw/                   Raw PGN broadcasts downloaded from Lichess
+results/                 Per-tournament visualizations and simulation outputs
+  candidates2026/
+    rounds/              round{N}.txt simulation outputs
+    r{N}.png             Per-round bar charts
+    animation.gif        Animated GIF of all rounds
+scripts/                 Python helper scripts
+  build_tournament.py    Build tournament.json from a Lichess broadcast
+  visualize_timeline.py  Generate dashboard PNGs from round outputs
+  make_gif.py            Combine round PNGs into an animated GIF
+  pareto_front.py        Visualize Optuna Pareto front and print best trials
+db/                      Optuna SQLite databases for hyperparameter tuning
+tune.py                  Optuna hyperparameter search driver
+install.sh               Dependency installation snippet
+```
 
 ## Animated GIF
 
-![Animation](results/animation.gif)
+![Animation](results/candidates2026/animation.gif)
 
-Run `make_gif.py` to combine all round PNGs in `results/` into `results/animation.gif`.
+Run `scripts/make_gif.py` to combine all round PNGs into an animated GIF.
 
-```
-python3 make_gif.py
+```bash
+python3 scripts/make_gif.py results/candidates2026/
+
+# Custom output path
+python3 scripts/make_gif.py results/candidates2026/ -o results/candidates2026/animation.gif
+
+# Custom frame durations (ms)
+python3 scripts/make_gif.py results/candidates2026/ -d 3000 --last-duration 10000
 ```
 
 ## Visualizations
@@ -21,49 +50,49 @@ python3 make_gif.py
 <details>
 <summary>Round 7</summary>
 
-![Round 7](results/r7.png)
+![Round 7](results/candidates2026/r7.png)
 
 </details>
 
 <details>
 <summary>Round 6</summary>
 
-![Round 6](results/r6.png)
+![Round 6](results/candidates2026/r6.png)
 
 </details>
 
 <details>
 <summary>Round 5</summary>
 
-![Round 5](results/r5.png)
+![Round 5](results/candidates2026/r5.png)
 
 </details>
 
 <details>
 <summary>Round 4</summary>
 
-![Round 4](results/r4.png)
+![Round 4](results/candidates2026/r4.png)
 
 </details>
 
 <details>
 <summary>Round 3</summary>
 
-![Round 3](results/r3.png)
+![Round 3](results/candidates2026/r3.png)
 
 </details>
 
 <details>
 <summary>Round 2</summary>
 
-![Round 2](results/r2.png)
+![Round 2](results/candidates2026/r2.png)
 
 </details>
 
 <details>
 <summary>Round 1</summary>
 
-![Round 1](results/r1.png)
+![Round 1](results/candidates2026/r1.png)
 
 </details>
 
@@ -82,15 +111,15 @@ python3 make_gif.py
 ## Build
 
 ```bash
-g++ -O3 -march=native -std=c++17 -pthread chess_montecarlo.cpp -o chess_montecarlo
+g++ -O3 -march=native -std=c++17 -pthread src/chess_montecarlo.cpp -o bin/chess_montecarlo
 ```
 
-Requires a C++17-capable compiler. The only dependency is [`json.hpp`](https://github.com/nlohmann/json) (included).
+Requires a C++17-capable compiler. The only dependency is [`json.hpp`](https://github.com/nlohmann/json) (included in `src/`).
 
 ## Usage
 
 ```bash
-./chess_montecarlo [hyperparameters.json] [tournament.json] [simulate_from_round]
+./bin/chess_montecarlo [hyperparameters.json] [tournament.json] [simulate_from_round]
 ```
 
 Both files default to their names in the current directory. `simulate_from_round` must be passed as a CLI argument. Output is printed to stdout.
@@ -98,12 +127,12 @@ Both files default to their names in the current directory. `simulate_from_round
 Redirect to a file to feed into the visualizer:
 
 ```bash
-./chess_montecarlo hyperparameters.json tournament.json 8 > results/rounds/round8.txt
+./bin/chess_montecarlo configs/hyperparameters.json data/candidates2026.json 8 > results/candidates2026/rounds/round8.txt
 ```
 
 ## JSON format
 
-### `hyperparameters.json`
+### `configs/hyperparameters.json`
 
 ```jsonc
 {
@@ -140,7 +169,7 @@ Redirect to a file to feed into the visualizer:
 }
 ```
 
-### `tournament.json`
+### `data/candidates2026.json`
 
 ```jsonc
 {
@@ -172,35 +201,76 @@ Redirect to a file to feed into the visualizer:
 
 Games are grouped into rounds of 4 (`N/2`). Games with a `result` are treated as known history up to `simulate_from_round` (passed via CLI); games from that round onward are simulated.
 
+## Building tournament data
+
+`scripts/build_tournament.py` downloads games from a Lichess broadcast, fetches FIDE rating history, and writes a ready-to-use tournament JSON file.
+
+```bash
+pip install requests python-chess
+
+# Build from a Lichess broadcast ID or URL
+python scripts/build_tournament.py wEuVhT9c -o data/my_tournament.json
+
+# Slice FIDE history to a specific month 
+python scripts/build_tournament.py wEuVhT9c --as-of 2024-04 -o data/candidates2024.json
+
+# Skip FIDE history fetch (uses ratings from PGN headers only)
+python scripts/build_tournament.py wEuVhT9c --no-fide
+
+# Control how many monthly history periods to fetch (default: 6)
+python scripts/build_tournament.py wEuVhT9c --periods 8
+```
+
 ## Hyperparameter tuning
 
 `tune.py` uses [Optuna](https://optuna.org) to search for the best model parameters.
 
 ```bash
 pip install optuna
-python tune.py              # 200 trials, saves to optuna.db
-python tune.py --trials 50  # fewer trials
-python tune.py              # re-run to resume (always continues existing study)
+
+# Run 200 trials (always resumes an existing study automatically)
+python tune.py configs/hyperparameters.json data/candidates2024.json
+
+# Fewer trials
+python tune.py configs/hyperparameters.json data/candidates2024.json --trials 50
+
+# Custom binary or database path
+python tune.py configs/hyperparameters.json data/candidates2024.json \
+    --binary ./bin/chess_montecarlo \
+    --db db/tuning_2024.db
 ```
 
-**Evaluation strategy — progressive round scoring:** for each round K with known results, the binary is run with `simulate_from_round = K` so rounds 1…K−1 are treated as history and round K is the held-out prediction. Log loss is averaged across all scored games. This gives every parameter meaningful signal: `prior_weight_known` and `prior_weight_sim` both affect how historical rounds update the MAP ratings.
+**Evaluation strategy — multi-objective progressive round scoring:** for each round K with known results, the binary is run with `simulate_from_round = K` so rounds 1…K−1 are treated as history and rounds K onward are the held-out predictions. Two independent objectives are minimized simultaneously:
 
-`EVAL_RUNS` at the top of the script controls the number of Monte Carlo iterations per trial (default 10 000 — very fast; raise to 200 000+ for a final search once good regions are found).
+1. **Weighted Game Brier Score** — multi-class Brier score (`(pw − actual_w)² + (pd − actual_d)² + (pb − actual_b)²`) over all predicted games, decay-weighted by `FUTURE_DECAY_WEIGHT^distance` for games further in the future. Decisive outcomes (wins/losses) are up-weighted by `DECISIVE_GAME_WEIGHT` to combat the lazy-draw problem. Each round's score is normalized by its own weight sum, then averaged uniformly across all simulation points.
 
-Results are stored in `optuna.db`. To inspect:
+2. **Winner Brier Score** — Brier score over tournament win probability predictions, averaged uniformly across all simulation points.
 
-```python
-import optuna
-s = optuna.load_study("chess_montecarlo", "sqlite:///optuna.db")
-print(s.best_params)
+Both objectives are averaged across simulation points **weighted by round number**: a prediction error at round 13 counts 13× more than one at round 1, reflecting that you should be increasingly accurate as more results are known.
+
+Optuna returns a **Pareto front** of trials offering unique trade-offs between the two objectives. `EVAL_RUNS` at the top of the script controls Monte Carlo iterations per trial (default 10 000 — fast; raise to 200 000+ for a final search).
+
+Results are stored in `db/`. To inspect the Pareto front:
+
+```bash
+# Interactive scatter plot + console table (defaults to db/tuning_2024.db, study chess_montecarlo)
+python scripts/pareto_front.py
+
+# Custom database or study name
+python scripts/pareto_front.py db/tuning_2024.db chess_montecarlo
+
+# Save plot to file instead of showing it
+python scripts/pareto_front.py --save results/pareto.png
 ```
+
+The plot shows all completed trials as blue-gradient dots (darker = earlier trial), Pareto-optimal trials as highlighted points connected by a staircase line, and each optimal trial's number as a label. The console table prints all 15 parameters for each Pareto-optimal trial, sorted by combined objective score.
 
 ## Visualization
 
 Requires Python with `matplotlib`, `pandas`, and `numpy`.
 
 ```bash
-python visualize_timeline.py results/rounds/
+python scripts/visualize_timeline.py results/candidates2026/rounds/
 ```
 
 Reads all `round{N}.txt` files in the given directory and produces a dashboard PNG showing:
@@ -210,8 +280,8 @@ Reads all `round{N}.txt` files in the given directory and produces a dashboard P
 - Per-round match prediction breakdowns (with actual results highlighted in gold)
 
 ```bash
-python visualize_timeline.py results/rounds/ -o my_output.png  # custom output path
-python visualize_timeline.py results/rounds/ -k 5              # only show up to round 5
+python scripts/visualize_timeline.py results/candidates2026/rounds/ -o my_output.png  # custom output path
+python scripts/visualize_timeline.py results/candidates2026/rounds/ -k 5              # only show up to round 5
 ```
 
 Output is saved as `round{N}.png` in the input directory by default.

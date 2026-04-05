@@ -1,13 +1,12 @@
 #!/usr/bin/env python3
 """
 Hyperparameter tuning for chess_montecarlo via Optuna.
-Optimizes log loss through progressive N-Step Ahead scoring with Exponential Time Decay.
+Multi-Objective Optimization: Independent Game MSE & Tournament Winner MSE.
+Includes Decisive Outcome Weighting to combat the "Lazy Draw" problem.
 """
 
 import argparse
-import copy
 import json
-import math
 import re
 import subprocess
 import tempfile
@@ -17,12 +16,17 @@ import optuna
 # ── Constants ─────────────────────────────────────────────────────────────────
 
 STUDY_NAME = "chess_montecarlo"
+DB_NAME = "tuning_2024.db"
 
 # Trial accuracy — raise to 100k+ for final verification overnight
 EVAL_RUNS = 10_000
 
-# Scoring logic: Weight multiplier for predicting games N rounds into the future.
-FUTURE_DECAY_WEIGHT = 0.35
+# Scoring logic:
+FUTURE_DECAY_WEIGHT = 0.35  # Decays weight for predicting games further into the future
+WINNER_EVAL_CUTOFF = 1.0  # Evaluate winner MSE for all rounds (set <1.0 to stop early when standings crystallize)
+DECISIVE_GAME_WEIGHT = (
+    2.5  # Multiplier for penalizing misses on decisive games (Wins/Losses)
+)
 
 # Strict printing order to match hyperparameters.json
 PARAM_ORDER = [
@@ -73,27 +77,55 @@ def known_games(data: dict) -> list[dict]:
     return games
 
 
+def get_actual_winners(games: list[dict]) -> list[str]:
+    """Calculates the actual tournament winner(s) based on total points."""
+    scores = {}
+    for g in games:
+        scores[g["white"]] = scores.get(g["white"], 0.0) + g["result"]
+        scores[g["black"]] = scores.get(g["black"], 0.0) + (1.0 - g["result"])
+
+    if not scores:
+        return []
+    max_score = max(scores.values())
+    return [p for p, s in scores.items() if s == max_score]
+
+
 # ── Output Parsing ────────────────────────────────────────────────────────────
 
 _ROUND_HEADER = re.compile(r"--- ROUND (\d+)")
 _PROBS_LINE = re.compile(
     r"1-0:\s*([\d.]+)%\s*\|\s*1/2-1/2:\s*([\d.]+)%\s*\|\s*0-1:\s*([\d.]+)%"
 )
+_WIN_PROB_LINE = re.compile(r"^\s*([\d.]+)%\s*-\s*(.+)$")
 
 
-def parse_all_future_preds(output: str, sim_round: int) -> dict:
-    """Returns { round_int: { (white, black): (pw, pd, pb) } } for all future rounds."""
-    preds = {}
+def parse_engine_output(output: str, sim_round: int) -> tuple[dict, dict]:
+    """Returns predictions for future rounds AND the overall tournament winner."""
+    preds_by_round = {}
+    winner_preds = {}
     current_round = None
+    in_winners = False
     pending_pair = None
 
     for line in output.splitlines():
+        if "=== Tournament Win Probabilities" in line:
+            in_winners = True
+            current_round = None
+            continue
+
+        if in_winners:
+            if m := _WIN_PROB_LINE.search(line):
+                prob = float(m.group(1)) / 100.0
+                player = m.group(2).strip()
+                winner_preds[player] = prob
+            continue
+
         if m := _ROUND_HEADER.search(line):
             r = int(m.group(1))
             if r >= sim_round:
                 current_round = r
-                if current_round not in preds:
-                    preds[current_round] = {}
+                if current_round not in preds_by_round:
+                    preds_by_round[current_round] = {}
             else:
                 current_round = None
             continue
@@ -106,10 +138,10 @@ def parse_all_future_preds(output: str, sim_round: int) -> dict:
             pending_pair = (parts[0].strip(), parts[1].strip())
         elif (m := _PROBS_LINE.search(line)) and pending_pair:
             pw, pd, pb = [float(x) / 100 for x in m.groups()]
-            preds[current_round][pending_pair] = (pw, pd, pb)
+            preds_by_round[current_round][pending_pair] = (pw, pd, pb)
             pending_pair = None
 
-    return preds
+    return preds_by_round, winner_preds
 
 
 # ── Evaluation Engine ─────────────────────────────────────────────────────────
@@ -122,11 +154,21 @@ def evaluate(
     trial: optuna.Trial,
     binary_path: Path,
     tourney_path: Path,
-) -> float:
-    """Progressive N-Step Ahead Log Loss with Exponential Time Decay."""
+    actual_winners: list[str],
+) -> tuple[float, float]:
+    """Independent Weighted Game Brier Score and Winner Brier Score.
+    Simulation points are weighted by round number: predicting correctly when
+    you are closer to the end of the tournament matters more."""
     rounds = sorted(set(g["round"] for g in games))
-    total_weighted_loss = 0.0
-    total_weight = 0.0
+
+    cumulative_game_mse = 0.0
+    cumulative_winner_mse = 0.0
+
+    total_game_weight = 0.0
+    total_winner_weight = 0.0
+
+    # Stop evaluating winner MSE once standings crystallize
+    winner_cutoff_idx = max(1, int(len(rounds) * WINNER_EVAL_CUTOFF))
 
     for i, r in enumerate(rounds):
         config = {**hyper_base, **params, "runs": EVAL_RUNS}
@@ -145,7 +187,7 @@ def evaluate(
         except subprocess.TimeoutExpired:
             print(f"\n[TIMEOUT] C++ engine took longer than 120 seconds on round {r}.")
             tmp.unlink(missing_ok=True)
-            return float("inf")
+            return float("inf"), float("inf")
         finally:
             tmp.unlink(missing_ok=True)
 
@@ -154,17 +196,21 @@ def evaluate(
             print(
                 proc.stderr.strip() if proc.stderr else "(No stderr output. Segfault?)"
             )
-            return float("inf")
+            return float("inf"), float("inf")
 
-        preds_by_round = parse_all_future_preds(proc.stdout, r)
-        if not preds_by_round:
+        preds_by_round, winner_preds = parse_engine_output(proc.stdout, r)
+
+        if not preds_by_round or not winner_preds:
             print(
                 f"\n[PARSER ERROR] Could not read probabilities from C++ output for round {r}."
             )
-            return float("inf")
+            return float("inf"), float("inf")
 
-        round_step_loss = 0.0
-        round_step_weight = 0.0
+        # ------------------------------------------------------------------
+        # 1. Game Predictions (Micro-State MSE)
+        # ------------------------------------------------------------------
+        run_game_loss = 0.0
+        run_game_weight = 0.0
 
         for g in [g for g in games if g["round"] >= r]:
             g_round = g["round"]
@@ -172,25 +218,68 @@ def evaluate(
 
             if g_round in preds_by_round and key in preds_by_round[g_round]:
                 pw, pd, pb = preds_by_round[g_round][key]
-                p = pw if g["result"] == 1.0 else (pd if g["result"] == 0.5 else pb)
+                actual_score = g["result"]
 
-                loss = -math.log(max(p, 1e-9))
+                # Define one-hot actuals: (White Win, Draw, Black Win)
+                actual_w = 1.0 if actual_score == 1.0 else 0.0
+                actual_d = 1.0 if actual_score == 0.5 else 0.0
+                actual_b = 1.0 if actual_score == 0.0 else 0.0
+
+                # Multi-Class Brier Score (Sum of squared errors across all 3 classes)
+                # Brier score ranges from 0.0 (perfect) to 2.0 (completely wrong)
+                brier_loss = (
+                    (pw - actual_w) ** 2 + (pd - actual_d) ** 2 + (pb - actual_b) ** 2
+                )
+
+                # You can still optionally apply your decisive multiplier
                 distance = g_round - r
-                weight = FUTURE_DECAY_WEIGHT**distance
+                time_weight = FUTURE_DECAY_WEIGHT**distance
+                outcome_weight = DECISIVE_GAME_WEIGHT if actual_score != 0.5 else 1.0
 
-                round_step_loss += loss * weight
-                round_step_weight += weight
+                weight = time_weight * outcome_weight
 
-        if round_step_weight > 0:
-            total_weighted_loss += round_step_loss
-            total_weight += round_step_weight
+                run_game_loss += (
+                    brier_loss / 2.0
+                ) * weight  # Div by 2 normalizes max loss to 1.0
+                run_game_weight += weight
 
-            current_avg = total_weighted_loss / total_weight
-            trial.report(current_avg, i)
-            if trial.should_prune():
-                raise optuna.exceptions.TrialPruned()
+        # Zero-prediction edge case safely caught
+        if run_game_weight == 0:
+            print(f"\n[SCORING ERROR] No valid games scored in round {r}.")
+            return float("inf"), float("inf")
 
-    return total_weighted_loss / total_weight if total_weight else float("inf")
+        run_game_mse = run_game_loss / run_game_weight
+        cumulative_game_mse += run_game_mse * r
+        total_game_weight += r
+
+        # ------------------------------------------------------------------
+        # 2. Tournament Winner Prediction (Macro-State MSE)
+        # ------------------------------------------------------------------
+        if i < winner_cutoff_idx:
+            run_winner_mse = 0.0
+            for player, prob in winner_preds.items():
+                actual_prob = (
+                    (1.0 / len(actual_winners)) if player in actual_winners else 0.0
+                )
+                run_winner_mse += (prob - actual_prob) ** 2
+
+            run_winner_mse = run_winner_mse / 2.0  # Normalize max penalty to ~1.0
+
+            cumulative_winner_mse += run_winner_mse * r
+            total_winner_weight += r
+
+    final_game_mse = (
+        cumulative_game_mse / total_game_weight
+        if total_game_weight > 0
+        else float("inf")
+    )
+    final_winner_mse = (
+        cumulative_winner_mse / total_winner_weight
+        if total_winner_weight > 0
+        else float("inf")
+    )
+
+    return final_game_mse, final_winner_mse
 
 
 # ── Optuna Objective ──────────────────────────────────────────────────────────
@@ -202,79 +291,73 @@ def objective(
     hyper_base: dict,
     binary_path: Path,
     tourney_path: Path,
-) -> float:
+    actual_winners: list[str],
+) -> tuple[float, float]:
     """Hyperparameter search space."""
 
     map_priors = {
-        "prior_weight_known": trial.suggest_float(
-            "prior_weight_known", 1.0, 5.0, step=0.1
-        ),
-        "prior_weight_sim": trial.suggest_float("prior_weight_sim", 1.0, 5.0, step=0.1),
+        # Anchor strength in MAP update; log scale — effect is multiplicative
+        "prior_weight_known": trial.suggest_float("prior_weight_known", 0.01, 20.0, log=True),
+        "prior_weight_sim": trial.suggest_float("prior_weight_sim", 0.01, 20.0, log=True),
     }
 
     velocity = {
-        "initial_white_adv": trial.suggest_float(
-            "initial_white_adv", 25.0, 65.0, step=1.0
-        ),
-        "velocity_time_decay": trial.suggest_float(
-            "velocity_time_decay", 0.70, 1.0, step=0.05
-        ),
-        "lookahead_factor": trial.suggest_float(
-            "lookahead_factor", 0.10, 1.5, step=0.05
-        ),
+        # Direct Elo offset split ±½ onto white/black lambdas; real chess ≈ 35–50
+        "initial_white_adv": trial.suggest_float("initial_white_adv", 0.0, 100.0),
+        # WLS exponent base pow(decay, age); must be ≤ 1 (decay), = 1 is flat weights
+        "velocity_time_decay": trial.suggest_float("velocity_time_decay", 0.3, 1.0),
+        # Scales velocity in forward projection; negative = mean reversion
+        "lookahead_factor": trial.suggest_float("lookahead_factor", -1.0, 5.0),
     }
 
     blending = {
-        "rapid_form_weight": trial.suggest_float(
-            "rapid_form_weight", 0.05, 0.80, step=0.05
-        ),
-        "blitz_form_weight": trial.suggest_float(
-            "blitz_form_weight", 0.05, 0.80, step=0.05
-        ),
-        "color_bleed": trial.suggest_float("color_bleed", 0.05, 0.30, step=0.05),
+        # Blend coefficient pulling classical estimate toward rapid; negative = inverse signal
+        "rapid_form_weight": trial.suggest_float("rapid_form_weight", -0.5, 2.0),
+        "blitz_form_weight": trial.suggest_float("blitz_form_weight", -0.5, 2.0),
+        # Mixes white/black lambdas & aggression; 0 = fully separate, 0.5 = symmetric crossover
+        "color_bleed": trial.suggest_float("color_bleed", 0.0, 0.5),
     }
 
     draw = {
-        "classical_nu": trial.suggest_float("classical_nu", 2.0, 6.0, step=0.1),
-        "rapid_nu": trial.suggest_float("rapid_nu", 1.5, 5.0, step=0.1),
-        "blitz_nu": trial.suggest_float("blitz_nu", 0.5, 4.0, step=0.1),
+        # Scales draw band: p_draw = ν·√(λW·λB)/denom; log scale — effect is multiplicative
+        "classical_nu": trial.suggest_float("classical_nu", 0.1, 10.0, log=True),
+        "rapid_nu": trial.suggest_float("rapid_nu", 0.1, 10.0, log=True),
+        "blitz_nu": trial.suggest_float("blitz_nu", 0.1, 10.0, log=True),
     }
 
     aggression = {
-        "agg_prior_weight": trial.suggest_float(
-            "agg_prior_weight", 2.0, 20.0, step=0.5
-        ),
-        "default_aggression_w": trial.suggest_float(
-            "default_aggression_w", 0.30, 0.85, step=0.05
-        ),
-        "default_aggression_b": trial.suggest_float(
-            "default_aggression_b", 0.10, 0.50, step=0.05
-        ),
-        "standings_aggression": trial.suggest_float(
-            "standings_aggression", 0.05, 0.40, step=0.05
-        ),
+        # Laplace smoothing on decisive-game fraction; log scale
+        "agg_prior_weight": trial.suggest_float("agg_prior_weight", 0.5, 100.0, log=True),
+        # Prior mean for decisive-game fraction; lives in [0, 1] as a probability
+        "default_aggression_w": trial.suggest_float("default_aggression_w", 0.0, 1.0),
+        "default_aggression_b": trial.suggest_float("default_aggression_b", 0.0, 1.0),
+        # Deflates draw band for players behind; max(0.40, 1 − s·deficit) clamps above ~0.5
+        "standings_aggression": trial.suggest_float("standings_aggression", 0.0, 0.5),
     }
 
     params = {**map_priors, **velocity, **blending, **draw, **aggression}
-    return evaluate(params, games, hyper_base, trial, binary_path, tourney_path)
+    return evaluate(
+        params, games, hyper_base, trial, binary_path, tourney_path, actual_winners
+    )
 
 
 # ── Callbacks ─────────────────────────────────────────────────────────────────
 
 
 def champion_callback(study, frozen_trial):
-    """Prints readout in precise JSON order whenever a new best trial is found."""
+    """Prints the current Pareto front updates."""
     try:
-        winner = study.best_trial
-        if winner.number == frozen_trial.number:
+        pareto_front = study.best_trials
+        if any(t.number == frozen_trial.number for t in pareto_front):
+            print(f"\n🏆 [NEW PARETO OPTIMAL] Trial {frozen_trial.number}", flush=True)
+            print(f"  ├─ Weighted Game Brier: {frozen_trial.values[0]:.6f}")
             print(
-                f"\n🏆 [NEW BEST] Trial {winner.number} | Weighted Log Loss: {winner.value:.6f}",
-                flush=True,
+                f"  └─ Winner Brier:        {frozen_trial.values[1]:.6f}\n", flush=True
             )
             print("  Parameters:", flush=True)
             for k in PARAM_ORDER:
-                if k in winner.params:
-                    print(f"    {k:<22}: {winner.params[k]:.4f}", flush=True)
+                if k in frozen_trial.params:
+                    print(f"    {k:<22}: {frozen_trial.params[k]:.4f}", flush=True)
             print("-" * 60, flush=True)
     except ValueError:
         pass
@@ -285,13 +368,11 @@ def champion_callback(study, frozen_trial):
 
 def main():
     parser = argparse.ArgumentParser(description="Tune the Monte Carlo chess engine.")
-    # Positional Arguments
     parser.add_argument(
         "hyperparameters", type=Path, help="Path to your base hyperparameters.json"
     )
     parser.add_argument("tournament", type=Path, help="Path to your tournament.json")
 
-    # Optional Arguments
     parser.add_argument(
         "--binary",
         type=Path,
@@ -301,14 +382,11 @@ def main():
     parser.add_argument(
         "--db",
         type=Path,
-        default=Path("./db/optuna.db"),
+        default=Path(f"./db/{DB_NAME}"),
         help="Path to save the Optuna SQLite database.",
     )
     parser.add_argument(
         "--trials", type=int, default=200, help="Number of Optuna trials to run"
-    )
-    parser.add_argument(
-        "--resume", action="store_true", help="Continue an existing study from the db"
     )
 
     args = parser.parse_args()
@@ -324,71 +402,72 @@ def main():
     if not args.tournament.exists():
         raise FileNotFoundError(f"Tournament file not found at {args.tournament}.")
 
-    # Ensure the database directory exists
     args.db.parent.mkdir(parents=True, exist_ok=True)
 
     hyper_base = load_jsonc(args.hyperparameters)
     games = known_games(load_jsonc(args.tournament))
+    actual_winners = get_actual_winners(games)
 
     print(
         f"Loaded {len(games)} known games across {len(set(g['round'] for g in games))} rounds."
     )
+    print(f"Ground Truth Tournament Winner(s): {', '.join(actual_winners)}")
     print(f"Database path: {args.db.resolve()}")
-    print(f"Starting optimization (Target: {args.trials} trials)...")
+    print(f"Starting Multi-Objective optimization (Target: {args.trials} trials)...")
     print("-" * 60)
 
     optuna.logging.set_verbosity(optuna.logging.WARNING)
-
-    # SQLite string requires absolute path to be perfectly safe
     db_url = f"sqlite:///{args.db.resolve()}"
 
     study = optuna.create_study(
         study_name=STUDY_NAME,
-        direction="minimize",
+        directions=["minimize", "minimize"],
         storage=db_url,
-        load_if_exists=args.resume or True,
+        load_if_exists=True,
         sampler=optuna.samplers.TPESampler(seed=42),
-        pruner=optuna.pruners.MedianPruner(n_warmup_steps=10),
     )
 
     if not study.trials:
         baseline = {
-            "prior_weight_known": hyper_base.get("prior_weight_known", 3.0),
-            "prior_weight_sim": hyper_base.get("prior_weight_sim", 2.0),
-            "initial_white_adv": hyper_base.get("initial_white_adv", 45.0),
-            "velocity_time_decay": hyper_base.get("velocity_time_decay", 0.90),
-            "lookahead_factor": hyper_base.get("lookahead_factor", 0.35),
-            "rapid_form_weight": hyper_base.get("rapid_form_weight", 0.45),
-            "blitz_form_weight": hyper_base.get("blitz_form_weight", 0.50),
+            "prior_weight_known": hyper_base.get("prior_weight_known", 1.0),
+            "prior_weight_sim": hyper_base.get("prior_weight_sim", 1.0),
+            "initial_white_adv": hyper_base.get("initial_white_adv", 32.0),
+            "velocity_time_decay": hyper_base.get("velocity_time_decay", 0.70),
+            "lookahead_factor": hyper_base.get("lookahead_factor", 0.60),
+            "rapid_form_weight": hyper_base.get("rapid_form_weight", 0.40),
+            "blitz_form_weight": hyper_base.get("blitz_form_weight", 0.15),
             "color_bleed": hyper_base.get("color_bleed", 0.05),
-            "classical_nu": hyper_base.get("classical_nu", 3.9),
-            "rapid_nu": hyper_base.get("rapid_nu", 3.5),
-            "blitz_nu": hyper_base.get("blitz_nu", 2.0),
-            "agg_prior_weight": hyper_base.get("agg_prior_weight", 9.5),
-            "default_aggression_w": hyper_base.get("default_aggression_w", 0.65),
-            "default_aggression_b": hyper_base.get("default_aggression_b", 0.30),
+            "classical_nu": hyper_base.get("classical_nu", 2.1),
+            "rapid_nu": hyper_base.get("rapid_nu", 3.9),
+            "blitz_nu": hyper_base.get("blitz_nu", 1.6),
+            "agg_prior_weight": hyper_base.get("agg_prior_weight", 15.5),
+            "default_aggression_w": hyper_base.get("default_aggression_w", 0.60),
+            "default_aggression_b": hyper_base.get("default_aggression_b", 0.50),
             "standings_aggression": hyper_base.get("standings_aggression", 0.15),
         }
         study.enqueue_trial(baseline)
 
     study.optimize(
-        lambda t: objective(t, games, hyper_base, args.binary, args.tournament),
+        lambda t: objective(
+            t, games, hyper_base, args.binary, args.tournament, actual_winners
+        ),
         n_trials=args.trials,
         n_jobs=1,
         show_progress_bar=True,
         callbacks=[champion_callback],
     )
 
-    print("\n" + "=" * 60)
-    print(f"OPTIMIZATION COMPLETE")
-    print(f"Best Weighted Log Loss: {study.best_value:.6f}")
-    print("-" * 60)
-    print(f"{'Parameter':<25} | {'Best Value':<10}")
-    print("-" * 40)
-    for k in PARAM_ORDER:
-        if k in study.best_params:
-            print(f"{k:<25} | {study.best_params[k]:<10.4f}")
-    print("=" * 60)
+    print("\n" + "=" * 80)
+    print("OPTIMIZATION COMPLETE - PARETO FRONT")
+    print(
+        "These are the best trials offering unique trade-offs between Game vs Winner MSE."
+    )
+    print("-" * 80)
+    for trial in study.best_trials:
+        print(
+            f"Trial {trial.number:<4} | Weighted Game Brier: {trial.values[0]:.6f} | Winner Brier: {trial.values[1]:.6f}"
+        )
+    print("=" * 80)
 
 
 if __name__ == "__main__":

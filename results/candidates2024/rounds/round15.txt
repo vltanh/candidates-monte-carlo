@@ -1,0 +1,23 @@
+=== Current Standings (Before Round 15) ===
+Gukesh D: 9 pts
+Caruana, Fabiano: 8.5 pts
+Nakamura, Hikaru: 8.5 pts
+Nepomniachtchi, Ian: 8.5 pts
+Praggnanandhaa R: 7 pts
+Vidit, Santosh Gujrathi: 6 pts
+Firouzja, Alireza: 5 pts
+Abasov, Nijat: 3.5 pts
+
+Running 100000 iterations across 20 threads...
+Done in 0.00s
+
+=== Monte Carlo Match Predictions ===
+=== Tournament Win Probabilities (from Round 15) ===
+ 100.00% - Gukesh D
+   0.00% - Caruana, Fabiano
+   0.00% - Nakamura, Hikaru
+   0.00% - Firouzja, Alireza
+   0.00% - Nepomniachtchi, Ian
+   0.00% - Praggnanandhaa R
+   0.00% - Vidit, Santosh Gujrathi
+   0.00% - Abasov, Nijat

@@ -42,6 +42,11 @@ PLAYER_ALIASES = {
     "Esipenko, Andrey": "Esipenko",
     "Praggnanandhaa R": "Pragg",
     "Nakamura, Hikaru": "Hikaru",
+    "Firouzja, Alireza": "Alireza",
+    "Nepomniachtchi, Ian": "Nepo",
+    "Gukesh D": "Gukesh",
+    "Vidit, Santosh Gujrathi": "Vidit",
+    "Abasov, Nijat": "Abasov",
 }
 
 # 2. Automatically detect and sort round{i}.txt files
@@ -200,7 +205,7 @@ gs_top = gs_main[0].subgridspec(1, 2, width_ratios=[3, 1], wspace=0.15)
 ax_line = fig.add_subplot(gs_top[0])
 ax_bar = fig.add_subplot(gs_top[1])
 
-colors = plt.cm.tab10(np.linspace(0, 1, len(PLAYER_ALIASES)))
+colors = plt.cm.tab20(np.linspace(0, 1, len(PLAYER_ALIASES)))
 player_colors = dict(zip(PLAYER_ALIASES.values(), colors))
 
 for player in df_history["Player"].unique():
@@ -231,6 +236,8 @@ latest_probs = latest_probs.sort_values(by="Win %", ascending=True).reset_index(
     drop=True
 )
 
+current_standings = parse_standings(latest_file)
+
 bar_handles = ax_bar.barh(
     latest_probs["Player"],
     latest_probs["Win %"],
@@ -242,13 +249,17 @@ bar_handles = ax_bar.barh(
 ax_bar.set_title(f"Tournament Win %", fontsize=18, weight="bold", pad=10)
 ax_bar.set_xlim(0, max(latest_probs["Win %"].max() + 15, 100))
 ax_bar.set_yticks(range(len(latest_probs)))
-ax_bar.set_yticklabels(latest_probs["Player"], fontsize=12, weight="bold")
+ax_bar.set_yticklabels(
+    [f"{p} ({current_standings.get(p, '?')})" for p in latest_probs["Player"]],
+    fontsize=12,
+    weight="bold",
+)
 ax_bar.tick_params(axis="y", length=0)
 ax_bar.grid(axis="x", linestyle="--", alpha=0.5)
 ax_bar.set_axisbelow(True)
 
 for tick_label in ax_bar.get_yticklabels():
-    player_name = tick_label.get_text()
+    player_name = tick_label.get_text().split(" (")[0]
     tick_label.set_color(player_colors.get(player_name, "black"))
 
 for bar in bar_handles:
