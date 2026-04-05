@@ -293,49 +293,66 @@ def objective(
     tourney_path: Path,
     actual_winners: list[str],
 ) -> tuple[float, float]:
-    """Hyperparameter search space."""
+    """Hyperparameter search space with strict physicality constraints."""
+
+    # 1. MAP Priors Constraint: prior_weight_known <= prior_weight_sim
+    # Lower prior weight = less inertia = more aggressive updates.
+    # We want known data to update more aggressively, so pk must be <= ps.
+    ps = trial.suggest_float("prior_weight_sim", 0.01, 20.0, log=True)
+    pk_ratio = trial.suggest_float("prior_weight_known_ratio", 0.01, 1.0)
+    pk = ps * pk_ratio
 
     map_priors = {
-        # Anchor strength in MAP update; log scale — effect is multiplicative
-        "prior_weight_known": trial.suggest_float("prior_weight_known", 0.01, 20.0, log=True),
-        "prior_weight_sim": trial.suggest_float("prior_weight_sim", 0.01, 20.0, log=True),
+        "prior_weight_known": pk,
+        "prior_weight_sim": ps,
     }
 
     velocity = {
-        # Direct Elo offset split ±½ onto white/black lambdas; real chess ≈ 35–50
         "initial_white_adv": trial.suggest_float("initial_white_adv", 0.0, 100.0),
-        # WLS exponent base pow(decay, age); must be ≤ 1 (decay), = 1 is flat weights
         "velocity_time_decay": trial.suggest_float("velocity_time_decay", 0.3, 1.0),
-        # Scales velocity in forward projection; negative = mean reversion
         "lookahead_factor": trial.suggest_float("lookahead_factor", -1.0, 5.0),
     }
 
     blending = {
-        # Blend coefficient pulling classical estimate toward rapid; negative = inverse signal
         "rapid_form_weight": trial.suggest_float("rapid_form_weight", -0.5, 2.0),
         "blitz_form_weight": trial.suggest_float("blitz_form_weight", -0.5, 2.0),
-        # Mixes white/black lambdas & aggression; 0 = fully separate, 0.5 = symmetric crossover
         "color_bleed": trial.suggest_float("color_bleed", 0.0, 0.5),
     }
 
+    # 2. Draw Chance Constraint: classical_nu >= rapid_nu >= blitz_nu
+    # Higher Nu means a wider draw band (higher draw chance).
+    nc = trial.suggest_float("classical_nu", 0.1, 10.0, log=True)
+    nr_ratio = trial.suggest_float("rapid_nu_ratio", 0.01, 1.0)
+    nr = nc * nr_ratio
+    nb_ratio = trial.suggest_float("blitz_nu_ratio", 0.01, 1.0)
+    nb = nr * nb_ratio
+
     draw = {
-        # Scales draw band: p_draw = ν·√(λW·λB)/denom; log scale — effect is multiplicative
-        "classical_nu": trial.suggest_float("classical_nu", 0.1, 10.0, log=True),
-        "rapid_nu": trial.suggest_float("rapid_nu", 0.1, 10.0, log=True),
-        "blitz_nu": trial.suggest_float("blitz_nu", 0.1, 10.0, log=True),
+        "classical_nu": nc,
+        "rapid_nu": nr,
+        "blitz_nu": nb,
     }
 
+    # 3. Aggression Constraint: default_aggression_w >= default_aggression_b
+    aw = trial.suggest_float("default_aggression_w", 0.0, 1.0)
+    ab_ratio = trial.suggest_float("default_aggression_b_ratio", 0.0, 1.0)
+    ab = aw * ab_ratio
+
     aggression = {
-        # Laplace smoothing on decisive-game fraction; log scale
-        "agg_prior_weight": trial.suggest_float("agg_prior_weight", 0.5, 100.0, log=True),
-        # Prior mean for decisive-game fraction; lives in [0, 1] as a probability
-        "default_aggression_w": trial.suggest_float("default_aggression_w", 0.0, 1.0),
-        "default_aggression_b": trial.suggest_float("default_aggression_b", 0.0, 1.0),
-        # Deflates draw band for players behind; max(0.40, 1 − s·deficit) clamps above ~0.5
+        "agg_prior_weight": trial.suggest_float(
+            "agg_prior_weight", 0.5, 100.0, log=True
+        ),
+        "default_aggression_w": aw,
+        "default_aggression_b": ab,
         "standings_aggression": trial.suggest_float("standings_aggression", 0.0, 0.5),
     }
 
     params = {**map_priors, **velocity, **blending, **draw, **aggression}
+
+    # Save the derived physical parameters to the trial so the callback can print them
+    for key, value in params.items():
+        trial.set_user_attr(key, value)
+
     return evaluate(
         params, games, hyper_base, trial, binary_path, tourney_path, actual_winners
     )
@@ -356,8 +373,10 @@ def champion_callback(study, frozen_trial):
             )
             print("  Parameters:", flush=True)
             for k in PARAM_ORDER:
-                if k in frozen_trial.params:
-                    print(f"    {k:<22}: {frozen_trial.params[k]:.4f}", flush=True)
+                # Retrieve the projected physical parameter, fallback to direct param
+                val = frozen_trial.user_attrs.get(k, frozen_trial.params.get(k))
+                if val is not None:
+                    print(f"    {k:<22}: {val:.4f}", flush=True)
             print("-" * 60, flush=True)
     except ValueError:
         pass

@@ -1,10 +1,23 @@
 {
   "players": [
-    { 
-      "fide_id": 2020009,  
-      "name": "Caruana, Fabiano",   
-      "rating": 2793, 
-      "rapid_rating": 2727, 
+    {
+      "fide_id": 2016192,
+      "name": "Nakamura, Hikaru",
+      "rating": 2810,
+      "rapid_rating": 2742,
+      "blitz_rating": 2838,
+      "history": [2813, 2810, 2810, 2810, 2810, 2810],
+      "games_played": [6, 5, 0, 0, 0, 0],
+      "rapid_history": [2732, 2732, 2742, 2742, 2742, 2742],
+      "rapid_games_played": [18, 0, 10, 0, 0, 0],
+      "blitz_history": [2838, 2838, 2838, 2838, 2838, 2838],
+      "blitz_games_played": [0, 0, 0, 0, 0, 0]
+    },
+    {
+      "fide_id": 2020009,
+      "name": "Caruana, Fabiano",
+      "rating": 2793,
+      "rapid_rating": 2727,
       "blitz_rating": 2749,
       "history": [2795, 2795, 2795, 2795, 2795, 2793],
       "games_played": [15, 0, 0, 0, 0, 16],
@@ -13,50 +26,11 @@
       "blitz_history": [2751, 2751, 2769, 2769, 2769, 2749],
       "blitz_games_played": [8, 0, 23, 0, 0, 15]
     },
-    { 
-      "fide_id": 24116068, 
-      "name": "Giri, Anish",        
-      "rating": 2753, 
-      "rapid_rating": 2689, 
-      "blitz_rating": 2666,
-      "history": [2769, 2760, 2760, 2760, 2753, 2753],
-      "games_played": [14, 4, 0, 0, 13, 0],
-      "rapid_history": [2685, 2685, 2689, 2689, 2689, 2689],
-      "rapid_games_played": [0, 0, 25, 0, 0, 0],
-      "blitz_history": [2701, 2701, 2666, 2666, 2666, 2666],
-      "blitz_games_played": [0, 0, 19, 0, 0, 0]
-    },
-    { 
-      "fide_id": 24651516, 
-      "name": "Bluebaum, Matthias", 
-      "rating": 2695, 
-      "rapid_rating": 2587, 
-      "blitz_rating": 2634,
-      "history": [2680, 2679, 2679, 2684, 2698, 2695],
-      "games_played": [7, 6, 2, 2, 13, 4],
-      "rapid_history": [2587, 2587, 2587, 2587, 2587, 2587],
-      "rapid_games_played": [0, 0, 0, 0, 0, 0],
-      "blitz_history": [2634, 2634, 2634, 2634, 2634, 2634],
-      "blitz_games_played": [0, 0, 0, 0, 0, 0]
-    },
-    { 
-      "fide_id": 14205483, 
-      "name": "Sindarov, Javokhir", 
-      "rating": 2745, 
-      "rapid_rating": 2727, 
-      "blitz_rating": 2662,
-      "history": [2721, 2726, 2726, 2726, 2745, 2745],
-      "games_played": [0, 14, 0, 0, 13, 0],
-      "rapid_history": [2688, 2704, 2727, 2727, 2727, 2727],
-      "rapid_games_played": [0, 25, 10, 0, 0, 0],
-      "blitz_history": [2632, 2632, 2662, 2662, 2662, 2662],
-      "blitz_games_played": [0, 0, 21, 0, 0, 0]
-    },
-    { 
-      "fide_id": 8603405,  
-      "name": "Yi, Wei",            
-      "rating": 2754, 
-      "rapid_rating": 2726, 
+    {
+      "fide_id": 8603405,
+      "name": "Wei, Yi",
+      "rating": 2754,
+      "rapid_rating": 2726,
       "blitz_rating": 2698,
       "history": [2752, 2754, 2754, 2754, 2754, 2754],
       "games_played": [11, 14, 0, 0, 0, 0],
@@ -65,24 +39,37 @@
       "blitz_history": [2695, 2705, 2705, 2698, 2698, 2698],
       "blitz_games_played": [0, 2, 0, 18, 0, 0]
     },
-    { 
-      "fide_id": 24175439, 
-      "name": "Esipenko, Andrey",   
-      "rating": 2698, 
-      "rapid_rating": 2657, 
-      "blitz_rating": 2651,
-      "history": [2681, 2698, 2698, 2698, 2698, 2698],
-      "games_played": [11, 14, 0, 0, 0, 9],
-      "rapid_history": [2626, 2649, 2657, 2657, 2657, 2657],
-      "rapid_games_played": [0, 16, 13, 0, 0, 0],
-      "blitz_history": [2659, 2659, 2651, 2651, 2651, 2651],
+    {
+      "fide_id": 24116068,
+      "name": "Giri, Anish",
+      "rating": 2753,
+      "rapid_rating": 2689,
+      "blitz_rating": 2666,
+      "history": [2769, 2760, 2760, 2760, 2753, 2753],
+      "games_played": [14, 4, 0, 0, 13, 0],
+      "rapid_history": [2685, 2685, 2689, 2689, 2689, 2689],
+      "rapid_games_played": [0, 0, 25, 0, 0, 0],
+      "blitz_history": [2701, 2701, 2666, 2666, 2666, 2666],
       "blitz_games_played": [0, 0, 19, 0, 0, 0]
     },
-    { 
-      "fide_id": 25059530, 
-      "name": "Praggnanandhaa R",   
-      "rating": 2741, 
-      "rapid_rating": 2663, 
+    {
+      "fide_id": 14205483,
+      "name": "Sindarov, Javokhir",
+      "rating": 2745,
+      "rapid_rating": 2727,
+      "blitz_rating": 2662,
+      "history": [2721, 2726, 2726, 2726, 2745, 2745],
+      "games_played": [0, 14, 0, 0, 13, 0],
+      "rapid_history": [2688, 2704, 2727, 2727, 2727, 2727],
+      "rapid_games_played": [0, 10, 25, 0, 0, 0],
+      "blitz_history": [2632, 2632, 2662, 2662, 2662, 2662],
+      "blitz_games_played": [0, 0, 21, 0, 0, 0]
+    },
+    {
+      "fide_id": 25059530,
+      "name": "Praggnanandhaa R",
+      "rating": 2741,
+      "rapid_rating": 2663,
       "blitz_rating": 2698,
       "history": [2768, 2761, 2758, 2758, 2741, 2741],
       "games_played": [4, 6, 9, 0, 13, 0],
@@ -91,90 +78,103 @@
       "blitz_history": [2699, 2703, 2691, 2698, 2698, 2698],
       "blitz_games_played": [8, 2, 19, 18, 0, 0]
     },
-    { 
-      "fide_id": 2016192,  
-      "name": "Nakamura, Hikaru",   
-      "rating": 2810, 
-      "rapid_rating": 2742, 
-      "blitz_rating": 2838,
-      "history": [2813, 2810, 2810, 2810, 2810, 2810],
-      "games_played": [6, 5, 0, 0, 0, 0],
-      "rapid_history": [2732, 2732, 2742, 2742, 2742, 2742],
-      "rapid_games_played": [18, 0, 10, 0, 0, 0],
-      "blitz_history": [2838, 2838, 2838, 2838, 2838, 2838],
+    {
+      "fide_id": 24175439,
+      "name": "Esipenko, Andrey",
+      "rating": 2698,
+      "rapid_rating": 2657,
+      "blitz_rating": 2651,
+      "history": [2681, 2698, 2698, 2698, 2698, 2698],
+      "games_played": [11, 14, 0, 0, 0, 9],
+      "rapid_history": [2626, 2649, 2657, 2657, 2657, 2657],
+      "rapid_games_played": [0, 16, 13, 0, 0, 0],
+      "blitz_history": [2659, 2659, 2651, 2651, 2651, 2651],
+      "blitz_games_played": [0, 0, 19, 0, 0, 0]
+    },
+    {
+      "fide_id": 24651516,
+      "name": "Bluebaum, Matthias",
+      "rating": 2695,
+      "rapid_rating": 2587,
+      "blitz_rating": 2634,
+      "history": [2680, 2679, 2679, 2684, 2698, 2695],
+      "games_played": [7, 6, 2, 2, 13, 4],
+      "rapid_history": [2587, 2587, 2587, 2587, 2587, 2587],
+      "rapid_games_played": [0, 0, 0, 0, 0, 0],
+      "blitz_history": [2634, 2634, 2634, 2634, 2634, 2634],
       "blitz_games_played": [0, 0, 0, 0, 0, 0]
     }
   ],
   "schedule": [
     // Round 1
-    { "white": 2020009,  "black": 2016192,  "result": "1-0"     }, // Caruana vs Nakamura
-    { "white": 25059530, "black": 24116068, "result": "1-0"     }, // Pragg vs Anish
-    { "white": 24651516, "black": 8603405,  "result": "1/2-1/2" }, // Bluebaum vs Wei Yi
-    { "white": 14205483, "black": 24175439, "result": "1-0"     }, // Sindarov vs Esipenko
+    { "white": 2020009, "black": 2016192, "result": "1-0" }, // Caruana vs Nakamura
+    { "white": 25059530, "black": 24116068, "result": "1-0" }, // Praggnanandhaa R vs Giri
+    { "white": 24651516, "black": 8603405, "result": "1/2-1/2" }, // Bluebaum vs Wei
+    { "white": 14205483, "black": 24175439, "result": "1-0" }, // Sindarov vs Esipenko
     // Round 2
-    { "white": 24175439, "black": 2016192,  "result": "1/2-1/2" }, // Esipenko vs Nakamura
-    { "white": 24116068, "black": 2020009,  "result": "1/2-1/2" }, // Anish vs Caruana
-    { "white": 8603405,  "black": 25059530, "result": "1/2-1/2" }, // Wei Yi vs Pragg
+    { "white": 24175439, "black": 2016192, "result": "1/2-1/2" }, // Esipenko vs Nakamura
+    { "white": 24116068, "black": 2020009, "result": "1/2-1/2" }, // Giri vs Caruana
+    { "white": 8603405, "black": 25059530, "result": "1/2-1/2" }, // Wei vs Praggnanandhaa R
     { "white": 14205483, "black": 24651516, "result": "1/2-1/2" }, // Sindarov vs Bluebaum
     // Round 3
-    { "white": 25059530, "black": 14205483, "result": "0-1"     }, // Pragg vs Sindarov
-    { "white": 2020009,  "black": 8603405,  "result": "1-0"     }, // Caruana vs Wei Yi
-    { "white": 2016192,  "black": 24116068, "result": "1/2-1/2" }, // Nakamura vs Anish
     { "white": 24651516, "black": 24175439, "result": "1/2-1/2" }, // Bluebaum vs Esipenko
+    { "white": 25059530, "black": 14205483, "result": "0-1" }, // Praggnanandhaa R vs Sindarov
+    { "white": 2020009, "black": 8603405, "result": "1-0" }, // Caruana vs Wei
+    { "white": 2016192, "black": 24116068, "result": "1/2-1/2" }, // Nakamura vs Giri
     // Round 4
-    { "white": 14205483, "black": 2020009,  "result": "1-0"     }, // Sindarov vs Caruana
-    { "white": 24651516, "black": 25059530, "result": "1/2-1/2" }, // Bluebaum vs Pragg
-    { "white": 24175439, "black": 24116068, "result": "0-1"     }, // Esipenko vs Anish
-    { "white": 8603405,  "black": 2016192,  "result": "1/2-1/2" }, // Wei Yi vs Nakamura
+    { "white": 24175439, "black": 24116068, "result": "0-1" }, // Esipenko vs Giri
+    { "white": 8603405, "black": 2016192, "result": "1/2-1/2" }, // Wei vs Nakamura
+    { "white": 14205483, "black": 2020009, "result": "1-0" }, // Sindarov vs Caruana
+    { "white": 24651516, "black": 25059530, "result": "1/2-1/2" }, // Bluebaum vs Praggnanandhaa R
     // Round 5
-    { "white": 25059530, "black": 24175439, "result": "1/2-1/2" }, // Pragg vs Esipenko
-    { "white": 2020009,  "black": 24651516, "result": "1-0"     }, // Caruana vs Bluebaum
-    { "white": 2016192,  "black": 14205483, "result": "0-1"     }, // Nakamura vs Sindarov
-    { "white": 24116068, "black": 8603405,  "result": "1/2-1/2" }, // Anish vs Wei Yi
+    { "white": 25059530, "black": 24175439, "result": "1/2-1/2" }, // Praggnanandhaa R vs Esipenko
+    { "white": 2020009, "black": 24651516, "result": "1-0" }, // Caruana vs Bluebaum
+    { "white": 2016192, "black": 14205483, "result": "0-1" }, // Nakamura vs Sindarov
+    { "white": 24116068, "black": 8603405, "result": "1/2-1/2" }, // Giri vs Wei
     // Round 6
-    { "white": 2020009,  "black": 24175439, "result": "1/2-1/2" }, // Caruana vs Esipenko
-    { "white": 2016192,  "black": 25059530, "result": "1/2-1/2" }, // Nakamura vs Pragg
-    { "white": 24116068, "black": 24651516, "result": "1/2-1/2" }, // Anish vs Bluebaum
-    { "white": 8603405,  "black": 14205483, "result": "0-1"     }, // Wei Yi vs Sindarov
+    { "white": 2020009, "black": 24175439, "result": "1/2-1/2" }, // Caruana vs Esipenko
+    { "white": 2016192, "black": 25059530, "result": "1/2-1/2" }, // Nakamura vs Praggnanandhaa R
+    { "white": 24116068, "black": 24651516, "result": "1/2-1/2" }, // Giri vs Bluebaum
+    { "white": 8603405, "black": 14205483, "result": "0-1" }, // Wei vs Sindarov
     // Round 7
-    { "white": 24175439, "black": 8603405  }, // Esipenko vs Wei Yi
-    { "white": 14205483, "black": 24116068 }, // Sindarov vs Anish
-    { "white": 24651516, "black": 2016192  }, // Bluebaum vs Nakamura
-    { "white": 25059530, "black": 2020009  }, // Pragg vs Caruana
+    { "white": 24175439, "black": 8603405 }, // Esipenko vs Wei
+    { "white": 14205483, "black": 24116068 }, // Sindarov vs Giri
+    { "white": 24651516, "black": 2016192 }, // Bluebaum vs Nakamura
+    { "white": 25059530, "black": 2020009 }, // Praggnanandhaa R vs Caruana
     // Round 8
     { "white": 24175439, "black": 14205483 }, // Esipenko vs Sindarov
-    { "white": 8603405,  "black": 24651516 }, // Wei Yi vs Bluebaum
-    { "white": 24116068, "black": 25059530 }, // Anish vs Pragg
-    { "white": 2016192,  "black": 2020009  }, // Nakamura vs Caruana
+    { "white": 8603405, "black": 24651516 }, // Wei vs Bluebaum
+    { "white": 24116068, "black": 25059530 }, // Giri vs Praggnanandhaa R
+    { "white": 2016192, "black": 2020009 }, // Nakamura vs Caruana
     // Round 9
-    { "white": 2016192,  "black": 24175439 }, // Nakamura vs Esipenko
-    { "white": 2020009,  "black": 24116068 }, // Caruana vs Anish
-    { "white": 25059530, "black": 8603405  }, // Pragg vs Wei Yi
+    { "white": 2016192, "black": 24175439 }, // Nakamura vs Esipenko
+    { "white": 2020009, "black": 24116068 }, // Caruana vs Giri
+    { "white": 25059530, "black": 8603405 }, // Praggnanandhaa R vs Wei
     { "white": 24651516, "black": 14205483 }, // Bluebaum vs Sindarov
     // Round 10
     { "white": 24175439, "black": 24651516 }, // Esipenko vs Bluebaum
-    { "white": 14205483, "black": 25059530 }, // Sindarov vs Pragg
-    { "white": 8603405,  "black": 2020009  }, // Wei Yi vs Caruana
-    { "white": 24116068, "black": 2016192  }, // Anish vs Nakamura
+    { "white": 14205483, "black": 25059530 }, // Sindarov vs Praggnanandhaa R
+    { "white": 8603405, "black": 2020009 }, // Wei vs Caruana
+    { "white": 24116068, "black": 2016192 }, // Giri vs Nakamura
     // Round 11
-    { "white": 24116068, "black": 24175439 }, // Anish vs Esipenko
-    { "white": 2016192,  "black": 8603405  }, // Nakamura vs Wei Yi
-    { "white": 2020009,  "black": 14205483 }, // Caruana vs Sindarov
-    { "white": 25059530, "black": 24651516 }, // Pragg vs Bluebaum
+    { "white": 24116068, "black": 24175439 }, // Giri vs Esipenko
+    { "white": 2016192, "black": 8603405 }, // Nakamura vs Wei
+    { "white": 2020009, "black": 14205483 }, // Caruana vs Sindarov
+    { "white": 25059530, "black": 24651516 }, // Praggnanandhaa R vs Bluebaum
     // Round 12
-    { "white": 24175439, "black": 25059530 }, // Esipenko vs Pragg
-    { "white": 24651516, "black": 2020009  }, // Bluebaum vs Caruana
-    { "white": 14205483, "black": 2016192  }, // Sindarov vs Nakamura
-    { "white": 8603405,  "black": 24116068 }, // Wei Yi vs Anish
+    { "white": 24175439, "black": 25059530 }, // Esipenko vs Praggnanandhaa R
+    { "white": 24651516, "black": 2020009 }, // Bluebaum vs Caruana
+    { "white": 14205483, "black": 2016192 }, // Sindarov vs Nakamura
+    { "white": 8603405, "black": 24116068 }, // Wei vs Giri
     // Round 13
-    { "white": 8603405,  "black": 24175439 }, // Wei Yi vs Esipenko
-    { "white": 24116068, "black": 14205483 }, // Anish vs Sindarov
-    { "white": 2016192,  "black": 24651516 }, // Nakamura vs Bluebaum
-    { "white": 2020009,  "black": 25059530 }, // Caruana vs Pragg
+    { "white": 8603405, "black": 24175439 }, // Wei vs Esipenko
+    { "white": 24116068, "black": 14205483 }, // Giri vs Sindarov
+    { "white": 2016192, "black": 24651516 }, // Nakamura vs Bluebaum
+    { "white": 2020009, "black": 25059530 }, // Caruana vs Praggnanandhaa R
     // Round 14
-    { "white": 24175439, "black": 2020009  }, // Esipenko vs Caruana
-    { "white": 25059530, "black": 2016192  }, // Pragg vs Nakamura
-    { "white": 24651516, "black": 24116068 }, // Bluebaum vs Anish
-    { "white": 14205483, "black": 8603405  }  // Sindarov vs Wei Yi
+    { "white": 24175439, "black": 2020009 }, // Esipenko vs Caruana
+    { "white": 25059530, "black": 2016192 }, // Praggnanandhaa R vs Nakamura
+    { "white": 24651516, "black": 24116068 }, // Bluebaum vs Giri
+    { "white": 14205483, "black": 8603405 } // Sindarov vs Wei
   ]
 }
