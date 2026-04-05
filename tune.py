@@ -3,6 +3,12 @@
 Hyperparameter tuning for chess_montecarlo via Optuna.
 Multi-Objective Optimization: Independent Game MSE & Tournament Winner MSE.
 Includes Decisive Outcome Weighting to combat the "Lazy Draw" problem.
+
+Usage:
+    python tune.py configs/hyperparameters.json data/candidates2024.json
+    python tune.py configs/hyperparameters.json data/candidates2022.json data/candidates2024.json
+    python tune.py configs/hyperparameters.json data/candidates2024.json --trials 500
+    python tune.py configs/hyperparameters.json data/candidates2024.json --db db/tuning_2024.db
 """
 
 import argparse
@@ -186,7 +192,6 @@ def evaluate(
             )
         except subprocess.TimeoutExpired:
             print(f"\n[TIMEOUT] C++ engine took longer than 120 seconds on round {r}.")
-            tmp.unlink(missing_ok=True)
             return float("inf"), float("inf")
         finally:
             tmp.unlink(missing_ok=True)
@@ -257,7 +262,9 @@ def evaluate(
         # ------------------------------------------------------------------
         if i < winner_cutoff_idx:
             run_winner_mse = 0.0
-            for player, prob in winner_preds.items():
+            all_players = set(winner_preds.keys()) | set(actual_winners)
+            for player in all_players:
+                prob = winner_preds.get(player, 0.0)
                 actual_prob = (
                     (1.0 / len(actual_winners)) if player in actual_winners else 0.0
                 )
@@ -287,13 +294,12 @@ def evaluate(
 
 def objective(
     trial: optuna.Trial,
-    games: list[dict],
+    tournaments: list[tuple[Path, list[dict], list[str]]],
     hyper_base: dict,
     binary_path: Path,
-    tourney_path: Path,
-    actual_winners: list[str],
 ) -> tuple[float, float]:
-    """Hyperparameter search space with strict physicality constraints."""
+    """Hyperparameter search space with strict physicality constraints.
+    Scores are averaged across all supplied tournaments."""
 
     # 1. MAP Priors Constraint: prior_weight_known <= prior_weight_sim
     # Lower prior weight = less inertia = more aggressive updates.
@@ -353,9 +359,15 @@ def objective(
     for key, value in params.items():
         trial.set_user_attr(key, value)
 
-    return evaluate(
-        params, games, hyper_base, trial, binary_path, tourney_path, actual_winners
-    )
+    game_scores, winner_scores = [], []
+    for tourney_path, games, actual_winners in tournaments:
+        g, w = evaluate(params, games, hyper_base, trial, binary_path, tourney_path, actual_winners)
+        if g == float("inf") or w == float("inf"):
+            return float("inf"), float("inf")
+        game_scores.append(g)
+        winner_scores.append(w)
+
+    return sum(game_scores) / len(game_scores), sum(winner_scores) / len(winner_scores)
 
 
 # ── Callbacks ─────────────────────────────────────────────────────────────────
@@ -390,7 +402,9 @@ def main():
     parser.add_argument(
         "hyperparameters", type=Path, help="Path to your base hyperparameters.json"
     )
-    parser.add_argument("tournament", type=Path, help="Path to your tournament.json")
+    parser.add_argument(
+        "tournaments", type=Path, nargs="+", help="Path(s) to tournament JSON files"
+    )
 
     parser.add_argument(
         "--binary",
@@ -418,19 +432,23 @@ def main():
         raise FileNotFoundError(
             f"Hyperparameters file not found at {args.hyperparameters}."
         )
-    if not args.tournament.exists():
-        raise FileNotFoundError(f"Tournament file not found at {args.tournament}.")
+    for tp in args.tournaments:
+        if not tp.exists():
+            raise FileNotFoundError(f"Tournament file not found at {tp}.")
 
     args.db.parent.mkdir(parents=True, exist_ok=True)
 
     hyper_base = load_jsonc(args.hyperparameters)
-    games = known_games(load_jsonc(args.tournament))
-    actual_winners = get_actual_winners(games)
-
-    print(
-        f"Loaded {len(games)} known games across {len(set(g['round'] for g in games))} rounds."
-    )
-    print(f"Ground Truth Tournament Winner(s): {', '.join(actual_winners)}")
+    all_tournaments = []
+    for tp in args.tournaments:
+        games = known_games(load_jsonc(tp))
+        winners = get_actual_winners(games)
+        all_tournaments.append((tp, games, winners))
+        print(
+            f"[{tp.name}] {len(games)} games across "
+            f"{len(set(g['round'] for g in games))} rounds — "
+            f"winner(s): {', '.join(winners)}"
+        )
     print(f"Database path: {args.db.resolve()}")
     print(f"Starting Multi-Objective optimization (Target: {args.trials} trials)...")
     print("-" * 60)
@@ -474,9 +492,7 @@ def main():
         study.enqueue_trial(baseline)
 
     study.optimize(
-        lambda t: objective(
-            t, games, hyper_base, args.binary, args.tournament, actual_winners
-        ),
+        lambda t: objective(t, all_tournaments, hyper_base, args.binary),
         n_trials=args.trials,
         n_jobs=1,
         show_progress_bar=True,

@@ -267,8 +267,11 @@ python scripts/build_tournament.py wEuVhT9c --periods 8
 ```bash
 pip install optuna
 
-# Run 200 trials (always resumes an existing study automatically)
+# Run 200 trials on a single tournament (always resumes an existing study automatically)
 python tune.py configs/hyperparameters.json data/candidates2024.json
+
+# Run against multiple tournaments simultaneously (scores are averaged)
+python tune.py configs/hyperparameters.json data/candidates2024.json data/candidates2026.json
 
 # Fewer trials
 python tune.py configs/hyperparameters.json data/candidates2024.json --trials 50
@@ -285,7 +288,7 @@ python tune.py configs/hyperparameters.json data/candidates2024.json \
 
 2. **Winner Brier Score** — Brier score over tournament win probability predictions.
 
-Both objectives are accumulated **weighted by round number** (`score × r / Σr`): a prediction error at round 13 counts 13× more than one at round 1, reflecting that you should be increasingly accurate as more results are known.
+Both objectives are accumulated **weighted by round number** (`score × r / Σr`): a prediction error at round 13 counts 13× more than one at round 1, reflecting that you should be increasingly accurate as more results are known. When multiple tournament files are supplied, each is evaluated independently and the two objectives are averaged across tournaments before being returned to Optuna.
 
 Optuna returns a **Pareto front** of trials offering unique trade-offs between the two objectives. `EVAL_RUNS` at the top of the script controls Monte Carlo iterations per trial (default 10 000 — fast; raise to 200 000+ for a final search).
 
@@ -304,11 +307,11 @@ python scripts/pareto_front.py --save results/pareto.png
 
 The plot shows all completed trials as blue-gradient dots (darker = later trial), Pareto-optimal trials as highlighted points connected by a staircase line, and each optimal trial's number as a label. The console table prints all 15 parameters for each Pareto-optimal trial, sorted by combined objective score.
 
-**Example (2024 Candidates — 1 000 trials):**
+**Example (2024 Candidates — 5 700 trials):**
 
-![Pareto Front](results/candidates2024/pareto.png)
+![Pareto Front](results/pareto/tuning_24.png)
 
-The Optuna #1 ranked trial from this front (Trial 979, Game Brier: 0.2991, Winner Brier: 0.2531) is saved as `configs/best_hyperparameters_candidates2024.json` and used as the base config for the 2026 Candidates predictions.
+The Optuna #1 ranked trial from this front (Trial 5617, Game Brier: 0.2989, Winner Brier: 0.2424) is saved as `configs/best_hparams_24.json` and used as the base config for the 2026 Candidates predictions.
 
 ## Visualization
 

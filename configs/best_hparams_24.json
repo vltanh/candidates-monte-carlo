@@ -1,0 +1,31 @@
+{
+  // ── Simulation ───────────────────────────────────────────────────────────
+  "runs": 1000000,
+  "map_iters": 100,
+  "map_tolerance": 1e-8,
+  
+  // ── MAP prior weights ────────────────────────────────────────────────────
+  "prior_weight_known": 16.252275,
+  "prior_weight_sim":   19.963009,
+
+  // ── Rating initialization & velocity ─────────────────────────────────────
+  "initial_white_adv":   8.606557,
+  "velocity_time_decay": 0.554593,
+  "lookahead_factor":    4.431603,
+
+  // ── Cross-time-control blending ──────────────────────────────────────────
+  "rapid_form_weight": -0.498921,
+  "blitz_form_weight": -0.499297,
+  "color_bleed":       0.016426,
+
+  // ── Draw model (Baseline Nu) ─────────────────────────────────────────────
+  "classical_nu": 0.817964,
+  "rapid_nu":     0.743877,
+  "blitz_nu":     0.586121,
+
+  // ── Hybrid Aggression & Game Theory ──────────────────────────────────────
+  "agg_prior_weight":     85.226460,
+  "default_aggression_w": 0.535771,
+  "default_aggression_b": 0.494337,
+  "standings_aggression": 0.203855
+}

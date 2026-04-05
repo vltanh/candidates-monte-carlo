@@ -33,6 +33,26 @@ from pathlib import Path
 import chess.pgn
 import requests
 
+PLAYER_ALIASES = {
+    "Caruana, Fabiano": "Fabi",
+    "Giri, Anish": "Anish",
+    "Bluebaum, Matthias": "Bluebaum",
+    "Sindarov, Javokhir": "Sindarov",
+    "Wei, Yi": "Wei Yi",
+    "Esipenko, Andrey": "Esipenko",
+    "Praggnanandhaa R": "Pragg",
+    "Nakamura, Hikaru": "Hikaru",
+    "Firouzja, Alireza": "Alireza",
+    "Nepomniachtchi, Ian": "Nepo",
+    "Gukesh D": "Gukesh",
+    "Vidit, Santosh Gujrathi": "Vidit",
+    "Abasov, Nijat": "Abasov",
+    "Ding, Liren": "Ding",
+    "Rapport, Richard": "Rapport",
+    "Radjabov, Teimour": "Radjabov",
+    "Duda, Jan-Krzysztof": "Duda",
+}
+
 LICHESS_API = "https://lichess.org/api"
 FIDE_CHART = "https://ratings.fide.com/a_chart_data.phtml"
 
@@ -421,7 +441,7 @@ def build_tournament(
         players = enriched
 
     players.sort(key=lambda p: p.get("rating") or 0, reverse=True)
-    name_map = {p["fide_id"]: p["name"].split(",")[0].strip() for p in players}
+    name_map = {p["fide_id"]: PLAYER_ALIASES.get(p["name"], p["name"].split(",")[0].strip()) for p in players}
     return players, schedule, name_map
 
 

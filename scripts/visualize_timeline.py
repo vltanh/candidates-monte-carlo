@@ -1,3 +1,18 @@
+#!/usr/bin/env python3
+"""
+Visualize Monte Carlo chess tournament predictions from round output files.
+
+Reads all round{N}.txt files in a directory and produces a dashboard PNG showing:
+  - Win probability timeline across rounds
+  - Current win % bar chart
+  - Per-round match prediction breakdowns (actual results highlighted in gold)
+
+Usage:
+    python visualize_timeline.py results/candidates2026/rounds/
+    python visualize_timeline.py results/candidates2026/rounds/ -o my_output.png
+    python visualize_timeline.py results/candidates2026/rounds/ -k 5 -t data/candidates2026.json
+"""
+
 import json
 import os
 import re
@@ -6,6 +21,26 @@ import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.patches as mpatches
+
+PLAYER_ALIASES = {
+    "Caruana, Fabiano": "Fabi",
+    "Giri, Anish": "Anish",
+    "Bluebaum, Matthias": "Bluebaum",
+    "Sindarov, Javokhir": "Sindarov",
+    "Wei, Yi": "Wei Yi",
+    "Esipenko, Andrey": "Esipenko",
+    "Praggnanandhaa R": "Pragg",
+    "Nakamura, Hikaru": "Hikaru",
+    "Firouzja, Alireza": "Alireza",
+    "Nepomniachtchi, Ian": "Nepo",
+    "Gukesh D": "Gukesh",
+    "Vidit, Santosh Gujrathi": "Vidit",
+    "Abasov, Nijat": "Abasov",
+    "Ding, Liren": "Ding",
+    "Rapport, Richard": "Rapport",
+    "Radjabov, Teimour": "Radjabov",
+    "Duda, Jan-Krzysztof": "Duda",
+}
 
 parser = argparse.ArgumentParser(
     description="Visualize Monte Carlo chess tournament predictions."
@@ -39,22 +74,6 @@ args = parser.parse_args()
 
 input_dir = args.directory
 
-# 1. Player Aliases Mapping
-PLAYER_ALIASES = {
-    "Caruana, Fabiano": "Fabi",
-    "Giri, Anish": "Anish",
-    "Bluebaum, Matthias": "Bluebaum",
-    "Sindarov, Javokhir": "Sindarov",
-    "Wei, Yi": "Wei Yi",
-    "Esipenko, Andrey": "Esipenko",
-    "Praggnanandhaa R": "Pragg",
-    "Nakamura, Hikaru": "Hikaru",
-    "Firouzja, Alireza": "Alireza",
-    "Nepomniachtchi, Ian": "Nepo",
-    "Gukesh D": "Gukesh",
-    "Vidit, Santosh Gujrathi": "Vidit",
-    "Abasov, Nijat": "Abasov",
-}
 
 # 2. Load pre-tournament Elo ratings from tournament JSON (optional)
 def load_elos(tournament_path: str) -> dict[str, int]:
@@ -66,6 +85,7 @@ def load_elos(tournament_path: str) -> dict[str, int]:
         alias = PLAYER_ALIASES.get(raw, raw.split(",")[0].strip())
         result[alias] = int(p["rating"])
     return result
+
 
 player_elos = load_elos(args.tournament) if args.tournament else {}
 
