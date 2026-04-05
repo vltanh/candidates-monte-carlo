@@ -60,8 +60,9 @@ def print_pareto_table(pareto_trials: list[optuna.trial.FrozenTrial]) -> None:
               f"  Game Brier: {game_brier:.6f}   Winner Brier: {winner_brier:.6f}")
         print(f"  {'-' * 56}")
         for key in PARAM_ORDER:
-            if key in trial.params:
-                print(f"    {key:<{col_w}}: {trial.params[key]:.6f}")
+            val = trial.user_attrs.get(key, trial.params.get(key))
+            if val is not None:
+                print(f"    {key:<{col_w}}: {val:.6f}")
 
     print(f"\n{'=' * 80}\n")
 

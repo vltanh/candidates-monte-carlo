@@ -38,7 +38,7 @@ PLAYER_ALIASES = {
     "Giri, Anish": "Anish",
     "Bluebaum, Matthias": "Bluebaum",
     "Sindarov, Javokhir": "Sindarov",
-    "Yi, Wei": "Wei Yi",
+    "Wei, Yi": "Wei Yi",
     "Esipenko, Andrey": "Esipenko",
     "Praggnanandhaa R": "Pragg",
     "Nakamura, Hikaru": "Hikaru",
