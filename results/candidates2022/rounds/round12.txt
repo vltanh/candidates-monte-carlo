@@ -9,48 +9,48 @@ Duda, Jan-Krzysztof: 4.5 pts
 Firouzja, Alireza: 4 pts
 
 Running 1000000 iterations across 20 threads...
-Done in 9.98s
+Done in 6.38s
 
 === Monte Carlo Match Predictions ===
 
 --- ROUND 12 ---
 Nepomniachtchi, Ian vs Rapport, Richard
-  1-0: 44.0% | 1/2-1/2: 31.1% | 0-1: 24.9%
+  1-0: 42.1% | 1/2-1/2: 36.6% | 0-1: 21.4%
 Nakamura, Hikaru vs Duda, Jan-Krzysztof
-  1-0: 67.9% | 1/2-1/2: 22.3% | 0-1: 9.8%
+  1-0: 65.7% | 1/2-1/2: 26.2% | 0-1: 8.1%
 Firouzja, Alireza vs Ding, Liren
-  1-0: 16.4% | 1/2-1/2: 26.9% | 0-1: 56.7%
+  1-0: 13.6% | 1/2-1/2: 31.6% | 0-1: 54.8%
 Radjabov, Teimour vs Caruana, Fabiano
-  1-0: 46.1% | 1/2-1/2: 30.2% | 0-1: 23.7%
+  1-0: 42.7% | 1/2-1/2: 36.0% | 0-1: 21.3%
 
 
 --- ROUND 13 ---
 Rapport, Richard vs Radjabov, Teimour
-  1-0: 32.2% | 1/2-1/2: 30.8% | 0-1: 37.1%
+  1-0: 31.3% | 1/2-1/2: 36.8% | 0-1: 31.9%
 Caruana, Fabiano vs Firouzja, Alireza
-  1-0: 43.0% | 1/2-1/2: 31.0% | 0-1: 26.1%
+  1-0: 33.2% | 1/2-1/2: 37.6% | 0-1: 29.2%
 Ding, Liren vs Nakamura, Hikaru
-  1-0: 36.1% | 1/2-1/2: 30.9% | 0-1: 33.0%
+  1-0: 36.6% | 1/2-1/2: 36.5% | 0-1: 26.9%
 Duda, Jan-Krzysztof vs Nepomniachtchi, Ian
-  1-0: 24.6% | 1/2-1/2: 30.6% | 0-1: 44.8%
+  1-0: 24.5% | 1/2-1/2: 36.9% | 0-1: 38.6%
 
 
 --- ROUND 14 ---
 Duda, Jan-Krzysztof vs Rapport, Richard
-  1-0: 39.9% | 1/2-1/2: 31.7% | 0-1: 28.4%
+  1-0: 31.2% | 1/2-1/2: 38.2% | 0-1: 30.6%
 Ding, Liren vs Nepomniachtchi, Ian
-  1-0: 20.2% | 1/2-1/2: 27.9% | 0-1: 52.0%
+  1-0: 25.9% | 1/2-1/2: 35.9% | 0-1: 38.2%
 Caruana, Fabiano vs Nakamura, Hikaru
-  1-0: 39.2% | 1/2-1/2: 31.2% | 0-1: 29.5%
+  1-0: 33.7% | 1/2-1/2: 37.5% | 0-1: 28.7%
 Radjabov, Teimour vs Firouzja, Alireza
-  1-0: 49.1% | 1/2-1/2: 29.6% | 0-1: 21.3%
+  1-0: 38.8% | 1/2-1/2: 37.0% | 0-1: 24.2%
 
 === Tournament Win Probabilities (from Round 12) ===
-  75.03% - Nepomniachtchi, Ian
-  13.60% - Ding, Liren
-  11.10% - Nakamura, Hikaru
-   0.27% - Radjabov, Teimour
+  70.54% - Nepomniachtchi, Ian
+  17.38% - Ding, Liren
+  11.87% - Nakamura, Hikaru
+   0.20% - Radjabov, Teimour
    0.01% - Caruana, Fabiano
-   0.00% - Duda, Jan-Krzysztof
    0.00% - Firouzja, Alireza
    0.00% - Rapport, Richard
+   0.00% - Duda, Jan-Krzysztof

@@ -9,35 +9,35 @@ Firouzja, Alireza: 4.5 pts
 Duda, Jan-Krzysztof: 4.5 pts
 
 Running 1000000 iterations across 20 threads...
-Done in 6.71s
+Done in 4.65s
 
 === Monte Carlo Match Predictions ===
 
 --- ROUND 13 ---
 Rapport, Richard vs Radjabov, Teimour
-  1-0: 31.6% | 1/2-1/2: 30.9% | 0-1: 37.5%
+  1-0: 27.5% | 1/2-1/2: 36.8% | 0-1: 35.6%
 Caruana, Fabiano vs Firouzja, Alireza
-  1-0: 42.6% | 1/2-1/2: 31.0% | 0-1: 26.4%
+  1-0: 40.8% | 1/2-1/2: 36.7% | 0-1: 22.5%
 Ding, Liren vs Nakamura, Hikaru
-  1-0: 36.4% | 1/2-1/2: 30.7% | 0-1: 32.9%
+  1-0: 31.7% | 1/2-1/2: 36.6% | 0-1: 31.7%
 Duda, Jan-Krzysztof vs Nepomniachtchi, Ian
-  1-0: 24.3% | 1/2-1/2: 30.7% | 0-1: 45.0%
+  1-0: 20.9% | 1/2-1/2: 36.0% | 0-1: 43.1%
 
 
 --- ROUND 14 ---
 Duda, Jan-Krzysztof vs Rapport, Richard
-  1-0: 38.4% | 1/2-1/2: 32.3% | 0-1: 29.3%
+  1-0: 30.0% | 1/2-1/2: 38.6% | 0-1: 31.4%
 Ding, Liren vs Nepomniachtchi, Ian
-  1-0: 20.0% | 1/2-1/2: 27.9% | 0-1: 52.1%
+  1-0: 25.2% | 1/2-1/2: 35.9% | 0-1: 39.0%
 Caruana, Fabiano vs Nakamura, Hikaru
-  1-0: 39.2% | 1/2-1/2: 31.1% | 0-1: 29.8%
+  1-0: 33.9% | 1/2-1/2: 37.4% | 0-1: 28.7%
 Radjabov, Teimour vs Firouzja, Alireza
-  1-0: 47.3% | 1/2-1/2: 30.5% | 0-1: 22.1%
+  1-0: 38.2% | 1/2-1/2: 37.5% | 0-1: 24.4%
 
 === Tournament Win Probabilities (from Round 13) ===
-  73.92% - Nepomniachtchi, Ian
-  16.12% - Nakamura, Hikaru
-   9.97% - Ding, Liren
+  70.52% - Nepomniachtchi, Ian
+  18.88% - Nakamura, Hikaru
+  10.60% - Ding, Liren
    0.00% - Firouzja, Alireza
    0.00% - Caruana, Fabiano
    0.00% - Rapport, Richard

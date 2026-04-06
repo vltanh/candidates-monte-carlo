@@ -9,7 +9,7 @@ Rapport, Richard: 5.5 pts
 Duda, Jan-Krzysztof: 5.5 pts
 
 Running 1000000 iterations across 20 threads...
-Done in 0.00s
+Done in 0.01s
 
 === Monte Carlo Match Predictions ===
 === Tournament Win Probabilities (from Round 15) ===

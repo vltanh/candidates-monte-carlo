@@ -9,7 +9,7 @@ Firouzja, Alireza: 5 pts
 Abasov, Nijat: 3.5 pts
 
 Running 1000000 iterations across 20 threads...
-Done in 0.00s
+Done in 0.01s
 
 === Monte Carlo Match Predictions ===
 === Tournament Win Probabilities (from Round 15) ===
