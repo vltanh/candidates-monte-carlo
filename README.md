@@ -187,15 +187,18 @@ results/                 Per-tournament visualizations and simulation outputs
     rounds/              round{N}.txt simulation outputs
     r{N}.png             Per-round bar charts
     animation.gif        Animated GIF of all rounds
-scripts/                 Python helper scripts
-  build_tournament.py    Build tournament.json from a Lichess broadcast
-  visualize_timeline.py  Generate dashboard PNGs from round outputs
-  make_gif.py            Combine round PNGs into an animated GIF
-  pareto_front.py        Visualize Optuna Pareto front and print best trials
 db/                      Optuna SQLite databases for hyperparameter tuning
-tune.py                  Optuna hyperparameter search driver
-evaluate.py              Score a fixed hyperparameter set against tournament data
-utils.py                 Shared scoring utilities (used by tune.py and evaluate.py)
+tools/
+  data/
+    build_tournament.py  Build tournament.json from a Lichess broadcast
+  tuning/
+    tune.py              Optuna hyperparameter search driver
+    evaluate.py          Score a fixed hyperparameter set against tournament data
+    utils.py             Shared scoring utilities (used by tune.py and evaluate.py)
+  viz/
+    visualize_timeline.py  Generate dashboard PNGs from round outputs
+    pareto_front.py        Visualize Optuna Pareto front and print best trials
+    make_gif.py            Combine round PNGs into an animated GIF
 install.sh               Dependency installation snippet
 ```
 
@@ -239,32 +242,32 @@ Requires a C++17-capable compiler. The only dependency is [`json.hpp`](https://g
 
 ## Building tournament data
 
-`scripts/build_tournament.py` downloads games from a Lichess broadcast, fetches FIDE rating history, and writes a ready-to-use tournament JSON.
+`tools/data/build_tournament.py` downloads games from a Lichess broadcast, fetches FIDE rating history, and writes a ready-to-use tournament JSON.
 
 ```bash
 pip install requests python-chess
 
-python scripts/build_tournament.py wEuVhT9c -o data/my_tournament.json
-python scripts/build_tournament.py wEuVhT9c --as-of 2024-04    # slice FIDE history to a month
-python scripts/build_tournament.py wEuVhT9c --no-fide           # skip FIDE fetch
-python scripts/build_tournament.py wEuVhT9c --periods 8         # history depth (default: 6)
+python tools/data/build_tournament.py wEuVhT9c -o data/my_tournament.json
+python tools/data/build_tournament.py wEuVhT9c --as-of 2024-04    # slice FIDE history to a month
+python tools/data/build_tournament.py wEuVhT9c --no-fide           # skip FIDE fetch
+python tools/data/build_tournament.py wEuVhT9c --periods 8         # history depth (default: 6)
 ```
 
 ## Hyperparameter tuning
 
-`tune.py` uses [Optuna](https://optuna.org) to search for the best model parameters via multi-objective optimization.
+`tools/tuning/tune.py` uses [Optuna](https://optuna.org) to search for the best model parameters via multi-objective optimization.
 
 ```bash
 pip install optuna
 
 # Run 200 trials on a single tournament (always resumes an existing study automatically)
-python tune.py configs/hyperparameters.json data/candidates2024.json
+python tools/tuning/tune.py configs/hyperparameters.json data/candidates2024.json
 
 # Run against multiple tournaments simultaneously (scores are averaged)
-python tune.py configs/hyperparameters.json data/candidates2022.json data/candidates2024.json
+python tools/tuning/tune.py configs/hyperparameters.json data/candidates2022.json data/candidates2024.json
 
 # Custom binary or database path
-python tune.py configs/hyperparameters.json data/candidates2024.json \
+python tools/tuning/tune.py configs/hyperparameters.json data/candidates2024.json \
     --binary ./bin/chess_montecarlo \
     --db db/tuning_2024.db \
     --trials 500
@@ -278,8 +281,8 @@ For each round K with known results, the binary runs with `simulate_from_round =
 Both are accumulated weighted by round number (`score × r / Σr`): a round-13 error counts 13× more than round 1. When multiple tournament files are supplied, scores are averaged across tournaments. `EVAL_RUNS` in `utils.py` controls Monte Carlo iterations per trial (default 10 000).
 
 ```bash
-python scripts/pareto_front.py db/tuning_22_24.db chess_montecarlo
-python scripts/pareto_front.py db/tuning_22_24.db chess_montecarlo --save results/pareto.png
+python tools/viz/pareto_front.py db/tuning_22_24.db chess_montecarlo
+python tools/viz/pareto_front.py db/tuning_22_24.db chess_montecarlo --save results/pareto.png
 ```
 
 **2022 + 2024 Candidates — 8 970 trials, 48 Pareto-optimal:**
@@ -308,20 +311,20 @@ python scripts/pareto_front.py db/tuning_22_24.db chess_montecarlo --save result
 
 ## Evaluating a fixed parameter set
 
-`evaluate.py` scores a specific hyperparameter file against one or more tournament files using the same Weighted Game Brier Score and Winner Brier Score as the tuner. Useful for cross-tournament validation or checking parameters against an ongoing tournament where the winner is not yet known.
+`tools/tuning/evaluate.py` scores a specific hyperparameter file against one or more tournament files using the same Weighted Game Brier Score and Winner Brier Score as the tuner. Useful for cross-tournament validation or checking parameters against an ongoing tournament where the winner is not yet known.
 
 ```bash
 # Score 2022+2024-tuned params against 2022 data
-python evaluate.py configs/best_hparams_22_24.json data/candidates2022.json
+python tools/tuning/evaluate.py configs/best_hparams_22_24.json data/candidates2022.json
 
 # Cross-validate: check against a different tournament
-python evaluate.py configs/best_hparams_22_24.json data/candidates2022.json data/candidates2024.json
+python tools/tuning/evaluate.py configs/best_hparams_22_24.json data/candidates2022.json data/candidates2024.json
 
 # Ongoing tournament — winner Brier score is skipped automatically
-python evaluate.py configs/best_hparams_22_24.json data/candidates2026.json
+python tools/tuning/evaluate.py configs/best_hparams_22_24.json data/candidates2026.json
 
 # Higher fidelity (default is 10 000)
-python evaluate.py configs/best_hparams_22_24.json data/candidates2024.json --runs 100000
+python tools/tuning/evaluate.py configs/best_hparams_22_24.json data/candidates2024.json --runs 100000
 ```
 
 Per-round scores are printed as the evaluation runs. For ongoing tournaments (any schedule entry without a `result`), winner MSE is skipped and reported as `N/A`. When multiple tournament files are supplied, the winner Brier average excludes any ongoing ones.
@@ -332,13 +335,13 @@ Requires Python with `matplotlib`, `pandas`, and `numpy`.
 
 ```bash
 # Generate per-round dashboard PNGs
-python scripts/visualize_timeline.py results/candidates2026/rounds/
-python scripts/visualize_timeline.py results/candidates2026/rounds/ -o my_output.png
-python scripts/visualize_timeline.py results/candidates2026/rounds/ -k 5   # only up to round 5
+python tools/viz/visualize_timeline.py results/candidates2026/rounds/
+python tools/viz/visualize_timeline.py results/candidates2026/rounds/ -o my_output.png
+python tools/viz/visualize_timeline.py results/candidates2026/rounds/ -k 5   # only up to round 5
 
 # Combine all round PNGs into an animated GIF
-python scripts/make_gif.py results/candidates2026/
-python scripts/make_gif.py results/candidates2026/ -d 3000 --last-duration 10000
+python tools/viz/make_gif.py results/candidates2026/
+python tools/viz/make_gif.py results/candidates2026/ -d 3000 --last-duration 10000
 ```
 
 `visualize_timeline.py` reads all `round{N}.txt` files in the given directory and produces a dashboard PNG showing win probability timeline, current win % bar chart, and per-round match prediction breakdowns (with actual results highlighted in gold).

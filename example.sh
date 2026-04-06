@@ -1,7 +1,5 @@
 #!/usr/bin/env bash
-
-# Build
-g++ -O3 -march=native -std=c++17 -pthread src/chess_montecarlo.cpp -o bin/chess_montecarlo
+set -euo pipefail
 
 # Build tournament JSON from Lichess broadcast
 python tools/data/build_tournament.py BLA70Vds --as-of 2026-04 -o data/candidates2026.json
