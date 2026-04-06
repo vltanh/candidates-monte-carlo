@@ -2,14 +2,14 @@
 set -euo pipefail
 
 # Build tournament JSON from Lichess broadcast
-python tools/data/build_tournament.py BLA70Vds --as-of 2026-04 -o data/candidates2026.json
-python tools/data/build_tournament.py wEuVhT9c --as-of 2024-04 -o data/candidates2024.json
-python tools/data/build_tournament.py kAvAGI7N --as-of 2022-06 -o data/candidates2022.json
+python tools/data/build_tournament.py BLA70Vds --as-of 2026-04 -o data/candidates2026.jsonc --tiebreak fide2026
+python tools/data/build_tournament.py wEuVhT9c --as-of 2024-04 -o data/candidates2024.jsonc --tiebreak fide2026
+python tools/data/build_tournament.py kAvAGI7N --as-of 2022-06 -o data/candidates2022.jsonc --tiebreak fide2026
 
 # Hyperparameter tuning
-python tools/tuning/tune.py configs/default_hparams.json data/candidates2022.json --db db/tuning_22.db --trials 10000
-python tools/tuning/tune.py configs/default_hparams.json data/candidates2024.json --db db/tuning_24.db --trials 10000
-python tools/tuning/tune.py configs/default_hparams.json data/candidates2022.json data/candidates2024.json --db db/tuning_22_24.db --trials 10000
+python tools/tuning/tune.py configs/default_hparams.jsonc data/candidates2022.jsonc --db db/tuning_22.db --trials 10000
+python tools/tuning/tune.py configs/default_hparams.jsonc data/candidates2024.jsonc --db db/tuning_24.db --trials 10000
+python tools/tuning/tune.py configs/default_hparams.jsonc data/candidates2022.jsonc data/candidates2024.jsonc --db db/tuning_22_24.db --trials 10000
 
 # Pareto front
 python tools/viz/pareto_front.py db/tuning_22.db --save results/pareto/tuning_22.png
@@ -17,19 +17,19 @@ python tools/viz/pareto_front.py db/tuning_24.db --save results/pareto/tuning_24
 python tools/viz/pareto_front.py db/tuning_22_24.db --save results/pareto/tuning_22_24.png
 
 # Evaluate
-python tools/tuning/evaluate.py configs/best_hparams_22.json data/candidates2022.json data/candidates2024.json data/candidates2026.json
-python tools/tuning/evaluate.py configs/best_hparams_24.json data/candidates2022.json data/candidates2024.json data/candidates2026.json
-python tools/tuning/evaluate.py configs/best_hparams_22_24.json data/candidates2022.json data/candidates2024.json data/candidates2026.json
+python tools/tuning/evaluate.py configs/best_hparams_22.jsonc data/candidates2022.jsonc data/candidates2024.jsonc data/candidates2026.jsonc
+python tools/tuning/evaluate.py configs/best_hparams_24.jsonc data/candidates2022.jsonc data/candidates2024.jsonc data/candidates2026.jsonc
+python tools/tuning/evaluate.py configs/best_hparams_22_24.jsonc data/candidates2022.jsonc data/candidates2024.jsonc data/candidates2026.jsonc
 
 # Run simulations
-for i in {1..8}; do ./bin/chess_montecarlo configs/best_hparams_22_24.json data/candidates2026.json $i > results/candidates2026/rounds/round$i.txt; done
-for i in {1..15}; do ./bin/chess_montecarlo configs/best_hparams_22_24.json data/candidates2024.json $i > results/candidates2024/rounds/round$i.txt; done
-for i in {1..15}; do ./bin/chess_montecarlo configs/best_hparams_22_24.json data/candidates2022.json $i > results/candidates2022/rounds/round$i.txt; done
+for i in {1..8}; do ./bin/chess_montecarlo configs/best_hparams_22_24.jsonc data/candidates2026.jsonc $i > results/candidates2026/rounds/round$i.txt; done
+for i in {1..15}; do ./bin/chess_montecarlo configs/best_hparams_22_24.jsonc data/candidates2024.jsonc $i > results/candidates2024/rounds/round$i.txt; done
+for i in {1..15}; do ./bin/chess_montecarlo configs/best_hparams_22_24.jsonc data/candidates2022.jsonc $i > results/candidates2022/rounds/round$i.txt; done
 
 # Visualize
-for i in {1..8}; do python tools/viz/visualize_timeline.py results/candidates2026/rounds -k $i -o results/candidates2026/r${i}.png -t data/candidates2026.json; done
-for i in {1..15}; do python tools/viz/visualize_timeline.py results/candidates2024/rounds -k $i -o results/candidates2024/r${i}.png -t data/candidates2024.json; done
-for i in {1..15}; do python tools/viz/visualize_timeline.py results/candidates2022/rounds -k $i -o results/candidates2022/r${i}.png -t data/candidates2022.json; done
+for i in {1..8}; do python tools/viz/visualize_timeline.py results/candidates2026/rounds -k $i -o results/candidates2026/r${i}.png -t data/candidates2026.jsonc; done
+for i in {1..15}; do python tools/viz/visualize_timeline.py results/candidates2024/rounds -k $i -o results/candidates2024/r${i}.png -t data/candidates2024.jsonc; done
+for i in {1..15}; do python tools/viz/visualize_timeline.py results/candidates2022/rounds -k $i -o results/candidates2022/r${i}.png -t data/candidates2022.jsonc; done
 
 # Animated GIF
 python tools/viz/make_gif.py results/candidates2026/ -o results/candidates2026/animation.gif

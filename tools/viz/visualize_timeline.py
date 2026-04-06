@@ -10,37 +10,27 @@ Reads all round{N}.txt files in a directory and produces a dashboard PNG showing
 Usage:
     python tools/viz/visualize_timeline.py results/candidates2026/rounds/
     python tools/viz/visualize_timeline.py results/candidates2026/rounds/ -o my_output.png
-    python tools/viz/visualize_timeline.py results/candidates2026/rounds/ -k 5 -t data/candidates2026.json
+    python tools/viz/visualize_timeline.py results/candidates2026/rounds/ -k 5 -t data/candidates2026.jsonc
 """
 
 import json
 import os
 import re
+import sys
 import argparse
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.patches as mpatches
 
-PLAYER_ALIASES = {
-    "Caruana, Fabiano": "Fabi",
-    "Giri, Anish": "Anish",
-    "Bluebaum, Matthias": "Bluebaum",
-    "Sindarov, Javokhir": "Sindarov",
-    "Wei, Yi": "Wei Yi",
-    "Esipenko, Andrey": "Esipenko",
-    "Praggnanandhaa R": "Pragg",
-    "Nakamura, Hikaru": "Hikaru",
-    "Firouzja, Alireza": "Alireza",
-    "Nepomniachtchi, Ian": "Nepo",
-    "Gukesh D": "Gukesh",
-    "Vidit, Santosh Gujrathi": "Vidit",
-    "Abasov, Nijat": "Abasov",
-    "Ding, Liren": "Ding",
-    "Rapport, Richard": "Rapport",
-    "Radjabov, Teimour": "Radjabov",
-    "Duda, Jan-Krzysztof": "Duda",
-}
+def _load_aliases(path: str) -> dict[str, str]:
+    """Load name→alias mapping from a JSONC players file."""
+    try:
+        text = re.sub(r"//[^\n]*", "", open(path, encoding="utf-8").read())
+        return {p["name"]: p["alias"] for p in json.loads(text)}
+    except FileNotFoundError:
+        print(f"[warn] Players file not found: {path!r}. No aliases applied.", file=sys.stderr)
+        return {}
 
 parser = argparse.ArgumentParser(
     description="Visualize Monte Carlo chess tournament predictions."
@@ -70,8 +60,15 @@ parser.add_argument(
     default=None,
     help="Only process up to this round number (default: all rounds found)",
 )
+parser.add_argument(
+    "--players-file",
+    default="data/players.jsonc",
+    metavar="FILE",
+    help="JSONC file with player name/alias mappings (default: data/players.jsonc)",
+)
 args = parser.parse_args()
 
+PLAYER_ALIASES = _load_aliases(args.players_file)
 input_dir = args.directory
 
 

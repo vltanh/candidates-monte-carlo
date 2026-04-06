@@ -10,7 +10,7 @@ Dependencies:
     pip install requests python-chess
 
 Usage:
-    python tools/data/build_tournament.py wEuVhT9c -o data/candidates2024.json
+    python tools/data/build_tournament.py wEuVhT9c -o data/candidates2024.jsonc
     python tools/data/build_tournament.py https://lichess.org/broadcast/fide-candidates-2024--open/wEuVhT9c
     python tools/data/build_tournament.py wEuVhT9c --as-of 2024-04          # slice history to Apr 2024
     python tools/data/build_tournament.py wEuVhT9c --no-fide                 # skip FIDE history
@@ -33,25 +33,54 @@ from pathlib import Path
 import chess.pgn
 import requests
 
-PLAYER_ALIASES = {
-    "Caruana, Fabiano": "Fabi",
-    "Giri, Anish": "Anish",
-    "Bluebaum, Matthias": "Bluebaum",
-    "Sindarov, Javokhir": "Sindarov",
-    "Wei, Yi": "Wei Yi",
-    "Esipenko, Andrey": "Esipenko",
-    "Praggnanandhaa R": "Pragg",
-    "Nakamura, Hikaru": "Hikaru",
-    "Firouzja, Alireza": "Alireza",
-    "Nepomniachtchi, Ian": "Nepo",
-    "Gukesh D": "Gukesh",
-    "Vidit, Santosh Gujrathi": "Vidit",
-    "Abasov, Nijat": "Abasov",
-    "Ding, Liren": "Ding",
-    "Rapport, Richard": "Rapport",
-    "Radjabov, Teimour": "Radjabov",
-    "Duda, Jan-Krzysztof": "Duda",
-}
+def _load_players_file(path: str) -> tuple[dict[str, str], dict[int, dict]]:
+    """
+    Load JSONC players file.
+    Returns:
+        name_to_alias: {canonical_name: alias}
+        fide_to_info:  {fide_id: {"name": ..., "alias": ...}}
+    """
+    try:
+        text = re.sub(r"//[^\n]*", "", open(path, encoding="utf-8").read())
+        players = json.loads(text)
+    except FileNotFoundError:
+        print(f"[warn] Players file not found: {path!r}", file=sys.stderr)
+        return {}, {}
+    name_to_alias = {p["name"]: p["alias"] for p in players}
+    fide_to_info = {
+        int(p["fide_id"]): {"name": p["name"], "alias": p["alias"]}
+        for p in players
+        if "fide_id" in p
+    }
+    return name_to_alias, fide_to_info
+
+
+def _cross_check(games: list[dict], fide_to_info: dict[int, dict]) -> None:
+    """Warn if Lichess player names/IDs don't match the players file."""
+    name_to_fide = {info["name"]: fid for fid, info in fide_to_info.items()}
+    seen: set[tuple] = set()
+    for g in games:
+        for color in ("white", "black"):
+            fide_id = g[f"{color}_fide_id"]
+            name = g[color]
+            key = (fide_id, name)
+            if key in seen:
+                continue
+            seen.add(key)
+            if fide_id and fide_id in fide_to_info:
+                file_name = fide_to_info[fide_id]["name"]
+                if name != file_name:
+                    print(
+                        f"[warn] Name mismatch for FIDE {fide_id}: "
+                        f"file={file_name!r}, broadcast={name!r}",
+                        file=sys.stderr,
+                    )
+            if name in name_to_fide and fide_id and fide_id != name_to_fide[name]:
+                print(
+                    f"[warn] FIDE ID mismatch for {name!r}: "
+                    f"file={name_to_fide[name]}, broadcast={fide_id}",
+                    file=sys.stderr,
+                )
 
 LICHESS_API = "https://lichess.org/api"
 FIDE_CHART = "https://ratings.fide.com/a_chart_data.phtml"
@@ -114,6 +143,12 @@ def round_from_header(round_str: str) -> int:
     return int(m.group(1)) if m else 0
 
 
+def round_from_event(event_str: str) -> int:
+    """Parse "Round N: White - Black" → N, or 0 if not in that format."""
+    m = re.match(r"Round\s+(\d+)\s*:", event_str or "")
+    return int(m.group(1)) if m else 0
+
+
 def parse_all_games(pgn_text: str) -> list[dict]:
     """
     Parse every game from the PGN dump.
@@ -141,7 +176,7 @@ def parse_all_games(pgn_text: str) -> list[dict]:
                 "white_elo": maybe_int("WhiteElo"),
                 "black_elo": maybe_int("BlackElo"),
                 "result": RESULT_MAP.get(h.get("Result", "*")),
-                "round": round_from_header(h.get("Round", "")),
+                "round": round_from_header(h.get("Round", "")) or round_from_event(h.get("Event", "")),
             }
         )
     return games
@@ -200,7 +235,7 @@ def _fetch_fide_raw(fide_id: int, cache_dir: Path | None = None) -> list[dict]:
             timeout=15,
             headers={
                 "User-Agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 "
-                              "(KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
+                "(KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
                 "Referer": f"https://ratings.fide.com/profile/{fide_id}/chart",
                 "Origin": "https://ratings.fide.com",
                 "Accept": "*/*",
@@ -212,26 +247,35 @@ def _fetch_fide_raw(fide_id: int, cache_dir: Path | None = None) -> list[dict]:
         print(f"    [warn] FIDE fetch for {fide_id}: {e}", file=sys.stderr)
         return []
 
-    print(f"    [debug] {fide_id}: POST → {r.status_code} "
-          f"({len(r.content)} bytes, Content-Type: {r.headers.get('Content-Type', '?')})",
-          file=sys.stderr)
+    print(
+        f"    [debug] {fide_id}: POST → {r.status_code} "
+        f"({len(r.content)} bytes, Content-Type: {r.headers.get('Content-Type', '?')})",
+        file=sys.stderr,
+    )
 
     text = r.text.strip()
     if not text:
         print(f"    [debug] {fide_id}: empty response body", file=sys.stderr)
         return []
     if not text.startswith("["):
-        print(f"    [warn] {fide_id}: unexpected response (first 200): {text[:200]}",
-              file=sys.stderr)
+        print(
+            f"    [warn] {fide_id}: unexpected response (first 200): {text[:200]}",
+            file=sys.stderr,
+        )
         return []
     try:
         data = json.loads(text)
     except json.JSONDecodeError as e:
-        print(f"    [warn] {fide_id}: JSON parse error: {e} | first 200: {text[:200]}",
-              file=sys.stderr)
+        print(
+            f"    [warn] {fide_id}: JSON parse error: {e} | first 200: {text[:200]}",
+            file=sys.stderr,
+        )
         return []
     if not isinstance(data, list) or not data:
-        print(f"    [warn] {fide_id}: unexpected JSON structure: {type(data)}", file=sys.stderr)
+        print(
+            f"    [warn] {fide_id}: unexpected JSON structure: {type(data)}",
+            file=sys.stderr,
+        )
         return []
 
     if cache_dir is not None:
@@ -241,7 +285,12 @@ def _fetch_fide_raw(fide_id: int, cache_dir: Path | None = None) -> list[dict]:
     return data  # already oldest-first
 
 
-def fetch_fide_all(fide_id: int, n: int, as_of: tuple[int, int] | None = None, cache_dir: Path | None = None) -> dict:
+def fetch_fide_all(
+    fide_id: int,
+    n: int,
+    as_of: tuple[int, int] | None = None,
+    cache_dir: Path | None = None,
+) -> dict:
     """
     Fetch FIDE classical/rapid/blitz history in one POST.
     as_of: (year, month) upper bound — e.g. (2024, 4) for April 2024.
@@ -252,15 +301,23 @@ def fetch_fide_all(fide_id: int, n: int, as_of: tuple[int, int] | None = None, c
     if not raw:
         return {}
 
-    print(f"    [debug] {fide_id}: {len(raw)} periods fetched "
-          f"({raw[0]['date_2']} … {raw[-1]['date_2']})", file=sys.stderr)
+    print(
+        f"    [debug] {fide_id}: {len(raw)} periods fetched "
+        f"({raw[0]['date_2']} … {raw[-1]['date_2']})",
+        file=sys.stderr,
+    )
 
     if as_of:
         before = len(raw)
-        raw = [e for e in raw
-               if (p := _parse_period_label(e["date_2"])) is not None and p <= as_of]
-        print(f"    [debug] {fide_id}: {before} → {len(raw)} periods after as_of filter",
-              file=sys.stderr)
+        raw = [
+            e
+            for e in raw
+            if (p := _parse_period_label(e["date_2"])) is not None and p <= as_of
+        ]
+        print(
+            f"    [debug] {fide_id}: {before} → {len(raw)} periods after as_of filter",
+            file=sys.stderr,
+        )
 
     if not raw:
         print(f"    [debug] {fide_id}: all periods filtered out", file=sys.stderr)
@@ -274,23 +331,42 @@ def fetch_fide_all(fide_id: int, n: int, as_of: tuple[int, int] | None = None, c
 
     result: dict = {}
     specs = [
-        ("classical", "rating",     "period_games", "history",       "games_played",       "rating"),
-        ("rapid",     "rapid_rtng", "rapid_games",  "rapid_history", "rapid_games_played", "rapid_rating"),
-        ("blitz",     "blitz_rtng", "blitz_games",  "blitz_history", "blitz_games_played", "blitz_rating"),
+        ("classical", "rating", "period_games", "history", "games_played", "rating"),
+        (
+            "rapid",
+            "rapid_rtng",
+            "rapid_games",
+            "rapid_history",
+            "rapid_games_played",
+            "rapid_rating",
+        ),
+        (
+            "blitz",
+            "blitz_rtng",
+            "blitz_games",
+            "blitz_history",
+            "blitz_games_played",
+            "blitz_rating",
+        ),
     ]
     for tc, rtng_key, games_key, hist_key, ghist_key, rating_key in specs:
         entries = [(_int(e[rtng_key]), _int(e[games_key])) for e in raw]
         valid_idx = [i for i, (r, _) in enumerate(entries) if r is not None]
         if not valid_idx:
-            print(f"    [debug] {fide_id}/{tc}: no valid rating entries", file=sys.stderr)
+            print(
+                f"    [debug] {fide_id}/{tc}: no valid rating entries", file=sys.stderr
+            )
             continue
         last = valid_idx[-1]
         result[rating_key] = entries[last][0]
-        recent = entries[max(0, last + 1 - n): last + 1]
+        recent = entries[max(0, last + 1 - n) : last + 1]
         result[hist_key] = [r for r, _ in recent]
         result[ghist_key] = [g or 0 for _, g in recent]
-        print(f"    [debug] {fide_id}/{tc}: rating={result[rating_key]}, "
-              f"history={result[hist_key]}", file=sys.stderr)
+        print(
+            f"    [debug] {fide_id}/{tc}: rating={result[rating_key]}, "
+            f"history={result[hist_key]}",
+            file=sys.stderr,
+        )
 
     return result
 
@@ -324,13 +400,16 @@ def _game_line(entry: dict, name_map: dict[int, str], last: bool) -> str:
     """Render one schedule entry as a compact JSONC line with inline comment."""
     w_id = entry["white"]
     b_id = entry["black"]
+    round_num = entry.get("_round")
     result = entry.get("result")
 
+    parts = [f'"white": {w_id}', f'"black": {b_id}']
+    if round_num is not None:
+        parts.append(f'"round": {round_num}')
     if result:
-        body = f'{{ "white": {w_id}, "black": {b_id}, "result": "{result}" }}'
-    else:
-        body = f'{{ "white": {w_id}, "black": {b_id} }}'
+        parts.append(f'"result": "{result}"')
 
+    body = "{ " + ", ".join(parts) + " }"
     comma = "" if last else ","
     w_name = name_map.get(w_id, str(w_id))
     b_name = name_map.get(b_id, str(b_id))
@@ -338,10 +417,18 @@ def _game_line(entry: dict, name_map: dict[int, str], last: bool) -> str:
 
 
 def write_jsonc(
-    players: list[dict], schedule: list[dict], name_map: dict[int, str], path: Path
+    players: list[dict],
+    schedule: list[dict],
+    name_map: dict[int, str],
+    path: Path,
+    tiebreak: str = "shared",
 ) -> None:
     """Write tournament data as formatted JSONC."""
+    gpr = len(players) // 2
     lines = ["{"]
+
+    lines.append(f'  "gpr": {gpr},')
+    lines.append(f'  "tiebreak": "{tiebreak}",')
 
     # Players
     lines.append('  "players": [')
@@ -376,8 +463,13 @@ def write_jsonc(
 
 
 def build_tournament(
-    url_or_id: str, fetch_fide: bool, periods: int, as_of: tuple[int, int] | None,
+    url_or_id: str,
+    fetch_fide: bool,
+    periods: int,
+    as_of: tuple[int, int] | None,
     cache_dir: Path | None = None,
+    name_to_alias: dict | None = None,
+    fide_to_info: dict | None = None,
 ) -> tuple[list, list, dict]:
     """
     Returns (players, schedule_with_round, name_map).
@@ -387,6 +479,34 @@ def build_tournament(
     pgn_text = download_all_pgn(tour_id, cache_dir)
     games = parse_all_games(pgn_text)
     print(f"Parsed {len(games)} games.")
+
+    # If the broadcast PGN lacks FIDE ID headers, resolve them from the players file by name.
+    # Broadcasts sometimes use "First Last" instead of the canonical "Last, First", so both
+    # forms are indexed.
+    if fide_to_info:
+        name_to_fide: dict[str, int] = {}
+        for fid, info in fide_to_info.items():
+            canonical = info["name"]
+            name_to_fide[canonical] = fid
+            if "," in canonical:
+                last, first = canonical.split(",", 1)
+                name_to_fide[f"{first.strip()} {last.strip()}"] = fid
+
+        for g in games:
+            for color in ("white", "black"):
+                if g[f"{color}_fide_id"] is None:
+                    name = g[color]
+                    resolved = name_to_fide.get(name)
+                    if resolved is not None:
+                        g[f"{color}_fide_id"] = resolved
+                        g[color] = fide_to_info[resolved]["name"]  # normalize to canonical
+                    else:
+                        print(
+                            f"[warn] No FIDE ID in broadcast or players file for {name!r}",
+                            file=sys.stderr,
+                        )
+
+    _cross_check(games, fide_to_info or {})
 
     players_info: dict[int, dict] = {}
     for g in games:
@@ -398,7 +518,7 @@ def build_tournament(
                 players_info[fid] = {"fide_id": fid, "name": name, "rating": elo}
 
     if not players_info:
-        print("No players with FIDE IDs found — check the broadcast ID.")
+        print("No players with FIDE IDs found — check broadcast ID or --players-file.")
         sys.exit(1)
 
     # Schedule sorted by round; keep _round for JSONC grouping
@@ -421,7 +541,9 @@ def build_tournament(
         enriched = []
         for p in players:
             print(f"  {p['name']} (FIDE {p['fide_id']}) ...")
-            fide_data = fetch_fide_all(p["fide_id"], n=periods, as_of=as_of, cache_dir=cache_dir)
+            fide_data = fetch_fide_all(
+                p["fide_id"], n=periods, as_of=as_of, cache_dir=cache_dir
+            )
             entry: dict = {"fide_id": p["fide_id"], "name": p["name"]}
             entry["rating"] = fide_data.get("rating", p.get("rating"))
             entry["rapid_rating"] = fide_data.get("rapid_rating", p.get("rapid_rating"))
@@ -441,7 +563,10 @@ def build_tournament(
         players = enriched
 
     players.sort(key=lambda p: p.get("rating") or 0, reverse=True)
-    name_map = {p["fide_id"]: PLAYER_ALIASES.get(p["name"], p["name"].split(",")[0].strip()) for p in players}
+    name_map = {
+        p["fide_id"]: (name_to_alias or {}).get(p["name"], p["name"].split(",")[0].strip())
+        for p in players
+    }
     return players, schedule, name_map
 
 
@@ -467,8 +592,8 @@ def main():
     parser.add_argument(
         "-o",
         "--output",
-        default="tournament_new.json",
-        help="Output path (default: tournament_new.json)",
+        default="tournament_new.jsonc",
+        help="Output path (default: tournament_new.jsonc)",
     )
     parser.add_argument(
         "--no-fide",
@@ -497,7 +622,7 @@ def main():
         default="data/raw",
         metavar="DIR",
         help="Directory for caching PGN and FIDE responses (default: data/raw). "
-             "Use --no-cache to disable.",
+        "Use --no-cache to disable.",
     )
     parser.add_argument(
         "--no-cache",
@@ -506,19 +631,38 @@ def main():
         const=None,
         help="Disable caching; always fetch from network",
     )
+    parser.add_argument(
+        "--players-file",
+        dest="players_file",
+        default="data/players.jsonc",
+        metavar="FILE",
+        help="JSONC file with player name/alias/FIDE ID mappings (default: data/players.jsonc)",
+    )
+    parser.add_argument(
+        "--tiebreak",
+        choices=["shared", "fide2026"],
+        default="shared",
+        help=(
+            'Tiebreak procedure written into the JSON (default: "shared"). '
+            'Use "fide2026" for Rapid mini-match → Blitz → sudden-death knockout.'
+        ),
+    )
     args = parser.parse_args()
 
     cache_dir = Path(args.cache_dir) if args.cache_dir else None
+    name_to_alias, fide_to_info = _load_players_file(args.players_file)
     players, schedule, name_map = build_tournament(
         args.broadcast_id,
         fetch_fide=args.fide,
         periods=args.periods,
         as_of=args.as_of,
         cache_dir=cache_dir,
+        name_to_alias=name_to_alias,
+        fide_to_info=fide_to_info,
     )
 
     out = Path(args.output)
-    write_jsonc(players, schedule, name_map, out)
+    write_jsonc(players, schedule, name_map, out, tiebreak=args.tiebreak)
     print(f"\nWrote {len(players)} players, {len(schedule)} games → {out}")
 
 
