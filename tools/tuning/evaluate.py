@@ -4,9 +4,9 @@ Evaluate a fixed set of hyperparameters against one or more tournaments.
 Reports the same Weighted Game Brier Score and Winner Brier Score used during tuning.
 
 Usage:
-    python evaluate.py configs/best_hparams_22_24.json data/candidates2022.json
-    python evaluate.py configs/best_hparams_22_24.json data/candidates2022.json data/candidates2024.json
-    python evaluate.py configs/best_hparams_22_24.json data/candidates2024.json --runs 100000
+    python tools/tuning/evaluate.py configs/best_hparams_22_24.json data/candidates2022.json
+    python tools/tuning/evaluate.py configs/best_hparams_22_24.json data/candidates2022.json data/candidates2024.json
+    python tools/tuning/evaluate.py configs/best_hparams_22_24.json data/candidates2024.json --runs 100000
 """
 
 import argparse

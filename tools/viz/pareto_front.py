@@ -3,8 +3,8 @@
 Visualize the Pareto front from a multi-objective Optuna study.
 
 Usage:
-  python scripts/pareto_front.py [db_path] [study_name]
-  python scripts/pareto_front.py db/tuning_2024.db chess_montecarlo
+  python tools/viz/pareto_front.py [db_path] [study_name]
+  python tools/viz/pareto_front.py db/tuning_2024.db chess_montecarlo
 """
 
 import argparse

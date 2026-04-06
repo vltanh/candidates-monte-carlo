@@ -8,9 +8,9 @@ Reads all round{N}.txt files in a directory and produces a dashboard PNG showing
   - Per-round match prediction breakdowns (actual results highlighted in gold)
 
 Usage:
-    python visualize_timeline.py results/candidates2026/rounds/
-    python visualize_timeline.py results/candidates2026/rounds/ -o my_output.png
-    python visualize_timeline.py results/candidates2026/rounds/ -k 5 -t data/candidates2026.json
+    python tools/viz/visualize_timeline.py results/candidates2026/rounds/
+    python tools/viz/visualize_timeline.py results/candidates2026/rounds/ -o my_output.png
+    python tools/viz/visualize_timeline.py results/candidates2026/rounds/ -k 5 -t data/candidates2026.json
 """
 
 import json

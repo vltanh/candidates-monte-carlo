@@ -297,10 +297,13 @@ python scripts/pareto_front.py db/tuning_22_24.db chess_montecarlo --save result
 | `lookahead_factor` | 4.70 | Rating trend is strongly extrapolated forward; players with rising ratings are credited substantially |
 | `velocity_time_decay` | 0.69 | Moderate decay; recent rating history is weighted more than older entries but not exclusively |
 | `rapid_form_weight / blitz_form_weight` | −0.50 / −0.50 | Rapid and blitz trends slightly reduce the classical form anchor |
+| `color_bleed` | 0.048 | Small cross-pollination between White and Black latent strengths after each MAP update; prevents color-specific ratings from diverging while preserving most of the color-specific signal |
 | `classical_nu` | 1.19 | Moderate draw rate for classical games |
 | `rapid_nu` | 0.88 | Lower draw rate for rapid tiebreaks |
 | `blitz_nu` | 0.72 | Lowest draw rate for blitz tiebreaks |
 | `agg_prior_weight` | 75.3 | Strong aggression prior — individual aggression scores deviate little from the default |
+| `default_aggression_w` | 0.338 | Prior for White decisive-game fraction; ~34% of White games are expected to be decisive before any game history is observed |
+| `default_aggression_b` | 0.180 | Prior for Black decisive-game fraction; ~18% of Black games decisive by default — roughly half the White rate, reflecting that Black plays more drawishly at top level |
 | `standings_aggression` | 0.033 | Minimal desperation effect; tournament standings have little influence on game aggression |
 
 ## Evaluating a fixed parameter set
