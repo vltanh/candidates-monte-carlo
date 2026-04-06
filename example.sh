@@ -10,16 +10,16 @@ python scripts/build_tournament.py kAvAGI7N --as-of 2022-06 -o data/candidates20
 
 # Hyperparameter tuning
 python tune.py configs/best_hparams_24.json data/candidates2024.json --db db/tuning_2024.db --trials 1000
-python tune.py configs/best_hparams_24.json data/candidates2022.json data/candidates2024.json --db db/tuning_22_24.db --trials 1000
+python tune.py configs/best_hparams_22_24.json data/candidates2022.json data/candidates2024.json --db db/tuning_22_24.db --trials 1000
 
 # Pareto front
 python scripts/pareto_front.py db/tuning_2024.db --save results/pareto/tuning_24.png
 python scripts/pareto_front.py db/tuning_22_24.db --save results/pareto/tuning_22_24.png
 
 # Run simulations
-for i in {1..8}; do ./bin/chess_montecarlo configs/best_hparams_24.json data/candidates2026.json $i > results/candidates2026/rounds/round$i.txt; done
-for i in {1..15}; do ./bin/chess_montecarlo configs/best_hparams_24.json data/candidates2024.json $i > results/candidates2024/rounds/round$i.txt; done
-for i in {1..15}; do ./bin/chess_montecarlo configs/best_hparams_24.json data/candidates2022.json $i > results/candidates2022/rounds/round$i.txt; done
+for i in {1..8}; do ./bin/chess_montecarlo configs/best_hparams_22_24.json data/candidates2026.json $i > results/candidates2026/rounds/round$i.txt; done
+for i in {1..15}; do ./bin/chess_montecarlo configs/best_hparams_22_24.json data/candidates2024.json $i > results/candidates2024/rounds/round$i.txt; done
+for i in {1..15}; do ./bin/chess_montecarlo configs/best_hparams_22_24.json data/candidates2022.json $i > results/candidates2022/rounds/round$i.txt; done
 
 # Visualize
 for i in {1..8}; do python scripts/visualize_timeline.py results/candidates2026/rounds -k $i -o results/candidates2026/r${i}.png -t data/candidates2026.json; done
