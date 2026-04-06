@@ -66,7 +66,7 @@ def main():
     print(f"Simulation runs: {args.runs}")
     print("-" * 60)
 
-    total_game_scores, total_winner_scores = [], []
+    total_g, total_w, total_p, total_r = [], [], [], []
 
     for tp in args.tournaments:
         data = load_jsonc(tp)
@@ -78,7 +78,7 @@ def main():
         status = "ongoing" if is_ongoing else f"winner(s): {', '.join(winners)}"
         print(f"\n[{tp.name}] {len(games)} games, {rounds_played} rounds — {status}")
 
-        g_score, w_score = evaluate(
+        g_score, w_score, pts_score, rps_score = evaluate(
             params,
             games,
             args.binary,
@@ -87,25 +87,34 @@ def main():
             eval_runs=args.runs,
             verbose=True,
         )
-        total_game_scores.append(g_score)
-        total_winner_scores.append(w_score)
+        total_g.append(g_score)
+        total_w.append(w_score)
+        total_p.append(pts_score)
+        total_r.append(rps_score)
 
-        winner_str = f"{w_score:.6f}" if not isnan(w_score) else "N/A"
-        print(f"  -> Weighted Game Brier: {g_score:.6f}  |  Winner Brier: {winner_str}")
+        print(f"  -> Weighted Game Brier: {g_score:.6f}")
+        if not isnan(w_score):
+            print(f"  -> Winner Brier:        {w_score:.6f}")
+            print(f"  -> Expected Points MSE: {pts_score:.6f}")
+            print(f"  -> Rank RPS:            {rps_score:.6f}")
 
     if len(args.tournaments) > 1:
-        avg_g = sum(total_game_scores) / len(total_game_scores)
-        finite_winner_scores = [s for s in total_winner_scores if not isnan(s)]
-        avg_w = (
-            sum(finite_winner_scores) / len(finite_winner_scores)
-            if finite_winner_scores
-            else float("nan")
-        )
+        avg_g = sum(total_g) / len(total_g)
+        finite_w = [s for s in total_w if not isnan(s)]
+        finite_p = [s for s in total_p if not isnan(s)]
+        finite_r = [s for s in total_r if not isnan(s)]
+
+        avg_w = sum(finite_w) / len(finite_w) if finite_w else float("nan")
+        avg_p = sum(finite_p) / len(finite_p) if finite_p else float("nan")
+        avg_r = sum(finite_r) / len(finite_r) if finite_r else float("nan")
+
         print("\n" + "=" * 60)
         print(f"AVERAGE across {len(args.tournaments)} tournaments")
         print(f"  Weighted Game Brier: {avg_g:.6f}")
-        winner_avg_str = f"{avg_w:.6f}" if not isnan(avg_w) else "N/A"
-        print(f"  Winner Brier:        {winner_avg_str}")
+        if not isnan(avg_w):
+            print(f"  Winner Brier:        {avg_w:.6f}")
+            print(f"  Expected Points MSE: {avg_p:.6f}")
+            print(f"  Rank RPS:            {avg_r:.6f}")
         print("=" * 60)
 
 

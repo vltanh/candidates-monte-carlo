@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 Hyperparameter tuning for chess_montecarlo via Optuna.
-Multi-Objective Optimization: Independent Game MSE & Tournament Winner MSE.
+Multi-Objective Optimization: Game Brier (Contention-Weighted) & Rank RPS.
 Includes Decisive Outcome Weighting to combat the "Lazy Draw" problem.
 
 Usage:
@@ -12,6 +12,7 @@ Usage:
 """
 
 import argparse
+from math import isnan
 from pathlib import Path
 import optuna
 
@@ -116,9 +117,10 @@ def objective(
     for key, value in params.items():
         trial.set_user_attr(key, value)
 
-    game_scores, winner_scores = [], []
+    game_scores, rps_scores = [], []
     for tourney_path, games, actual_winners in tournaments:
-        g, w = evaluate(
+        # Evaluate now returns 4 values: (game_mse, winner_mse, exp_pts_mse, rps)
+        g, w, pts, rps = evaluate(
             params,
             games,
             binary_path,
@@ -126,12 +128,12 @@ def objective(
             actual_winners,
             hyper_base=hyper_base,
         )
-        if g == float("inf") or w == float("inf"):
+        if g == float("inf") or rps == float("inf") or isnan(rps):
             return float("inf"), float("inf")
         game_scores.append(g)
-        winner_scores.append(w)
+        rps_scores.append(rps)
 
-    return sum(game_scores) / len(game_scores), sum(winner_scores) / len(winner_scores)
+    return sum(game_scores) / len(game_scores), sum(rps_scores) / len(rps_scores)
 
 
 # ── Callbacks ─────────────────────────────────────────────────────────────────
@@ -145,7 +147,7 @@ def champion_callback(study, frozen_trial):
             print(f"\n🏆 [NEW PARETO OPTIMAL] Trial {frozen_trial.number}", flush=True)
             print(f"  ├─ Weighted Game Brier: {frozen_trial.values[0]:.6f}")
             print(
-                f"  └─ Winner Brier:        {frozen_trial.values[1]:.6f}\n", flush=True
+                f"  └─ Rank RPS:            {frozen_trial.values[1]:.6f}\n", flush=True
             )
             print("  Parameters:", flush=True)
             for k in PARAM_ORDER:
@@ -266,12 +268,12 @@ def main():
     print("\n" + "=" * 80)
     print("OPTIMIZATION COMPLETE - PARETO FRONT")
     print(
-        "These are the best trials offering unique trade-offs between Game vs Winner MSE."
+        "These are the best trials offering unique trade-offs between Game Brier vs Rank RPS."
     )
     print("-" * 80)
     for trial in study.best_trials:
         print(
-            f"Trial {trial.number:<4} | Weighted Game Brier: {trial.values[0]:.6f} | Winner Brier: {trial.values[1]:.6f}"
+            f"Trial {trial.number:<4} | Weighted Game Brier: {trial.values[0]:.6f} | Rank RPS: {trial.values[1]:.6f}"
         )
     print("=" * 80)
 
