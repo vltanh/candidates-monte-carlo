@@ -12,8 +12,14 @@
     "[python]": {
         "editor.defaultFormatter": "ms-python.black-formatter"
     },
-"C_Cpp.default.cppStandard": "c++17",
+    "C_Cpp.default.cppStandard": "c++17",
     "C_Cpp.default.compilerPath": "/usr/bin/g++",
     "C_Cpp.default.intelliSenseMode": "linux-gcc-x64",
-    "files.associations": {"*.json": "jsonc"}
+    "files.associations": {
+        "*.json": "jsonc"
+    },
+    "files.exclude": {
+        "**/__pycache__": true,
+        "**/*.pyc": true
+    }
 }

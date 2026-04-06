@@ -10,7 +10,7 @@
                 "-march=native",
                 "-std=c++17",
                 "-pthread",
-                "${workspaceFolder}/chess_montecarlo.cpp",
+                "${workspaceFolder}/src/chess_montecarlo.cpp",
                 "-o",
                 "${workspaceFolder}/bin/chess_montecarlo"
             ],
@@ -28,7 +28,7 @@
                 "-g",
                 "-std=c++17",
                 "-pthread",
-                "${workspaceFolder}/chess_montecarlo.cpp",
+                "${workspaceFolder}/src/chess_montecarlo.cpp",
                 "-o",
                 "${workspaceFolder}/bin/chess_montecarlo_debug"
             ],

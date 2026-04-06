@@ -10,11 +10,11 @@ Dependencies:
     pip install requests python-chess
 
 Usage:
-    python build_tournament.py wEuVhT9c -o data/candidates2024.json
-    python build_tournament.py https://lichess.org/broadcast/fide-candidates-2024--open/wEuVhT9c
-    python build_tournament.py wEuVhT9c --as-of 2024-04          # slice history to Apr 2024
-    python build_tournament.py wEuVhT9c --no-fide                 # skip FIDE history
-    python build_tournament.py wEuVhT9c --periods 8               # 8 history entries
+    python tools/data/build_tournament.py wEuVhT9c -o data/candidates2024.json
+    python tools/data/build_tournament.py https://lichess.org/broadcast/fide-candidates-2024--open/wEuVhT9c
+    python tools/data/build_tournament.py wEuVhT9c --as-of 2024-04          # slice history to Apr 2024
+    python tools/data/build_tournament.py wEuVhT9c --no-fide                 # skip FIDE history
+    python tools/data/build_tournament.py wEuVhT9c --periods 8               # 8 history entries
 
 API endpoints used:
     GET /api/broadcast/{tourId}.pgn     → all games in one download

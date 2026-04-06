@@ -1,5 +1,12 @@
 #!/usr/bin/env python3
-"""Creates an animated GIF from all PNGs in a directory."""
+"""
+Creates an animated GIF from all PNGs in a directory.
+
+Usage:
+    python tools/viz/make_gif.py results/candidates2026/
+    python tools/viz/make_gif.py results/candidates2026/ -o results/candidates2026/animation.gif
+    python tools/viz/make_gif.py results/candidates2026/ -d 3000 --last-duration 10000
+"""
 
 import argparse
 import re

@@ -5,10 +5,10 @@ Multi-Objective Optimization: Independent Game MSE & Tournament Winner MSE.
 Includes Decisive Outcome Weighting to combat the "Lazy Draw" problem.
 
 Usage:
-    python tune.py configs/hyperparameters.json data/candidates2024.json
-    python tune.py configs/hyperparameters.json data/candidates2022.json data/candidates2024.json
-    python tune.py configs/hyperparameters.json data/candidates2024.json --trials 500
-    python tune.py configs/hyperparameters.json data/candidates2024.json --db db/tuning_2024.db
+    python tools/tuning/tune.py configs/hyperparameters.json data/candidates2024.json
+    python tools/tuning/tune.py configs/hyperparameters.json data/candidates2022.json data/candidates2024.json
+    python tools/tuning/tune.py configs/hyperparameters.json data/candidates2024.json --trials 500
+    python tools/tuning/tune.py configs/hyperparameters.json data/candidates2024.json --db db/tuning_2024.db
 """
 
 import argparse

@@ -1,6 +1,6 @@
 """
 Shared utilities for chess Monte Carlo simulation scoring.
-Used by both tune.py (Optuna) and evaluate.py (standalone).
+Used by both tools/tuning/tune.py (Optuna) and tools/tuning/evaluate.py (standalone).
 """
 
 import json

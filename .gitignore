@@ -1,17 +1,31 @@
 # Compiled binaries
 *.o
 *.out
+*.d
+*.so
+
+# C++ vendored headers
+src/json.hpp
 
 # Debug symbols
 *.dSYM/
-
-# Build artifacts
-*.d
 
 # Python
 __pycache__/
 *.pyc
 *.pyo
+*.pyd
+.pytest_cache/
+.mypy_cache/
+*.egg-info/
+dist/
+build/
+
+# Virtual environments
+venv/
+.venv/
+env/
+.env
 
 # OS
 .DS_Store

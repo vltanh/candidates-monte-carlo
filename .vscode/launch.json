@@ -6,7 +6,11 @@
             "type": "cppdbg",
             "request": "launch",
             "program": "${workspaceFolder}/bin/chess_montecarlo_debug",
-            "args": ["tournament.json"],
+            "args": [
+                "configs/best_hparams_22_24.json",
+                "data/candidates2026.json",
+                "1"
+            ],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",
             "environment": [],
