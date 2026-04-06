@@ -1,0 +1,168 @@
+{
+  "players": [
+    {
+      "fide_id": 8603677,
+      "name": "Ding, Liren",
+      "rating": 2806,
+      "rapid_rating": 2836,
+      "blitz_rating": 2787,
+      "history": [2799, 2799, 2799, 2799, 2806, 2806],
+      "games_played": [0, 0, 0, 0, 28, 0],
+      "rapid_history": [2836, 2836, 2836, 2836, 2836, 2836],
+      "rapid_games_played": [0, 0, 0, 0, 0, 0],
+      "blitz_history": [2787, 2787, 2787, 2787, 2787, 2787],
+      "blitz_games_played": [0, 0, 0, 0, 0, 0]
+    },
+    {
+      "fide_id": 12573981,
+      "name": "Firouzja, Alireza",
+      "rating": 2793,
+      "rapid_rating": 2670,
+      "blitz_rating": 2792,
+      "history": [2804, 2804, 2804, 2804, 2804, 2793],
+      "games_played": [0, 0, 0, 0, 0, 9],
+      "rapid_history": [2670, 2670, 2670, 2670, 2670, 2670],
+      "rapid_games_played": [13, 0, 0, 0, 0, 0],
+      "blitz_history": [2792, 2792, 2792, 2792, 2792, 2792],
+      "blitz_games_played": [21, 0, 0, 0, 0, 0]
+    },
+    {
+      "fide_id": 2020009,
+      "name": "Caruana, Fabiano",
+      "rating": 2783,
+      "rapid_rating": 2766,
+      "blitz_rating": 2847,
+      "history": [2792, 2792, 2781, 2781, 2786, 2783],
+      "games_played": [0, 0, 13, 0, 8, 9],
+      "rapid_history": [2784, 2784, 2784, 2784, 2790, 2766],
+      "rapid_games_played": [27, 0, 0, 0, 4, 9],
+      "blitz_history": [2745, 2745, 2745, 2745, 2745, 2847],
+      "blitz_games_played": [35, 0, 0, 0, 0, 27]
+    },
+    {
+      "fide_id": 4168119,
+      "name": "Nepomniachtchi, Ian",
+      "rating": 2766,
+      "rapid_rating": 2821,
+      "blitz_rating": 2741,
+      "history": [2773, 2773, 2773, 2773, 2773, 2766],
+      "games_played": [11, 0, 0, 0, 0, 9],
+      "rapid_history": [2821, 2821, 2821, 2821, 2821, 2821],
+      "rapid_games_played": [13, 0, 0, 0, 0, 0],
+      "blitz_history": [2741, 2741, 2741, 2741, 2741, 2741],
+      "blitz_games_played": [23, 0, 0, 0, 0, 0]
+    },
+    {
+      "fide_id": 738590,
+      "name": "Rapport, Richard",
+      "rating": 2764,
+      "rapid_rating": 2802,
+      "blitz_rating": 2612,
+      "history": [2763, 2763, 2762, 2776, 2776, 2764],
+      "games_played": [0, 0, 20, 10, 0, 9],
+      "rapid_history": [2779, 2779, 2785, 2785, 2785, 2802],
+      "rapid_games_played": [27, 0, 2, 0, 0, 9],
+      "blitz_history": [2646, 2646, 2646, 2646, 2646, 2612],
+      "blitz_games_played": [35, 0, 0, 0, 0, 18]
+    },
+    {
+      "fide_id": 2016192,
+      "name": "Nakamura, Hikaru",
+      "rating": 2760,
+      "rapid_rating": 2837,
+      "blitz_rating": 2850,
+      "history": [2736, 2736, 2750, 2750, 2760, 2760],
+      "games_played": [0, 0, 10, 0, 10, 0],
+      "rapid_history": [2823, 2823, 2837, 2837, 2837, 2837],
+      "rapid_games_played": [13, 0, 2, 0, 4, 0],
+      "blitz_history": [2850, 2850, 2850, 2850, 2850, 2850],
+      "blitz_games_played": [12, 0, 0, 0, 0, 0]
+    },
+    {
+      "fide_id": 13400924,
+      "name": "Radjabov, Teimour",
+      "rating": 2753,
+      "rapid_rating": 2747,
+      "blitz_rating": 2705,
+      "history": [2753, 2753, 2753, 2753, 2753, 2753],
+      "games_played": [0, 0, 0, 0, 0, 0],
+      "rapid_history": [2747, 2747, 2747, 2747, 2747, 2747],
+      "rapid_games_played": [0, 0, 0, 0, 0, 0],
+      "blitz_history": [2705, 2705, 2705, 2705, 2705, 2705],
+      "blitz_games_played": [0, 0, 0, 0, 0, 0]
+    },
+    {
+      "fide_id": 1170546,
+      "name": "Duda, Jan-Krzysztof",
+      "rating": 2750,
+      "rapid_rating": 2808,
+      "blitz_rating": 2773,
+      "history": [2760, 2760, 2750, 2750, 2750, 2750],
+      "games_played": [0, 0, 13, 0, 0, 0],
+      "rapid_history": [2806, 2806, 2806, 2806, 2806, 2808],
+      "rapid_games_played": [13, 0, 0, 0, 0, 9],
+      "blitz_history": [2750, 2750, 2750, 2750, 2750, 2773],
+      "blitz_games_played": [46, 0, 0, 0, 0, 18]
+    }
+  ],
+  "schedule": [
+    // Round 0
+    { "white": 738590, "black": 12573981, "result": "1/2-1/2" }, // Rapport vs Firouzja
+    { "white": 2016192, "black": 13400924, "result": "1-0" }, // Nakamura vs Radjabov
+    { "white": 4168119, "black": 2020009, "result": "1/2-1/2" }, // Nepomniachtchi vs Caruana
+    { "white": 1170546, "black": 8603677, "result": "1/2-1/2" }, // Duda vs Ding
+    { "white": 8603677, "black": 738590, "result": "1/2-1/2" }, // Ding vs Rapport
+    { "white": 2020009, "black": 1170546, "result": "1/2-1/2" }, // Caruana vs Duda
+    { "white": 13400924, "black": 4168119, "result": "1/2-1/2" }, // Radjabov vs Nepomniachtchi
+    { "white": 12573981, "black": 2016192, "result": "1/2-1/2" }, // Firouzja vs Nakamura
+    { "white": 738590, "black": 2016192, "result": "1/2-1/2" }, // Rapport vs Nakamura
+    { "white": 4168119, "black": 12573981, "result": "1-0" }, // Nepomniachtchi vs Firouzja
+    { "white": 1170546, "black": 13400924, "result": "1/2-1/2" }, // Duda vs Radjabov
+    { "white": 8603677, "black": 2020009, "result": "1/2-1/2" }, // Ding vs Caruana
+    { "white": 2020009, "black": 738590, "result": "1/2-1/2" }, // Caruana vs Rapport
+    { "white": 13400924, "black": 8603677, "result": "1/2-1/2" }, // Radjabov vs Ding
+    { "white": 12573981, "black": 1170546, "result": "1/2-1/2" }, // Firouzja vs Duda
+    { "white": 2016192, "black": 4168119, "result": "1/2-1/2" }, // Nakamura vs Nepomniachtchi
+    { "white": 13400924, "black": 738590, "result": "1/2-1/2" }, // Radjabov vs Rapport
+    { "white": 12573981, "black": 2020009, "result": "0-1" }, // Firouzja vs Caruana
+    { "white": 2016192, "black": 8603677, "result": "1/2-1/2" }, // Nakamura vs Ding
+    { "white": 4168119, "black": 1170546, "result": "1-0" }, // Nepomniachtchi vs Duda
+    { "white": 738590, "black": 4168119, "result": "0-1" }, // Rapport vs Nepomniachtchi
+    { "white": 1170546, "black": 2016192, "result": "1/2-1/2" }, // Duda vs Nakamura
+    { "white": 8603677, "black": 12573981, "result": "1/2-1/2" }, // Ding vs Firouzja
+    { "white": 2020009, "black": 13400924, "result": "1-0" }, // Caruana vs Radjabov
+    { "white": 738590, "black": 1170546, "result": "1-0" }, // Rapport vs Duda
+    { "white": 4168119, "black": 8603677, "result": "1/2-1/2" }, // Nepomniachtchi vs Ding
+    { "white": 2016192, "black": 2020009, "result": "1-0" }, // Nakamura vs Caruana
+    { "white": 12573981, "black": 13400924, "result": "1/2-1/2" }, // Firouzja vs Radjabov
+    { "white": 12573981, "black": 738590, "result": "1-0" }, // Firouzja vs Rapport
+    { "white": 13400924, "black": 2016192, "result": "1-0" }, // Radjabov vs Nakamura
+    { "white": 2020009, "black": 4168119, "result": "1/2-1/2" }, // Caruana vs Nepomniachtchi
+    { "white": 8603677, "black": 1170546, "result": "1-0" }, // Ding vs Duda
+    { "white": 738590, "black": 8603677, "result": "0-1" }, // Rapport vs Ding
+    { "white": 1170546, "black": 2020009, "result": "1-0" }, // Duda vs Caruana
+    { "white": 4168119, "black": 13400924, "result": "1/2-1/2" }, // Nepomniachtchi vs Radjabov
+    { "white": 2016192, "black": 12573981, "result": "1-0" }, // Nakamura vs Firouzja
+    { "white": 2016192, "black": 738590, "result": "1/2-1/2" }, // Nakamura vs Rapport
+    { "white": 12573981, "black": 4168119, "result": "0-1" }, // Firouzja vs Nepomniachtchi
+    { "white": 13400924, "black": 1170546, "result": "1/2-1/2" }, // Radjabov vs Duda
+    { "white": 2020009, "black": 8603677, "result": "0-1" }, // Caruana vs Ding
+    { "white": 738590, "black": 2020009, "result": "1/2-1/2" }, // Rapport vs Caruana
+    { "white": 8603677, "black": 13400924, "result": "0-1" }, // Ding vs Radjabov
+    { "white": 1170546, "black": 12573981, "result": "1/2-1/2" }, // Duda vs Firouzja
+    { "white": 4168119, "black": 2016192, "result": "1/2-1/2" }, // Nepomniachtchi vs Nakamura
+    { "white": 4168119, "black": 738590, "result": "1/2-1/2" }, // Nepomniachtchi vs Rapport
+    { "white": 2016192, "black": 1170546, "result": "1-0" }, // Nakamura vs Duda
+    { "white": 12573981, "black": 8603677, "result": "1/2-1/2" }, // Firouzja vs Ding
+    { "white": 13400924, "black": 2020009, "result": "1/2-1/2" }, // Radjabov vs Caruana
+    { "white": 738590, "black": 13400924, "result": "0-1" }, // Rapport vs Radjabov
+    { "white": 2020009, "black": 12573981, "result": "0-1" }, // Caruana vs Firouzja
+    { "white": 8603677, "black": 2016192, "result": "1-0" }, // Ding vs Nakamura
+    { "white": 1170546, "black": 4168119, "result": "1/2-1/2" }, // Duda vs Nepomniachtchi
+    // Round 1
+    { "white": 1170546, "black": 738590, "result": "1/2-1/2" }, // Duda vs Rapport
+    { "white": 8603677, "black": 4168119, "result": "0-1" }, // Ding vs Nepomniachtchi
+    { "white": 2020009, "black": 2016192, "result": "1-0" }, // Caruana vs Nakamura
+    { "white": 13400924, "black": 12573981, "result": "1/2-1/2" } // Radjabov vs Firouzja
+  ]
+}

@@ -1,0 +1,177 @@
+=== Current Standings (Before Round 1) ===
+Ding, Liren: 0 pts
+Firouzja, Alireza: 0 pts
+Caruana, Fabiano: 0 pts
+Nepomniachtchi, Ian: 0 pts
+Rapport, Richard: 0 pts
+Nakamura, Hikaru: 0 pts
+Radjabov, Teimour: 0 pts
+Duda, Jan-Krzysztof: 0 pts
+
+Running 1000000 iterations across 20 threads...
+Done in 29.92s
+
+=== Monte Carlo Match Predictions ===
+
+--- ROUND 1 ---
+Rapport, Richard vs Firouzja, Alireza
+  1-0: 37.7% | 1/2-1/2: 31.1% | 0-1: 31.2%
+Nakamura, Hikaru vs Radjabov, Teimour
+  1-0: 30.8% | 1/2-1/2: 31.0% | 0-1: 38.3%
+Nepomniachtchi, Ian vs Caruana, Fabiano
+  1-0: 38.7% | 1/2-1/2: 30.9% | 0-1: 30.4%
+Duda, Jan-Krzysztof vs Ding, Liren
+  1-0: 23.8% | 1/2-1/2: 29.8% | 0-1: 46.4%
+
+
+--- ROUND 2 ---
+Ding, Liren vs Rapport, Richard
+  1-0: 35.4% | 1/2-1/2: 31.1% | 0-1: 33.5%
+Caruana, Fabiano vs Duda, Jan-Krzysztof
+  1-0: 38.8% | 1/2-1/2: 30.8% | 0-1: 30.5%
+Radjabov, Teimour vs Nepomniachtchi, Ian
+  1-0: 40.2% | 1/2-1/2: 30.7% | 0-1: 29.1%
+Firouzja, Alireza vs Nakamura, Hikaru
+  1-0: 45.8% | 1/2-1/2: 29.9% | 0-1: 24.3%
+
+
+--- ROUND 3 ---
+Rapport, Richard vs Nakamura, Hikaru
+  1-0: 46.8% | 1/2-1/2: 28.1% | 0-1: 25.1%
+Nepomniachtchi, Ian vs Firouzja, Alireza
+  1-0: 29.9% | 1/2-1/2: 28.8% | 0-1: 41.3%
+Duda, Jan-Krzysztof vs Radjabov, Teimour
+  1-0: 29.7% | 1/2-1/2: 28.7% | 0-1: 41.6%
+Ding, Liren vs Caruana, Fabiano
+  1-0: 47.2% | 1/2-1/2: 27.9% | 0-1: 24.9%
+
+
+--- ROUND 4 ---
+Caruana, Fabiano vs Rapport, Richard
+  1-0: 27.0% | 1/2-1/2: 28.2% | 0-1: 44.8%
+Radjabov, Teimour vs Ding, Liren
+  1-0: 33.1% | 1/2-1/2: 28.8% | 0-1: 38.1%
+Firouzja, Alireza vs Duda, Jan-Krzysztof
+  1-0: 48.7% | 1/2-1/2: 27.5% | 0-1: 23.8%
+Nakamura, Hikaru vs Nepomniachtchi, Ian
+  1-0: 35.6% | 1/2-1/2: 28.8% | 0-1: 35.7%
+
+
+--- ROUND 5 ---
+Radjabov, Teimour vs Rapport, Richard
+  1-0: 33.6% | 1/2-1/2: 27.4% | 0-1: 39.0%
+Firouzja, Alireza vs Caruana, Fabiano
+  1-0: 45.8% | 1/2-1/2: 26.6% | 0-1: 27.6%
+Nakamura, Hikaru vs Ding, Liren
+  1-0: 29.9% | 1/2-1/2: 26.7% | 0-1: 43.5%
+Nepomniachtchi, Ian vs Duda, Jan-Krzysztof
+  1-0: 41.8% | 1/2-1/2: 27.1% | 0-1: 31.2%
+
+
+--- ROUND 6 ---
+Rapport, Richard vs Nepomniachtchi, Ian
+  1-0: 45.2% | 1/2-1/2: 26.7% | 0-1: 28.1%
+Duda, Jan-Krzysztof vs Nakamura, Hikaru
+  1-0: 35.2% | 1/2-1/2: 27.0% | 0-1: 37.8%
+Ding, Liren vs Firouzja, Alireza
+  1-0: 38.4% | 1/2-1/2: 27.0% | 0-1: 34.6%
+Caruana, Fabiano vs Radjabov, Teimour
+  1-0: 33.1% | 1/2-1/2: 27.0% | 0-1: 39.8%
+
+
+--- ROUND 7 ---
+Rapport, Richard vs Duda, Jan-Krzysztof
+  1-0: 49.1% | 1/2-1/2: 25.1% | 0-1: 25.8%
+Nepomniachtchi, Ian vs Ding, Liren
+  1-0: 31.7% | 1/2-1/2: 26.0% | 0-1: 42.3%
+Nakamura, Hikaru vs Caruana, Fabiano
+  1-0: 38.7% | 1/2-1/2: 26.1% | 0-1: 35.2%
+Firouzja, Alireza vs Radjabov, Teimour
+  1-0: 41.2% | 1/2-1/2: 26.0% | 0-1: 32.9%
+
+
+--- ROUND 8 ---
+Firouzja, Alireza vs Rapport, Richard
+  1-0: 37.0% | 1/2-1/2: 25.8% | 0-1: 37.3%
+Radjabov, Teimour vs Nakamura, Hikaru
+  1-0: 43.2% | 1/2-1/2: 25.9% | 0-1: 31.0%
+Caruana, Fabiano vs Nepomniachtchi, Ian
+  1-0: 36.7% | 1/2-1/2: 26.0% | 0-1: 37.4%
+Ding, Liren vs Duda, Jan-Krzysztof
+  1-0: 48.6% | 1/2-1/2: 24.8% | 0-1: 26.6%
+
+
+--- ROUND 9 ---
+Rapport, Richard vs Ding, Liren
+  1-0: 38.9% | 1/2-1/2: 25.4% | 0-1: 35.7%
+Duda, Jan-Krzysztof vs Caruana, Fabiano
+  1-0: 36.1% | 1/2-1/2: 25.8% | 0-1: 38.1%
+Nepomniachtchi, Ian vs Radjabov, Teimour
+  1-0: 35.9% | 1/2-1/2: 25.5% | 0-1: 38.6%
+Nakamura, Hikaru vs Firouzja, Alireza
+  1-0: 31.4% | 1/2-1/2: 25.7% | 0-1: 42.9%
+
+
+--- ROUND 10 ---
+Nakamura, Hikaru vs Rapport, Richard
+  1-0: 30.9% | 1/2-1/2: 25.0% | 0-1: 44.2%
+Firouzja, Alireza vs Nepomniachtchi, Ian
+  1-0: 44.3% | 1/2-1/2: 25.0% | 0-1: 30.7%
+Radjabov, Teimour vs Duda, Jan-Krzysztof
+  1-0: 44.8% | 1/2-1/2: 25.1% | 0-1: 30.1%
+Caruana, Fabiano vs Ding, Liren
+  1-0: 31.1% | 1/2-1/2: 25.0% | 0-1: 43.9%
+
+
+--- ROUND 11 ---
+Rapport, Richard vs Caruana, Fabiano
+  1-0: 46.9% | 1/2-1/2: 24.6% | 0-1: 28.5%
+Ding, Liren vs Radjabov, Teimour
+  1-0: 41.8% | 1/2-1/2: 25.3% | 0-1: 32.9%
+Duda, Jan-Krzysztof vs Firouzja, Alireza
+  1-0: 29.2% | 1/2-1/2: 25.3% | 0-1: 45.5%
+Nepomniachtchi, Ian vs Nakamura, Hikaru
+  1-0: 40.0% | 1/2-1/2: 25.6% | 0-1: 34.4%
+
+
+--- ROUND 12 ---
+Nepomniachtchi, Ian vs Rapport, Richard
+  1-0: 32.2% | 1/2-1/2: 25.0% | 0-1: 42.8%
+Nakamura, Hikaru vs Duda, Jan-Krzysztof
+  1-0: 40.7% | 1/2-1/2: 25.1% | 0-1: 34.2%
+Firouzja, Alireza vs Ding, Liren
+  1-0: 38.3% | 1/2-1/2: 24.9% | 0-1: 36.8%
+Radjabov, Teimour vs Caruana, Fabiano
+  1-0: 42.9% | 1/2-1/2: 25.1% | 0-1: 32.0%
+
+
+--- ROUND 13 ---
+Rapport, Richard vs Radjabov, Teimour
+  1-0: 41.9% | 1/2-1/2: 25.0% | 0-1: 33.1%
+Caruana, Fabiano vs Firouzja, Alireza
+  1-0: 31.9% | 1/2-1/2: 25.4% | 0-1: 42.7%
+Ding, Liren vs Nakamura, Hikaru
+  1-0: 45.8% | 1/2-1/2: 25.1% | 0-1: 29.1%
+Duda, Jan-Krzysztof vs Nepomniachtchi, Ian
+  1-0: 34.8% | 1/2-1/2: 25.6% | 0-1: 39.6%
+
+
+--- ROUND 14 ---
+Duda, Jan-Krzysztof vs Rapport, Richard
+  1-0: 29.1% | 1/2-1/2: 24.6% | 0-1: 46.3%
+Ding, Liren vs Nepomniachtchi, Ian
+  1-0: 44.3% | 1/2-1/2: 24.9% | 0-1: 30.8%
+Caruana, Fabiano vs Nakamura, Hikaru
+  1-0: 38.6% | 1/2-1/2: 25.2% | 0-1: 36.2%
+Radjabov, Teimour vs Firouzja, Alireza
+  1-0: 36.1% | 1/2-1/2: 25.3% | 0-1: 38.6%
+
+=== Tournament Win Probabilities (from Round 1) ===
+  19.04% - Ding, Liren
+  18.88% - Rapport, Richard
+  16.87% - Firouzja, Alireza
+  12.93% - Radjabov, Teimour
+   9.72% - Nepomniachtchi, Ian
+   8.38% - Nakamura, Hikaru
+   7.93% - Caruana, Fabiano
+   6.26% - Duda, Jan-Krzysztof

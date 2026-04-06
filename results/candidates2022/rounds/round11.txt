@@ -1,0 +1,67 @@
+=== Current Standings (Before Round 11) ===
+Nepomniachtchi, Ian: 7 pts
+Ding, Liren: 6.5 pts
+Nakamura, Hikaru: 6 pts
+Caruana, Fabiano: 4.5 pts
+Radjabov, Teimour: 4.5 pts
+Rapport, Richard: 4 pts
+Duda, Jan-Krzysztof: 4 pts
+Firouzja, Alireza: 3.5 pts
+
+Running 1000000 iterations across 20 threads...
+Done in 11.65s
+
+=== Monte Carlo Match Predictions ===
+
+--- ROUND 11 ---
+Rapport, Richard vs Caruana, Fabiano
+  1-0: 32.6% | 1/2-1/2: 29.4% | 0-1: 38.0%
+Ding, Liren vs Radjabov, Teimour
+  1-0: 46.3% | 1/2-1/2: 29.6% | 0-1: 24.1%
+Duda, Jan-Krzysztof vs Firouzja, Alireza
+  1-0: 48.2% | 1/2-1/2: 29.8% | 0-1: 22.1%
+Nepomniachtchi, Ian vs Nakamura, Hikaru
+  1-0: 51.5% | 1/2-1/2: 28.4% | 0-1: 20.0%
+
+
+--- ROUND 12 ---
+Nepomniachtchi, Ian vs Rapport, Richard
+  1-0: 44.6% | 1/2-1/2: 30.3% | 0-1: 25.1%
+Nakamura, Hikaru vs Duda, Jan-Krzysztof
+  1-0: 66.8% | 1/2-1/2: 22.9% | 0-1: 10.3%
+Firouzja, Alireza vs Ding, Liren
+  1-0: 15.7% | 1/2-1/2: 26.7% | 0-1: 57.7%
+Radjabov, Teimour vs Caruana, Fabiano
+  1-0: 44.7% | 1/2-1/2: 30.3% | 0-1: 25.1%
+
+
+--- ROUND 13 ---
+Rapport, Richard vs Radjabov, Teimour
+  1-0: 37.4% | 1/2-1/2: 30.3% | 0-1: 32.2%
+Caruana, Fabiano vs Firouzja, Alireza
+  1-0: 43.2% | 1/2-1/2: 30.4% | 0-1: 26.4%
+Ding, Liren vs Nakamura, Hikaru
+  1-0: 45.1% | 1/2-1/2: 29.6% | 0-1: 25.3%
+Duda, Jan-Krzysztof vs Nepomniachtchi, Ian
+  1-0: 25.8% | 1/2-1/2: 30.3% | 0-1: 43.8%
+
+
+--- ROUND 14 ---
+Duda, Jan-Krzysztof vs Rapport, Richard
+  1-0: 40.1% | 1/2-1/2: 31.1% | 0-1: 28.8%
+Ding, Liren vs Nepomniachtchi, Ian
+  1-0: 25.7% | 1/2-1/2: 29.1% | 0-1: 45.1%
+Caruana, Fabiano vs Nakamura, Hikaru
+  1-0: 40.7% | 1/2-1/2: 30.4% | 0-1: 28.9%
+Radjabov, Teimour vs Firouzja, Alireza
+  1-0: 50.0% | 1/2-1/2: 28.9% | 0-1: 21.1%
+
+=== Tournament Win Probabilities (from Round 11) ===
+  60.44% - Nepomniachtchi, Ian
+  30.27% - Ding, Liren
+   9.19% - Nakamura, Hikaru
+   0.05% - Radjabov, Teimour
+   0.04% - Caruana, Fabiano
+   0.00% - Duda, Jan-Krzysztof
+   0.00% - Rapport, Richard
+   0.00% - Firouzja, Alireza

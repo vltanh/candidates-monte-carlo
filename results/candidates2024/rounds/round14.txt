@@ -9,25 +9,25 @@ Firouzja, Alireza: 4.5 pts
 Abasov, Nijat: 3.5 pts
 
 Running 1000000 iterations across 20 threads...
-Done in 2.04s
+Done in 2.82s
 
 === Monte Carlo Match Predictions ===
 
 --- ROUND 14 ---
 Nakamura, Hikaru vs Gukesh D
-  1-0: 29.4% | 1/2-1/2: 26.9% | 0-1: 43.7%
+  1-0: 30.0% | 1/2-1/2: 28.4% | 0-1: 41.6%
 Caruana, Fabiano vs Nepomniachtchi, Ian
-  1-0: 47.6% | 1/2-1/2: 33.1% | 0-1: 19.4%
+  1-0: 47.9% | 1/2-1/2: 30.4% | 0-1: 21.8%
 Firouzja, Alireza vs Vidit, Santosh Gujrathi
-  1-0: 33.5% | 1/2-1/2: 34.8% | 0-1: 31.6%
+  1-0: 43.4% | 1/2-1/2: 30.2% | 0-1: 26.4%
 Abasov, Nijat vs Praggnanandhaa R
-  1-0: 20.9% | 1/2-1/2: 34.3% | 0-1: 44.8%
+  1-0: 18.3% | 1/2-1/2: 30.3% | 0-1: 51.4%
 
 === Tournament Win Probabilities (from Round 14) ===
-  58.11% - Gukesh D
-  20.74% - Nakamura, Hikaru
-  14.79% - Caruana, Fabiano
-   6.37% - Nepomniachtchi, Ian
+  56.35% - Gukesh D
+  20.70% - Nakamura, Hikaru
+  15.52% - Caruana, Fabiano
+   7.43% - Nepomniachtchi, Ian
    0.00% - Firouzja, Alireza
    0.00% - Praggnanandhaa R
    0.00% - Vidit, Santosh Gujrathi

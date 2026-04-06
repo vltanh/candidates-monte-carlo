@@ -1,0 +1,45 @@
+=== Current Standings (Before Round 13) ===
+Nepomniachtchi, Ian: 8 pts
+Nakamura, Hikaru: 7.5 pts
+Ding, Liren: 7 pts
+Radjabov, Teimour: 6 pts
+Caruana, Fabiano: 5.5 pts
+Rapport, Richard: 5 pts
+Firouzja, Alireza: 4.5 pts
+Duda, Jan-Krzysztof: 4.5 pts
+
+Running 1000000 iterations across 20 threads...
+Done in 6.71s
+
+=== Monte Carlo Match Predictions ===
+
+--- ROUND 13 ---
+Rapport, Richard vs Radjabov, Teimour
+  1-0: 31.6% | 1/2-1/2: 30.9% | 0-1: 37.5%
+Caruana, Fabiano vs Firouzja, Alireza
+  1-0: 42.6% | 1/2-1/2: 31.0% | 0-1: 26.4%
+Ding, Liren vs Nakamura, Hikaru
+  1-0: 36.4% | 1/2-1/2: 30.7% | 0-1: 32.9%
+Duda, Jan-Krzysztof vs Nepomniachtchi, Ian
+  1-0: 24.3% | 1/2-1/2: 30.7% | 0-1: 45.0%
+
+
+--- ROUND 14 ---
+Duda, Jan-Krzysztof vs Rapport, Richard
+  1-0: 38.4% | 1/2-1/2: 32.3% | 0-1: 29.3%
+Ding, Liren vs Nepomniachtchi, Ian
+  1-0: 20.0% | 1/2-1/2: 27.9% | 0-1: 52.1%
+Caruana, Fabiano vs Nakamura, Hikaru
+  1-0: 39.2% | 1/2-1/2: 31.1% | 0-1: 29.8%
+Radjabov, Teimour vs Firouzja, Alireza
+  1-0: 47.3% | 1/2-1/2: 30.5% | 0-1: 22.1%
+
+=== Tournament Win Probabilities (from Round 13) ===
+  73.92% - Nepomniachtchi, Ian
+  16.12% - Nakamura, Hikaru
+   9.97% - Ding, Liren
+   0.00% - Firouzja, Alireza
+   0.00% - Caruana, Fabiano
+   0.00% - Rapport, Richard
+   0.00% - Radjabov, Teimour
+   0.00% - Duda, Jan-Krzysztof
