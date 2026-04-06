@@ -22,9 +22,9 @@ python tools/tuning/evaluate.py configs/best_hparams_24.jsonc data/candidates202
 python tools/tuning/evaluate.py configs/best_hparams_22_24.jsonc data/candidates2022.jsonc data/candidates2024.jsonc data/candidates2026.jsonc
 
 # Run simulations
-for i in {1..8}; do ./bin/chess_montecarlo configs/best_hparams_22_24.jsonc data/candidates2026.jsonc $i > results/candidates2026/rounds/round$i.txt; done
-for i in {1..15}; do ./bin/chess_montecarlo configs/best_hparams_22_24.jsonc data/candidates2024.jsonc $i > results/candidates2024/rounds/round$i.txt; done
-for i in {1..15}; do ./bin/chess_montecarlo configs/best_hparams_22_24.jsonc data/candidates2022.jsonc $i > results/candidates2022/rounds/round$i.txt; done
+python tools/viz/generate_rounds.py configs/default_hparams.jsonc data/candidates2026.jsonc results/candidates2026/rounds/ --rounds 8
+python tools/viz/generate_rounds.py configs/default_hparams.jsonc data/candidates2024.jsonc results/candidates2024/rounds/ --rounds 15
+python tools/viz/generate_rounds.py configs/default_hparams.jsonc data/candidates2022.jsonc results/candidates2022/rounds/ --rounds 15
 
 # Visualize
 for i in {1..8}; do python tools/viz/visualize_timeline.py results/candidates2026/rounds -k $i -o results/candidates2026/r${i}.png -t data/candidates2026.jsonc; done

@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """
-Visualize Monte Carlo chess tournament predictions from round output files.
+Visualize Monte Carlo chess tournament predictions from JSON round output files.
 
-Reads all round{N}.txt files in a directory and produces a dashboard PNG showing:
+Reads all round{N}.txt or round{N}.json files in a directory and produces a dashboard PNG showing:
   - Win probability timeline across rounds
   - Current win % bar chart
   - Per-round match prediction breakdowns (actual results highlighted in gold)
@@ -23,71 +23,51 @@ import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.patches as mpatches
 
+
+def load_jsonc(path: str) -> dict:
+    """Load and parse a JSONC file by stripping comments."""
+    text = re.sub(r"//[^\n]*", "", open(path, encoding="utf-8").read())
+    return json.loads(text)
+
+
 def _load_aliases(path: str) -> dict[str, str]:
     """Load name→alias mapping from a JSONC players file."""
     try:
-        text = re.sub(r"//[^\n]*", "", open(path, encoding="utf-8").read())
-        return {p["name"]: p["alias"] for p in json.loads(text)}
+        return {p["name"]: p["alias"] for p in load_jsonc(path)}
     except FileNotFoundError:
-        print(f"[warn] Players file not found: {path!r}. No aliases applied.", file=sys.stderr)
+        print(
+            f"[warn] Players file not found: {path!r}. No aliases applied.",
+            file=sys.stderr,
+        )
         return {}
+
 
 parser = argparse.ArgumentParser(
     description="Visualize Monte Carlo chess tournament predictions."
 )
 parser.add_argument(
-    "directory",
-    nargs="?",
-    default=".",
-    help="Directory containing round{i}.txt files (default: current directory)",
+    "directory", nargs="?", default=".", help="Directory containing round files"
 )
-parser.add_argument(
-    "-o",
-    "--output",
-    default=None,
-    help="Output file path (default: round{N}.png in the input directory)",
-)
+parser.add_argument("-o", "--output", default=None, help="Output file path")
 parser.add_argument(
     "-t",
     "--tournament",
     default=None,
-    help="Path to tournament JSON to show pre-tournament Elo in the bar chart",
+    help="Path to tournament JSON for Elo and actual results",
 )
 parser.add_argument(
-    "-k",
-    "--max-round",
-    type=int,
-    default=None,
-    help="Only process up to this round number (default: all rounds found)",
+    "-k", "--max-round", type=int, default=None, help="Process up to this round number"
 )
 parser.add_argument(
-    "--players-file",
-    default="data/players.jsonc",
-    metavar="FILE",
-    help="JSONC file with player name/alias mappings (default: data/players.jsonc)",
+    "--players-file", default="data/players.jsonc", help="Player name/alias mappings"
 )
 args = parser.parse_args()
 
 PLAYER_ALIASES = _load_aliases(args.players_file)
 input_dir = args.directory
 
-
-# 2. Load pre-tournament Elo ratings from tournament JSON (optional)
-def load_elos(tournament_path: str) -> dict[str, int]:
-    text = re.sub(r"//[^\n]*", "", open(tournament_path, encoding="utf-8").read())
-    data = json.loads(text)
-    result = {}
-    for p in data["players"]:
-        raw = p["name"]
-        alias = PLAYER_ALIASES.get(raw, raw.split(",")[0].strip())
-        result[alias] = int(p["rating"])
-    return result
-
-
-player_elos = load_elos(args.tournament) if args.tournament else {}
-
-# 3. Automatically detect and sort round{i}.txt files
-file_pattern = re.compile(r"round(\d+)\.txt")
+# 1. Automatically detect and sort round{i} files (supporting .txt or .json extensions)
+file_pattern = re.compile(r"round(\d+)\.(txt|json)")
 files = []
 for f in os.listdir(input_dir):
     match = file_pattern.match(f)
@@ -96,7 +76,7 @@ for f in os.listdir(input_dir):
 
 files.sort()
 if not files:
-    print("Error: No 'round{i}.txt' files found in the current directory.")
+    print("Error: No 'round{i}.txt' or 'round{i}.json' files found.")
     exit(1)
 
 if args.max_round is not None:
@@ -108,92 +88,84 @@ if args.max_round is not None:
 max_k = files[-1][0]
 latest_file = files[-1][1]
 
-# 3. Regex Patterns
-round_pattern = re.compile(r"--- ROUND (\d+) ---")
-match_pattern = re.compile(r"(.+) vs (.+)")
-prob_pattern = re.compile(
-    r"1-0:\s*([\d.]+)%\s*\|\s*1/2-1/2:\s*([\d.]+)%\s*\|\s*0-1:\s*([\d.]+)%"
-)
-win_prob_pattern = re.compile(r"([\d.]+)%\s*-\s*(.+)")
+# 2. Extract Ground Truth Data (Elo, Standings, Match Results)
+player_elos = {}
+actual_results = {}
+current_standings = {}
+
+if args.tournament and os.path.exists(args.tournament):
+    t_data = load_jsonc(args.tournament)
+    players_by_id = {p["fide_id"]: p["name"] for p in t_data["players"]}
+    gpr = t_data.get("gpr", len(t_data["players"]) // 2)
+
+    for p in t_data["players"]:
+        raw = p["name"]
+        alias = PLAYER_ALIASES.get(raw, raw.split(",")[0].strip())
+        player_elos[alias] = int(p["rating"])
+
+    for gi, g in enumerate(t_data["schedule"]):
+        if "result" in g and g["result"] is not None:
+            w_raw = players_by_id[g["white"]]
+            b_raw = players_by_id[g["black"]]
+            w = PLAYER_ALIASES.get(w_raw, w_raw.split(",")[0].strip())
+            b = PLAYER_ALIASES.get(b_raw, b_raw.split(",")[0].strip())
+            rnd = g.get("round", gi // gpr + 1)
+
+            actual_results[(rnd, w, b)] = g["result"]
+
+            # Tally points strictly up to max_k - 1
+            if rnd < max_k:
+                res = g["result"]
+                current_standings[w] = current_standings.get(w, 0.0) + (
+                    1.0 if res == "1-0" else 0.5 if res == "1/2-1/2" else 0.0
+                )
+                current_standings[b] = current_standings.get(b, 0.0) + (
+                    0.0 if res == "1-0" else 0.5 if res == "1/2-1/2" else 1.0
+                )
 
 
-def parse_standings(filepath):
-    st = {}
-    with open(filepath, "r", encoding="utf-8") as f:
-        content = f.read()
-        match = re.search(r"=== Current Standings.*?===\n(.*?)\n\n", content, re.DOTALL)
-        if match:
-            for line in match.group(1).strip().split("\n"):
-                parts = line.split(":")
-                if len(parts) == 2:
-                    raw_name = parts[0].strip()
-                    name = PLAYER_ALIASES.get(raw_name, raw_name.split(",")[0].strip())
-                    pts = float(parts[1].replace("pts", "").strip())
-                    st[name] = pts
-    return st
-
-
+# 3. Data Parsing Functions (JSON API)
 def parse_predictions(filepath, target_round):
-    matches = []
-    with open(filepath, "r", encoding="utf-8") as f:
-        lines = f.read().split("\n")
+    try:
+        with open(filepath, "r", encoding="utf-8") as f:
+            data = json.load(f)
 
-    current_round = None
-    current_white = None
-    current_black = None
-
-    for line in lines:
-        line = line.strip()
-        rm = round_pattern.search(line)
-        if rm:
-            current_round = int(rm.group(1))
-            continue
-
-        if current_round != target_round:
-            continue
-
-        mm = match_pattern.search(line)
-        if mm and "---" not in line and "===" not in line:
-            raw_w = mm.group(1).strip()
-            raw_b = mm.group(2).strip()
-            current_white = PLAYER_ALIASES.get(raw_w, raw_w.split(",")[0].strip())
-            current_black = PLAYER_ALIASES.get(raw_b, raw_b.split(",")[0].strip())
-            continue
-
-        pm = prob_pattern.search(line)
-        if pm and current_white and current_black:
-            matches.append(
-                {
-                    "White": current_white,
-                    "Black": current_black,
-                    "White Win": float(pm.group(1)),
-                    "Draw": float(pm.group(2)),
-                    "Black Win": float(pm.group(3)),
-                }
-            )
-            current_white = None
-            current_black = None
-    return matches
+        matches = []
+        round_key = str(target_round)
+        if "game_probs" in data and round_key in data["game_probs"]:
+            for pair, probs in data["game_probs"][round_key].items():
+                raw_w, raw_b = pair.split("|")
+                w = PLAYER_ALIASES.get(raw_w, raw_w.split(",")[0].strip())
+                b = PLAYER_ALIASES.get(raw_b, raw_b.split(",")[0].strip())
+                matches.append(
+                    {
+                        "White": w,
+                        "Black": b,
+                        "White Win": probs[0] * 100.0,
+                        "Draw": probs[1] * 100.0,
+                        "Black Win": probs[2] * 100.0,
+                    }
+                )
+        return matches
+    except Exception as e:
+        print(f"Warning: Could not parse games from {filepath} ({e})")
+        return []
 
 
 # 4. Extract Historical Win Probabilities
 win_history = []
 for k, fname in files:
-    with open(fname, "r", encoding="utf-8") as f:
-        content = f.read()
-        if "=== Tournament Win Probabilities" in content:
-            lines = (
-                content.split("=== Tournament Win Probabilities")[1].strip().split("\n")
-            )
-            for line in lines:
-                wp_match = win_prob_pattern.search(line)
-                if wp_match:
-                    perc = float(wp_match.group(1))
-                    raw_name = wp_match.group(2).strip()
-                    name = PLAYER_ALIASES.get(raw_name, raw_name.split(",")[0].strip())
-                    win_history.append(
-                        {"Completed Rounds": k - 1, "Player": name, "Win %": perc}
-                    )
+    try:
+        with open(fname, "r", encoding="utf-8") as f:
+            data = json.load(f)
+        if "winner_probs" in data:
+            for raw_name, prob in data["winner_probs"].items():
+                name = PLAYER_ALIASES.get(raw_name, raw_name.split(",")[0].strip())
+                win_history.append(
+                    {"Completed Rounds": k - 1, "Player": name, "Win %": prob * 100.0}
+                )
+    except Exception:
+        pass
 
 df_history = pd.DataFrame(win_history)
 
@@ -201,26 +173,10 @@ df_history = pd.DataFrame(win_history)
 all_rounds_data = []
 for r in range(1, 15):
     if r < max_k:
-        file_before = os.path.join(input_dir, f"round{r}.txt")
-        file_after = os.path.join(input_dir, f"round{r+1}.txt")
-        matches = (
-            parse_predictions(file_before, r) if os.path.exists(file_before) else []
-        )
-
-        if matches and os.path.exists(file_after):
-            st_before = parse_standings(file_before)
-            st_after = parse_standings(file_after)
-            for m in matches:
-                w_diff = st_after.get(m["White"], 0) - st_before.get(m["White"], 0)
-                if w_diff == 1.0:
-                    m["Actual"] = "1-0"
-                elif w_diff == 0.5:
-                    m["Actual"] = "1/2-1/2"
-                elif w_diff == 0.0:
-                    m["Actual"] = "0-1"
-                else:
-                    m["Actual"] = "Unknown"
-
+        actual_file = next((f[1] for f in files if f[0] == r), None)
+        matches = parse_predictions(actual_file, r) if actual_file else []
+        for m in matches:
+            m["Actual"] = actual_results.get((r, m["White"], m["Black"]), "Unknown")
         all_rounds_data.append((r, matches, True))
     else:
         matches = parse_predictions(latest_file, r)
@@ -242,8 +198,8 @@ gs_top = gs_main[0].subgridspec(1, 2, width_ratios=[2, 1.5], wspace=0.25)
 ax_line = fig.add_subplot(gs_top[0])
 ax_bar = fig.add_subplot(gs_top[1])
 
-colors = plt.cm.tab20(np.linspace(0, 1, len(PLAYER_ALIASES)))
-player_colors = dict(zip(PLAYER_ALIASES.values(), colors))
+colors = plt.cm.tab20(np.linspace(0, 1, len(PLAYER_ALIASES) if PLAYER_ALIASES else 8))
+player_colors = dict(zip(df_history["Player"].unique(), colors))
 
 for player in df_history["Player"].unique():
     p_data = df_history[df_history["Player"] == player]
@@ -273,12 +229,10 @@ latest_probs = latest_probs.sort_values(by="Win %", ascending=True).reset_index(
     drop=True
 )
 
-current_standings = parse_standings(latest_file)
-
 bar_handles = ax_bar.barh(
     latest_probs["Player"],
     latest_probs["Win %"],
-    color=[player_colors[p] for p in latest_probs["Player"]],
+    color=[player_colors.get(p, "gray") for p in latest_probs["Player"]],
     edgecolor="black",
     linewidth=0.5,
 )
@@ -286,15 +240,16 @@ bar_handles = ax_bar.barh(
 ax_bar.set_title(f"Tournament Win %", fontsize=18, weight="bold", pad=10)
 ax_bar.set_xlim(0, max(latest_probs["Win %"].max() + 25, 110))
 ax_bar.set_yticks(range(len(latest_probs)))
-if player_elos:
+
+# Format Y-labels nicely depending on provided data
+if args.tournament:
     bar_labels = [
-        f"{p} ({player_elos.get(p, '?')}) · {current_standings.get(p, '?')}"
+        f"{p} ({player_elos.get(p, '?')}) · {current_standings.get(p, 0.0):g}"
         for p in latest_probs["Player"]
     ]
 else:
-    bar_labels = [
-        f"{p} ({current_standings.get(p, '?')})" for p in latest_probs["Player"]
-    ]
+    bar_labels = [p for p in latest_probs["Player"]]
+
 ax_bar.set_yticklabels(bar_labels, fontsize=12, weight="bold")
 ax_bar.tick_params(axis="y", length=0)
 ax_bar.grid(axis="x", linestyle="--", alpha=0.5)
@@ -389,11 +344,8 @@ def plot_matches(ax, df, title, is_history=False):
     return ax
 
 
-# Map the 14 rounds cleanly around the center cell (Index 7 out of 0-14)
 for r_idx in range(14):
     r = r_idx + 1
-
-    # Calculate cell mapping, shifting by 1 after the center cell to leave it blank
     cell_idx = r - 1 if r <= 7 else r
 
     row_idx = cell_idx // 5
@@ -409,15 +361,8 @@ for r_idx in range(14):
     r_num, df_matches_list, is_hist = all_rounds_data[r_idx]
     df_m = pd.DataFrame(df_matches_list)
 
-    if r < max_k:
-        status = "Completed"
-    elif r == max_k:
-        status = "Next"
-    else:
-        status = "Future"
-
-    title = f"Round {r_num} ({status})"
-    plot_matches(ax, df_m, title, is_hist)
+    status = "Completed" if r < max_k else "Next" if r == max_k else "Future"
+    plot_matches(ax, df_m, f"Round {r_num} ({status})", is_hist)
 
 # ─── The Master Centerpiece Legend ───
 ax_legend = fig.add_subplot(gs_bot2[2])

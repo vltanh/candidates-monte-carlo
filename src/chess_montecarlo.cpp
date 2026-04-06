@@ -569,11 +569,25 @@ static int simulatePlayoff(EncounterTable &et, std::vector<int> tied, Rng &rng, 
     return tied[0];
 }
 
+// ─── Threading Structures ─────────────────────────────────────────────────────
+
+struct ThreadResult
+{
+    std::vector<int> wins;
+    std::vector<double> expectedPoints;
+    std::vector<std::vector<int>> rankMatrix;
+    std::vector<std::vector<std::array<int, 3>>> tracker;
+
+    explicit ThreadResult(int n)
+        : wins(n, 0),
+          expectedPoints(n, 0.0),
+          rankMatrix(n, std::vector<int>(n, 0)),
+          tracker(n, std::vector<std::array<int, 3>>(n, std::array<int, 3>{})) {}
+};
+
 // ─── One Monte Carlo iteration ────────────────────────────────────────────────
 
-static int runOneIteration(const Config &cfg, Rng &rng,
-                           std::vector<std::vector<std::array<int, 3>>> &tracker,
-                           EncounterTable et)
+static void runOneIteration(const Config &cfg, Rng &rng, ThreadResult &out, EncounterTable et)
 {
     const int nGames = static_cast<int>(cfg.schedule.size());
     for (int i = 0; i < nGames; ++i)
@@ -583,53 +597,76 @@ static int runOneIteration(const Config &cfg, Rng &rng,
 
         double wp = simulateGame(et, w, b, rng, CLASSICAL, cfg);
         if (wp == 1.0)
-            tracker[w][b][0]++;
+            out.tracker[w][b][0]++;
         else if (wp == 0.5)
-            tracker[w][b][1]++;
+            out.tracker[w][b][1]++;
         else
-            tracker[w][b][2]++;
+            out.tracker[w][b][2]++;
 
         et.setEncounter(w, b, wp);
         if ((absolute_gi + 1) % cfg.GPR == 0)
             et.updateDynamicRatings(cfg, cfg.priorWeightSim);
     }
 
-    double maxPts = *std::max_element(et.points.begin(), et.points.end());
+    std::vector<int> standingsOrder(cfg.N);
+    std::iota(standingsOrder.begin(), standingsOrder.end(), 0);
+
+    // Add tiny random jitter to cleanly break non-first-place ties in the ranks
+    std::vector<double> jitteredPoints(cfg.N);
+    for (int i = 0; i < cfg.N; ++i)
+    {
+        jitteredPoints[i] = et.points[i] + rng() * 1e-6;
+    }
+
+    std::sort(standingsOrder.begin(), standingsOrder.end(), [&](int a, int b)
+              { return jitteredPoints[a] > jitteredPoints[b]; });
+
+    // Find precise ties for 1st place
+    double maxPts = et.points[standingsOrder[0]];
     std::vector<int> top;
     for (int i = 0; i < cfg.N; ++i)
-        if (et.points[i] == maxPts)
+    {
+        if (std::abs(et.points[i] - maxPts) < 1e-9)
             top.push_back(i);
+    }
 
-    if (top.size() == 1)
-        return top[0];
+    int winner = standingsOrder[0];
+    if (top.size() > 1)
+    {
+        if (cfg.tiebreak == TiebreakMode::FIDE2026)
+        {
+            winner = simulatePlayoff(et, top, rng, cfg);
+        }
+        else
+        {
+            std::uniform_int_distribution<int> d(0, (int)top.size() - 1);
+            winner = top[d(rng.eng)];
+        }
+        // Rotate actual winner to index 0 for accurate rank matrix mapping
+        auto it = std::find(standingsOrder.begin(), standingsOrder.end(), winner);
+        if (it != standingsOrder.begin())
+        {
+            std::iter_swap(standingsOrder.begin(), it);
+        }
+    }
 
-    if (cfg.tiebreak == TiebreakMode::FIDE2026)
-        return simulatePlayoff(et, top, rng, cfg);
-
-    // SHARED: randomly assign the win to one of the tied players so that
-    // expected win-probability is split evenly across many iterations.
-    std::uniform_int_distribution<int> d(0, (int)top.size() - 1);
-    return top[d(rng.eng)];
+    out.wins[winner]++;
+    for (int rank = 0; rank < cfg.N; ++rank)
+    {
+        int p = standingsOrder[rank];
+        out.rankMatrix[p][rank]++;
+        out.expectedPoints[p] += et.points[p];
+    }
 }
 
 // ─── Parallel Monte Carlo ─────────────────────────────────────────────────────
-
-struct ThreadResult
-{
-    std::vector<int> wins;
-    std::vector<std::vector<std::array<int, 3>>> tracker;
-
-    explicit ThreadResult(int n)
-        : wins(n, 0),
-          tracker(n, std::vector<std::array<int, 3>>(n, std::array<int, 3>{})) {}
-};
 
 static void workerThread(const Config &cfg, int iters, uint64_t seed,
                          ThreadResult &out, const EncounterTable &base_et)
 {
     Rng rng(seed);
     for (int i = 0; i < iters; ++i)
-        out.wins[runOneIteration(cfg, rng, out.tracker, base_et)]++;
+        runOneIteration(cfg, rng, out, base_et);
 }
 
 static void runMonteCarlo(const Config &cfg, int totalIters)
@@ -646,25 +683,10 @@ static void runMonteCarlo(const Config &cfg, int totalIters)
     if (!cfg.knownGames.empty() && cfg.knownGames.size() % cfg.GPR != 0)
         base_et.updateDynamicRatings(cfg, cfg.priorWeightKnown);
 
-    std::vector<int> standingsOrder(cfg.N);
-    std::iota(standingsOrder.begin(), standingsOrder.end(), 0);
-    std::sort(standingsOrder.begin(), standingsOrder.end(), [&](int a, int b)
-              { return base_et.points[a] > base_et.points[b]; });
-
-    int completedGames = static_cast<int>(cfg.knownGames.size());
-    int currentRound = completedGames / cfg.GPR + 1;
-    bool isMidRound = (completedGames % cfg.GPR != 0);
-    std::cout << "=== Current Standings (" << (isMidRound ? "Mid-Round " : "Before Round ")
-              << currentRound << ") ===\n";
-    for (int i : standingsOrder)
-        std::cout << cfg.names[i] << ": " << base_et.points[i] << " pts\n";
-
     int nThreads = static_cast<int>(std::thread::hardware_concurrency());
     if (nThreads <= 0)
         nThreads = 4;
-    std::cout << "\nRunning " << totalIters << " iterations across " << nThreads << " threads...\n";
 
-    auto t0 = std::chrono::high_resolution_clock::now();
     std::vector<ThreadResult> results(nThreads, ThreadResult(cfg.N));
     std::vector<std::thread> threads;
     std::mt19937_64 seedGen(42);
@@ -680,58 +702,74 @@ static void runMonteCarlo(const Config &cfg, int totalIters)
     for (auto &th : threads)
         th.join();
 
-    double elapsed = std::chrono::duration<double>(
-                         std::chrono::high_resolution_clock::now() - t0)
-                         .count();
-
+    // Aggregate thread results
     std::vector<int> wins(cfg.N, 0);
+    std::vector<double> expectedPoints(cfg.N, 0.0);
+    std::vector<std::vector<int>> rankMatrix(cfg.N, std::vector<int>(cfg.N, 0));
     std::vector<std::vector<std::array<int, 3>>> tracker(
         cfg.N, std::vector<std::array<int, 3>>(cfg.N, std::array<int, 3>{}));
 
     for (const auto &r : results)
     {
         for (int i = 0; i < cfg.N; ++i)
+        {
             wins[i] += r.wins[i];
-        for (int i = 0; i < cfg.N; ++i)
+            expectedPoints[i] += r.expectedPoints[i];
             for (int j = 0; j < cfg.N; ++j)
+            {
+                rankMatrix[i][j] += r.rankMatrix[i][j];
+            }
+            for (int j = 0; j < cfg.N; ++j)
+            {
                 for (int k = 0; k < 3; ++k)
+                {
                     tracker[i][j][k] += r.tracker[i][j][k];
+                }
+            }
+        }
     }
 
-    std::cout << std::fixed << std::setprecision(2) << "Done in " << elapsed << "s\n";
+    // Output pure JSON
+    json jOut = json::object();
+    jOut["winner_probs"] = json::object();
+    jOut["expected_points"] = json::object();
+    jOut["rank_matrix"] = json::object();
+    jOut["game_probs"] = json::object();
 
-    std::cout << "\n=== Monte Carlo Match Predictions ===";
+    for (int i = 0; i < cfg.N; ++i)
+    {
+        std::string name = cfg.names[i];
+        jOut["winner_probs"][name] = (double)wins[i] / totalIters;
+        jOut["expected_points"][name] = expectedPoints[i] / totalIters;
+
+        jOut["rank_matrix"][name] = json::array();
+        for (int r = 0; r < cfg.N; ++r)
+        {
+            jOut["rank_matrix"][name].push_back((double)rankMatrix[i][r] / totalIters);
+        }
+    }
+
+    int completedGames = static_cast<int>(cfg.knownGames.size());
     for (int i = 0; i < (int)cfg.schedule.size(); ++i)
     {
         int absolute_gi = completedGames + i;
-        if (i == 0 || absolute_gi % cfg.GPR == 0)
+        int calcRound = absolute_gi / cfg.GPR + 1;
+        std::string rKey = std::to_string(calcRound);
+
+        if (!jOut["game_probs"].contains(rKey))
         {
-            int calcRound = absolute_gi / cfg.GPR + 1;
-            bool isOngoing = (i == 0 && absolute_gi % cfg.GPR != 0);
-            std::cout << "\n\n--- ROUND " << calcRound << (isOngoing ? " (Ongoing)" : "") << " ---\n";
+            jOut["game_probs"][rKey] = json::object();
         }
+
         auto [w, b] = cfg.schedule[i];
-        double pw = 100.0 * tracker[w][b][0] / totalIters;
-        double pd = 100.0 * tracker[w][b][1] / totalIters;
-        double pb = 100.0 * tracker[w][b][2] / totalIters;
-        std::cout << cfg.names[w] << " vs " << cfg.names[b] << "\n"
-                  << "  1-0: " << std::setprecision(1) << pw
-                  << "% | 1/2-1/2: " << pd << "% | 0-1: " << pb << "%\n";
+        std::string pairKey = cfg.names[w] + "|" + cfg.names[b];
+        jOut["game_probs"][rKey][pairKey] = {
+            (double)tracker[w][b][0] / totalIters,
+            (double)tracker[w][b][1] / totalIters,
+            (double)tracker[w][b][2] / totalIters};
     }
 
-    std::vector<int> winOrder(cfg.N);
-    std::iota(winOrder.begin(), winOrder.end(), 0);
-    std::sort(winOrder.begin(), winOrder.end(), [&](int a, int b)
-              { return wins[a] > wins[b]; });
-
-    int r_out = completedGames / cfg.GPR + 1;
-    std::cout << "\n=== Tournament Win Probabilities (from Round " << r_out << ") ===\n";
-    for (int i : winOrder)
-    {
-        double perc = 100.0 * wins[i] / totalIters;
-        std::cout << std::setw(7) << std::setprecision(2) << std::fixed
-                  << perc << "% - " << cfg.names[i] << "\n";
-    }
+    std::cout << jOut.dump(4) << "\n";
 }
 
 // ─── Entry point ─────────────────────────────────────────────────────────────

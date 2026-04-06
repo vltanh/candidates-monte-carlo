@@ -12,7 +12,6 @@ from pathlib import Path
 
 # ── Scoring constants ──────────────────────────────────────────────────────────
 
-# Trial accuracy — raise to 100k+ for final verification overnight
 EVAL_RUNS = 10_000
 
 FUTURE_DECAY_WEIGHT = 0.35  # Decays weight for predicting games further into the future
@@ -43,7 +42,7 @@ def known_games(data: dict) -> list[dict]:
                 "white": players[g["white"]],
                 "black": players[g["black"]],
                 "result": score,
-                "round": i // gpr + 1,
+                "round": g.get("round", i // gpr + 1),
             }
         )
     return games
@@ -64,56 +63,14 @@ def get_actual_winners(games: list[dict]) -> list[str]:
 
 # ── Output Parsing ─────────────────────────────────────────────────────────────
 
-_ROUND_HEADER = re.compile(r"--- ROUND (\d+)")
-_PROBS_LINE = re.compile(
-    r"1-0:\s*([\d.]+)%\s*\|\s*1/2-1/2:\s*([\d.]+)%\s*\|\s*0-1:\s*([\d.]+)%"
-)
-_WIN_PROB_LINE = re.compile(r"^\s*([\d.]+)%\s*-\s*(.+)$")
 
-
-def parse_engine_output(output: str, sim_round: int) -> tuple[dict, dict]:
-    """Returns predictions for future rounds AND the overall tournament winner."""
-    preds_by_round = {}
-    winner_preds = {}
-    current_round = None
-    in_winners = False
-    pending_pair = None
-
-    for line in output.splitlines():
-        if "=== Tournament Win Probabilities" in line:
-            in_winners = True
-            current_round = None
-            continue
-
-        if in_winners:
-            if m := _WIN_PROB_LINE.search(line):
-                prob = float(m.group(1)) / 100.0
-                player = m.group(2).strip()
-                winner_preds[player] = prob
-            continue
-
-        if m := _ROUND_HEADER.search(line):
-            r = int(m.group(1))
-            if r >= sim_round:
-                current_round = r
-                if current_round not in preds_by_round:
-                    preds_by_round[current_round] = {}
-            else:
-                current_round = None
-            continue
-
-        if not current_round:
-            continue
-
-        if " vs " in line and not line.startswith(" "):
-            parts = line.strip().split(" vs ", 1)
-            pending_pair = (parts[0].strip(), parts[1].strip())
-        elif (m := _PROBS_LINE.search(line)) and pending_pair:
-            pw, pd, pb = [float(x) / 100 for x in m.groups()]
-            preds_by_round[current_round][pending_pair] = (pw, pd, pb)
-            pending_pair = None
-
-    return preds_by_round, winner_preds
+def parse_engine_output(output: str, sim_round: int) -> dict:
+    """Parses pure JSON output directly from the engine."""
+    try:
+        return json.loads(output)
+    except json.JSONDecodeError as e:
+        print(f"\n[PARSER ERROR] Invalid JSON: {e}\nOutput:\n{output[:500]}...")
+        return {}
 
 
 # ── Evaluation Engine ──────────────────────────────────────────────────────────
@@ -128,33 +85,23 @@ def evaluate(
     eval_runs: int = EVAL_RUNS,
     hyper_base: dict | None = None,
     verbose: bool = False,
-) -> tuple[float, float]:
-    """Weighted Game Brier Score and Winner Brier Score.
-
-    Args:
-        params:         Hyperparameters to evaluate.
-        games:          Ground-truth game list from known_games().
-        binary_path:    Path to the compiled C++ engine.
-        tourney_path:   Path to the tournament JSON file.
-        actual_winners: List of actual winner name(s), or None for an ongoing
-                        tournament (winner MSE is skipped; float('nan') returned).
-        eval_runs:      Simulation runs per round.
-        hyper_base:     Base config dict merged under params (used by tune.py
-                        to supply map_iters / map_tolerance etc.).
-        verbose:        Print per-round scores to stdout.
-    """
+) -> tuple[float, float, float, float]:
+    """Returns: (game_mse, winner_mse, exp_pts_mse, rps)"""
     rounds = sorted(set(g["round"] for g in games))
 
-    cumulative_game_mse = 0.0
-    cumulative_winner_mse = 0.0
-    total_game_weight = 0.0
-    total_winner_weight = 0.0
+    all_players = set()
+    for g in games:
+        all_players.add(g["white"])
+        all_players.add(g["black"])
 
+    cumulative_game_loss = 0.0
+    cumulative_game_weight = 0.0
+    cumulative_winner_mse, cumulative_pts_mse, cumulative_rps = 0.0, 0.0, 0.0
+    total_macro_weight = 0.0
     winner_cutoff_idx = max(1, int(len(rounds) * WINNER_EVAL_CUTOFF))
 
     for i, r in enumerate(rounds):
         config = {**(hyper_base or {}), **params, "runs": eval_runs}
-
         with tempfile.NamedTemporaryFile(mode="w", suffix=".jsonc", delete=False) as fh:
             json.dump(config, fh)
             tmp = Path(fh.name)
@@ -166,103 +113,125 @@ def evaluate(
                 text=True,
                 timeout=120,
             )
-        except subprocess.TimeoutExpired:
-            print(f"\n[TIMEOUT] C++ engine took longer than 120 seconds on round {r}.")
-            return float("inf"), float("inf")
         finally:
             tmp.unlink(missing_ok=True)
 
-        if proc.returncode != 0:
-            print(f"\n[C++ ERROR - Return Code {proc.returncode}]")
-            print(
-                proc.stderr.strip() if proc.stderr else "(No stderr output. Segfault?)"
-            )
-            return float("inf"), float("inf")
-
-        preds_by_round, winner_preds = parse_engine_output(proc.stdout, r)
-
-        if not preds_by_round or not winner_preds:
-            print(
-                f"\n[PARSER ERROR] Could not read probabilities from C++ output for round {r}."
-            )
-            return float("inf"), float("inf")
+        engine_data = parse_engine_output(proc.stdout, r)
+        if not engine_data:
+            return float("inf"), float("inf"), float("inf"), float("inf")
 
         # ------------------------------------------------------------------
-        # 1. Game Predictions (Micro-State Brier Score)
+        # 1. Game Brier Loss (Time Decay & Decisive Outcome Weighted)
         # ------------------------------------------------------------------
-        run_game_loss = 0.0
-        run_game_weight = 0.0
-
         for g in [g for g in games if g["round"] >= r]:
-            g_round = g["round"]
-            key = (g["white"], g["black"])
+            g_round = str(g["round"])
+            pair_key = f"{g['white']}|{g['black']}"
 
-            if g_round in preds_by_round and key in preds_by_round[g_round]:
-                pw, pd, pb = preds_by_round[g_round][key]
-                actual_score = g["result"]
+            if (
+                g_round in engine_data.get("game_probs", {})
+                and pair_key in engine_data["game_probs"][g_round]
+            ):
+                pw, pd, pb = engine_data["game_probs"][g_round][pair_key]
+                actual = g["result"]
+                act_w = 1.0 if actual == 1.0 else 0.0
+                act_d = 1.0 if actual == 0.5 else 0.0
+                act_b = 1.0 if actual == 0.0 else 0.0
 
-                # One-hot actuals: (White Win, Draw, Black Win)
-                actual_w = 1.0 if actual_score == 1.0 else 0.0
-                actual_d = 1.0 if actual_score == 0.5 else 0.0
-                actual_b = 1.0 if actual_score == 0.0 else 0.0
-
-                # Multi-class Brier Score — ranges 0.0 (perfect) to 2.0 (completely wrong)
                 brier_loss = (
-                    (pw - actual_w) ** 2 + (pd - actual_d) ** 2 + (pb - actual_b) ** 2
+                    (pw - act_w) ** 2 + (pd - act_d) ** 2 + (pb - act_b) ** 2
+                ) / 2.0
+                weight = (FUTURE_DECAY_WEIGHT ** (int(g_round) - r)) * (
+                    DECISIVE_GAME_WEIGHT if actual != 0.5 else 1.0
                 )
 
-                distance = g_round - r
-                time_weight = FUTURE_DECAY_WEIGHT**distance
-                outcome_weight = DECISIVE_GAME_WEIGHT if actual_score != 0.5 else 1.0
-                weight = time_weight * outcome_weight
-
-                run_game_loss += (
-                    brier_loss / 2.0
-                ) * weight  # div by 2 normalizes max to 1.0
-                run_game_weight += weight
-
-        if run_game_weight == 0:
-            print(f"\n[SCORING ERROR] No valid games scored in round {r}.")
-            return float("inf"), float("inf")
-
-        run_game_mse = run_game_loss / run_game_weight
-        cumulative_game_mse += run_game_mse * r
-        total_game_weight += r
+                cumulative_game_loss += brier_loss * weight
+                cumulative_game_weight += weight
 
         # ------------------------------------------------------------------
-        # 2. Tournament Winner Prediction (Macro-State Brier Score)
+        # 2. Macro State Losses (Expected Points, RPS, Winner)
         # ------------------------------------------------------------------
-        run_winner_mse = float("nan")
+        run_winner_mse, run_pts_mse, run_rps = float("nan"), float("nan"), float("nan")
         if actual_winners and i < winner_cutoff_idx:
-            run_winner_mse = 0.0
-            all_players = set(winner_preds.keys()) | set(actual_winners)
-            for player in all_players:
-                prob = winner_preds.get(player, 0.0)
-                actual_prob = (
-                    (1.0 / len(actual_winners)) if player in actual_winners else 0.0
-                )
-                run_winner_mse += (prob - actual_prob) ** 2
+            # Reconstruct ground truth distributions for ties
+            final_scores = {p: 0.0 for p in all_players}
+            for g in games:
+                final_scores[g["white"]] += g["result"]
+                final_scores[g["black"]] += 1.0 - g["result"]
 
-            run_winner_mse /= 2.0  # Normalize max penalty to ~1.0
+            score_groups = {}
+            for p, s in final_scores.items():
+                score_groups.setdefault(s, []).append(p)
+
+            N_players = len(all_players)
+            actual_rank_probs = {p: [0.0] * N_players for p in all_players}
+            curr_rank = 0
+            for s in sorted(score_groups.keys(), reverse=True):
+                group = score_groups[s]
+                k = len(group)
+                for p in group:
+                    for j in range(curr_rank, curr_rank + k):
+                        actual_rank_probs[p][j] = 1.0 / k
+                curr_rank += k
+
+            run_winner_mse, run_pts_mse, run_rps = 0.0, 0.0, 0.0
+            for p in all_players:
+                # Winner
+                pred_win = engine_data["winner_probs"].get(p, 0.0)
+                act_win = (1.0 / len(actual_winners)) if p in actual_winners else 0.0
+                run_winner_mse += (pred_win - act_win) ** 2
+
+                # Expected Points
+                pred_pts = engine_data["expected_points"].get(p, 0.0)
+                run_pts_mse += (pred_pts - final_scores[p]) ** 2
+
+                # Rank Probability Score (RPS)
+                pred_ranks = engine_data["rank_matrix"].get(p, [0.0] * N_players)
+                cum_pred, cum_act, p_rps = 0.0, 0.0, 0.0
+                for j in range(N_players):
+                    cum_pred += pred_ranks[j]
+                    cum_act += actual_rank_probs[p][j]
+                    p_rps += (cum_pred - cum_act) ** 2
+                run_rps += p_rps / (N_players - 1)
+
+            run_winner_mse /= 2.0
+            run_pts_mse /= N_players
+            run_rps /= N_players
 
             cumulative_winner_mse += run_winner_mse * r
-            total_winner_weight += r
+            cumulative_pts_mse += run_pts_mse * r
+            cumulative_rps += run_rps * r
+            total_macro_weight += r
 
         if verbose:
-            winner_str = f"{run_winner_mse:.6f}" if not isnan(run_winner_mse) else "N/A"
+            game_str = (
+                f"{cumulative_game_loss/cumulative_game_weight:.6f}"
+                if cumulative_game_weight > 0
+                else "N/A"
+            )
+            w_str = f"{run_winner_mse:.6f}" if not isnan(run_winner_mse) else "N/A"
+            pts_str = f"{run_pts_mse:.6f}" if not isnan(run_pts_mse) else "N/A"
+            rps_str = f"{run_rps:.6f}" if not isnan(run_rps) else "N/A"
             print(
-                f"  Round {r:>2}: game_brier={run_game_mse:.6f}  winner_brier={winner_str}"
+                f"  Round {r:>2}: g_brier={game_str} | win_brier={w_str} | pts_mse={pts_str} | rps={rps_str}"
             )
 
-    final_game_mse = (
-        cumulative_game_mse / total_game_weight
-        if total_game_weight > 0
+    final_g = (
+        cumulative_game_loss / cumulative_game_weight
+        if cumulative_game_weight > 0
         else float("inf")
     )
-    final_winner_mse = (
-        cumulative_winner_mse / total_winner_weight
-        if total_winner_weight > 0
+    final_w = (
+        cumulative_winner_mse / total_macro_weight
+        if total_macro_weight > 0
         else float("nan")
     )
+    final_p = (
+        cumulative_pts_mse / total_macro_weight
+        if total_macro_weight > 0
+        else float("nan")
+    )
+    final_r = (
+        cumulative_rps / total_macro_weight if total_macro_weight > 0 else float("nan")
+    )
 
-    return final_game_mse, final_winner_mse
+    return final_g, final_w, final_p, final_r
