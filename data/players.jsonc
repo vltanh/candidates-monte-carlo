@@ -1,0 +1,19 @@
+[
+  { "fide_id": 2016192, "name": "Nakamura, Hikaru", "alias": "Hikaru" },
+  { "fide_id": 2020009, "name": "Caruana, Fabiano", "alias": "Fabi" },
+  { "fide_id": 8603405, "name": "Wei, Yi", "alias": "Wei Yi" },
+  { "fide_id": 24116068, "name": "Giri, Anish", "alias": "Anish" },
+  { "fide_id": 14205483, "name": "Sindarov, Javokhir", "alias": "Sindarov" },
+  { "fide_id": 25059530, "name": "Praggnanandhaa R", "alias": "Pragg" },
+  { "fide_id": 24175439, "name": "Esipenko, Andrey", "alias": "Esipenko" },
+  { "fide_id": 24651516, "name": "Bluebaum, Matthias", "alias": "Bluebaum" },
+  { "fide_id": 12573981, "name": "Firouzja, Alireza", "alias": "Alireza" },
+  { "fide_id": 4168119, "name": "Nepomniachtchi, Ian", "alias": "Nepo" },
+  { "fide_id": 46616543, "name": "Gukesh D", "alias": "Gukesh" },
+  { "fide_id": 5029465, "name": "Vidit, Santosh Gujrathi", "alias": "Vidit" },
+  { "fide_id": 13402960, "name": "Abasov, Nijat", "alias": "Abasov" },
+  { "fide_id": 8603677, "name": "Ding, Liren", "alias": "Ding" },
+  { "fide_id": 738590, "name": "Rapport, Richard", "alias": "Rapport" },
+  { "fide_id": 13400924, "name": "Radjabov, Teimour", "alias": "Radjabov" },
+  { "fide_id": 1170546, "name": "Duda, Jan-Krzysztof", "alias": "Duda" }
+]

@@ -231,14 +231,14 @@ Requires a C++17-capable compiler. The only dependency is [`json.hpp`](https://g
 `simulate_from_round` must be passed as a CLI argument. Output is printed to stdout.
 
 ```bash
-./bin/chess_montecarlo configs/best_hparams_22_24.json data/candidates2026.json 8 > results/candidates2026/rounds/round8.txt
+./bin/chess_montecarlo configs/best_hparams_22_24.jsonc data/candidates2026.jsonc 8 > results/candidates2026/rounds/round8.txt
 ```
 
 ## JSON format
 
-**`configs/hyperparameters.json`** — all fields are tunable; see `configs/best_hparams_22_24.json` for a working example. Key groups: `runs`/`map_iters`/`map_tolerance` (simulation), `prior_weight_known`/`prior_weight_sim` (MAP priors), `initial_white_adv`/`velocity_time_decay`/`lookahead_factor` (rating init), `rapid_form_weight`/`blitz_form_weight`/`color_bleed` (cross-time-control blending), `classical_nu`/`rapid_nu`/`blitz_nu` (draw model), `agg_prior_weight`/`default_aggression_w`/`default_aggression_b`/`standings_aggression` (aggression).
+**`configs/hyperparameters.json`** — all fields are tunable; see `configs/best_hparams_22_24.jsonc` for a working example. Key groups: `runs`/`map_iters`/`map_tolerance` (simulation), `prior_weight_known`/`prior_weight_sim` (MAP priors), `initial_white_adv`/`velocity_time_decay`/`lookahead_factor` (rating init), `rapid_form_weight`/`blitz_form_weight`/`color_bleed` (cross-time-control blending), `classical_nu`/`rapid_nu`/`blitz_nu` (draw model), `agg_prior_weight`/`default_aggression_w`/`default_aggression_b`/`standings_aggression` (aggression).
 
-**`data/candidates2026.json`** — `players` (array of 8; required: `fide_id`, `name`, `rating`; optional: `rapid_rating`, `blitz_rating`, `aggression_w/b`, `history`/`games_played`, `rapid_history`/`rapid_games_played`, `blitz_history`/`blitz_games_played`) and `schedule` (array of `{white, black[, result]}`). Games without `result` are future games. Games are grouped into rounds of `N/2`; games from `simulate_from_round` onward are simulated.
+**`data/candidates2026.jsonc`** — `players` (array of 8; required: `fide_id`, `name`, `rating`; optional: `rapid_rating`, `blitz_rating`, `aggression_w/b`, `history`/`games_played`, `rapid_history`/`rapid_games_played`, `blitz_history`/`blitz_games_played`) and `schedule` (array of `{white, black[, result]}`). Games without `result` are future games. Games are grouped into rounds of `N/2`; games from `simulate_from_round` onward are simulated.
 
 ## Building tournament data
 
@@ -261,13 +261,13 @@ python tools/data/build_tournament.py wEuVhT9c --periods 8         # history dep
 pip install optuna
 
 # Run 200 trials on a single tournament (always resumes an existing study automatically)
-python tools/tuning/tune.py configs/hyperparameters.json data/candidates2024.json
+python tools/tuning/tune.py configs/hyperparameters.json data/candidates2024.jsonc
 
 # Run against multiple tournaments simultaneously (scores are averaged)
-python tools/tuning/tune.py configs/hyperparameters.json data/candidates2022.json data/candidates2024.json
+python tools/tuning/tune.py configs/hyperparameters.json data/candidates2022.jsonc data/candidates2024.jsonc
 
 # Custom binary or database path
-python tools/tuning/tune.py configs/hyperparameters.json data/candidates2024.json \
+python tools/tuning/tune.py configs/hyperparameters.json data/candidates2024.jsonc \
     --binary ./bin/chess_montecarlo \
     --db db/tuning_2024.db \
     --trials 500
@@ -289,7 +289,7 @@ python tools/viz/pareto_front.py db/tuning_22_24.db chess_montecarlo --save resu
 
 ![Pareto Front](results/pareto/tuning_22_24.png)
 
-`pareto_front.py` ranks trials by combined score (Game Brier + Winner Brier); the #1 trial is saved as `configs/best_hparams_22_24.json` and used for the 2026 Candidates predictions.
+`pareto_front.py` ranks trials by combined score (Game Brier + Winner Brier); the #1 trial is saved as `configs/best_hparams_22_24.jsonc` and used for the 2026 Candidates predictions.
 
 ### `best_hparams_22_24.json` — parameter interpretation
 
@@ -315,16 +315,16 @@ python tools/viz/pareto_front.py db/tuning_22_24.db chess_montecarlo --save resu
 
 ```bash
 # Score 2022+2024-tuned params against 2022 data
-python tools/tuning/evaluate.py configs/best_hparams_22_24.json data/candidates2022.json
+python tools/tuning/evaluate.py configs/best_hparams_22_24.jsonc data/candidates2022.jsonc
 
 # Cross-validate: check against a different tournament
-python tools/tuning/evaluate.py configs/best_hparams_22_24.json data/candidates2022.json data/candidates2024.json
+python tools/tuning/evaluate.py configs/best_hparams_22_24.jsonc data/candidates2022.jsonc data/candidates2024.jsonc
 
 # Ongoing tournament — winner Brier score is skipped automatically
-python tools/tuning/evaluate.py configs/best_hparams_22_24.json data/candidates2026.json
+python tools/tuning/evaluate.py configs/best_hparams_22_24.jsonc data/candidates2026.jsonc
 
 # Higher fidelity (default is 10 000)
-python tools/tuning/evaluate.py configs/best_hparams_22_24.json data/candidates2024.json --runs 100000
+python tools/tuning/evaluate.py configs/best_hparams_22_24.jsonc data/candidates2024.jsonc --runs 100000
 ```
 
 Per-round scores are printed as the evaluation runs. For ongoing tournaments (any schedule entry without a `result`), winner MSE is skipped and reported as `N/A`. When multiple tournament files are supplied, the winner Brier average excludes any ongoing ones.

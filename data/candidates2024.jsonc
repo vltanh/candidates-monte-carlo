@@ -1,0 +1,182 @@
+{
+  "gpr": 4,
+  "tiebreak": "fide2026",
+  "players": [
+    {
+      "fide_id": 2020009,
+      "name": "Caruana, Fabiano",
+      "rating": 2803,
+      "rapid_rating": 2738,
+      "blitz_rating": 2777,
+      "history": [2795, 2794, 2804, 2804, 2804, 2803],
+      "games_played": [11, 11, 8, 0, 0, 4],
+      "rapid_history": [2765, 2762, 2729, 2729, 2722, 2738],
+      "rapid_games_played": [0, 9, 37, 0, 4, 15],
+      "blitz_history": [2813, 2815, 2790, 2790, 2770, 2777],
+      "blitz_games_played": [0, 18, 21, 0, 15, 18]
+    },
+    {
+      "fide_id": 2016192,
+      "name": "Nakamura, Hikaru",
+      "rating": 2789,
+      "rapid_rating": 2746,
+      "blitz_rating": 2874,
+      "history": [2778, 2788, 2788, 2788, 2789, 2789],
+      "games_played": [9, 11, 0, 0, 3, 0],
+      "rapid_history": [2731, 2731, 2746, 2746, 2746, 2746],
+      "rapid_games_played": [0, 0, 18, 0, 0, 0],
+      "blitz_history": [2874, 2874, 2874, 2874, 2874, 2874],
+      "blitz_games_played": [0, 0, 0, 0, 0, 0]
+    },
+    {
+      "fide_id": 12573981,
+      "name": "Firouzja, Alireza",
+      "rating": 2760,
+      "rapid_rating": 2724,
+      "blitz_rating": 2863,
+      "history": [2777, 2763, 2759, 2760, 2760, 2760],
+      "games_played": [0, 11, 15, 13, 0, 0],
+      "rapid_history": [2742, 2737, 2724, 2724, 2724, 2724],
+      "rapid_games_played": [0, 9, 14, 0, 0, 0],
+      "blitz_history": [2896, 2863, 2863, 2863, 2863, 2863],
+      "blitz_games_played": [0, 18, 0, 0, 0, 0]
+    },
+    {
+      "fide_id": 4168119,
+      "name": "Nepomniachtchi, Ian",
+      "rating": 2758,
+      "rapid_rating": 2754,
+      "blitz_rating": 2800,
+      "history": [2771, 2771, 2769, 2758, 2758, 2758],
+      "games_played": [0, 0, 8, 13, 0, 0],
+      "rapid_history": [2789, 2778, 2754, 2754, 2754, 2754],
+      "rapid_games_played": [0, 9, 13, 0, 0, 0],
+      "blitz_history": [2785, 2795, 2800, 2800, 2800, 2800],
+      "blitz_games_played": [0, 18, 32, 0, 0, 0]
+    },
+    {
+      "fide_id": 25059530,
+      "name": "Praggnanandhaa R",
+      "rating": 2747,
+      "rapid_rating": 2704,
+      "blitz_rating": 2675,
+      "history": [2741, 2740, 2743, 2747, 2747, 2747],
+      "games_played": [8, 11, 2, 13, 0, 9],
+      "rapid_history": [2706, 2706, 2704, 2704, 2704, 2704],
+      "rapid_games_played": [0, 0, 13, 0, 0, 0],
+      "blitz_history": [2665, 2665, 2675, 2675, 2675, 2675],
+      "blitz_games_played": [0, 0, 21, 0, 0, 0]
+    },
+    {
+      "fide_id": 46616543,
+      "name": "Gukesh D",
+      "rating": 2743,
+      "rapid_rating": 2649,
+      "blitz_rating": 2651,
+      "history": [2746, 2720, 2725, 2743, 2747, 2743],
+      "games_played": [17, 11, 16, 13, 3, 9],
+      "rapid_history": [2656, 2656, 2649, 2649, 2649, 2649],
+      "rapid_games_played": [0, 0, 13, 0, 0, 0],
+      "blitz_history": [2657, 2657, 2651, 2651, 2651, 2651],
+      "blitz_games_played": [0, 0, 21, 0, 0, 0]
+    },
+    {
+      "fide_id": 5029465,
+      "name": "Vidit, Santosh Gujrathi",
+      "rating": 2727,
+      "rapid_rating": 2701,
+      "blitz_rating": 2657,
+      "history": [2715, 2737, 2742, 2747, 2747, 2727],
+      "games_played": [7, 11, 2, 13, 0, 9],
+      "rapid_history": [2691, 2691, 2701, 2701, 2701, 2701],
+      "rapid_games_played": [0, 0, 22, 0, 0, 0],
+      "blitz_history": [2642, 2642, 2657, 2657, 2657, 2657],
+      "blitz_games_played": [0, 0, 39, 0, 0, 0]
+    },
+    {
+      "fide_id": 13402960,
+      "name": "Abasov, Nijat",
+      "rating": 2632,
+      "rapid_rating": 2566,
+      "blitz_rating": 2555,
+      "history": [2679, 2641, 2641, 2641, 2632, 2632],
+      "games_played": [0, 18, 0, 0, 5, 0],
+      "rapid_history": [2554, 2554, 2566, 2566, 2566, 2566],
+      "rapid_games_played": [0, 0, 9, 0, 0, 0],
+      "blitz_history": [2561, 2561, 2555, 2555, 2555, 2555],
+      "blitz_games_played": [0, 0, 18, 0, 0, 0]
+    }
+  ],
+  "schedule": [
+    // Round 1
+    { "white": 2020009, "black": 2016192, "round": 1, "result": "1/2-1/2" }, // Fabi vs Hikaru
+    { "white": 13402960, "black": 4168119, "round": 1, "result": "1/2-1/2" }, // Abasov vs Nepo
+    { "white": 12573981, "black": 25059530, "round": 1, "result": "1/2-1/2" }, // Alireza vs Pragg
+    { "white": 46616543, "black": 5029465, "round": 1, "result": "1/2-1/2" }, // Gukesh vs Vidit
+    // Round 2
+    { "white": 25059530, "black": 46616543, "round": 2, "result": "0-1" }, // Pragg vs Gukesh
+    { "white": 2016192, "black": 5029465, "round": 2, "result": "0-1" }, // Hikaru vs Vidit
+    { "white": 4168119, "black": 12573981, "round": 2, "result": "1-0" }, // Nepo vs Alireza
+    { "white": 2020009, "black": 13402960, "round": 2, "result": "1-0" }, // Fabi vs Abasov
+    // Round 3
+    { "white": 46616543, "black": 4168119, "round": 3, "result": "1/2-1/2" }, // Gukesh vs Nepo
+    { "white": 13402960, "black": 2016192, "round": 3, "result": "1/2-1/2" }, // Abasov vs Hikaru
+    { "white": 12573981, "black": 2020009, "round": 3, "result": "1/2-1/2" }, // Alireza vs Fabi
+    { "white": 5029465, "black": 25059530, "round": 3, "result": "0-1" }, // Vidit vs Pragg
+    // Round 4
+    { "white": 2016192, "black": 25059530, "round": 4, "result": "1/2-1/2" }, // Hikaru vs Pragg
+    { "white": 4168119, "black": 5029465, "round": 4, "result": "1-0" }, // Nepo vs Vidit
+    { "white": 2020009, "black": 46616543, "round": 4, "result": "1/2-1/2" }, // Fabi vs Gukesh
+    { "white": 13402960, "black": 12573981, "round": 4, "result": "1/2-1/2" }, // Abasov vs Alireza
+    // Round 5
+    { "white": 25059530, "black": 4168119, "round": 5, "result": "1/2-1/2" }, // Pragg vs Nepo
+    { "white": 12573981, "black": 2016192, "round": 5, "result": "0-1" }, // Alireza vs Hikaru
+    { "white": 46616543, "black": 13402960, "round": 5, "result": "1-0" }, // Gukesh vs Abasov
+    { "white": 5029465, "black": 2020009, "round": 5, "result": "1/2-1/2" }, // Vidit vs Fabi
+    // Round 6
+    { "white": 4168119, "black": 2020009, "round": 6, "result": "1/2-1/2" }, // Nepo vs Fabi
+    { "white": 46616543, "black": 2016192, "round": 6, "result": "1/2-1/2" }, // Gukesh vs Hikaru
+    { "white": 5029465, "black": 12573981, "round": 6, "result": "1-0" }, // Vidit vs Alireza
+    { "white": 25059530, "black": 13402960, "round": 6, "result": "1-0" }, // Pragg vs Abasov
+    // Round 7
+    { "white": 12573981, "black": 46616543, "round": 7, "result": "1-0" }, // Alireza vs Gukesh
+    { "white": 2016192, "black": 4168119, "round": 7, "result": "1/2-1/2" }, // Hikaru vs Nepo
+    { "white": 2020009, "black": 25059530, "round": 7, "result": "1/2-1/2" }, // Fabi vs Pragg
+    { "white": 13402960, "black": 5029465, "round": 7, "result": "1/2-1/2" }, // Abasov vs Vidit
+    // Round 8
+    { "white": 25059530, "black": 12573981, "round": 8, "result": "1/2-1/2" }, // Pragg vs Alireza
+    { "white": 5029465, "black": 46616543, "round": 8, "result": "0-1" }, // Vidit vs Gukesh
+    { "white": 2016192, "black": 2020009, "round": 8, "result": "1-0" }, // Hikaru vs Fabi
+    { "white": 4168119, "black": 13402960, "round": 8, "result": "1/2-1/2" }, // Nepo vs Abasov
+    // Round 9
+    { "white": 5029465, "black": 2016192, "round": 9, "result": "1-0" }, // Vidit vs Hikaru
+    { "white": 46616543, "black": 25059530, "round": 9, "result": "1/2-1/2" }, // Gukesh vs Pragg
+    { "white": 12573981, "black": 4168119, "round": 9, "result": "1/2-1/2" }, // Alireza vs Nepo
+    { "white": 13402960, "black": 2020009, "round": 9, "result": "1/2-1/2" }, // Abasov vs Fabi
+    // Round 10
+    { "white": 25059530, "black": 5029465, "round": 10, "result": "1/2-1/2" }, // Pragg vs Vidit
+    { "white": 2016192, "black": 13402960, "round": 10, "result": "1-0" }, // Hikaru vs Abasov
+    { "white": 4168119, "black": 46616543, "round": 10, "result": "1/2-1/2" }, // Nepo vs Gukesh
+    { "white": 2020009, "black": 12573981, "round": 10, "result": "1-0" }, // Fabi vs Alireza
+    // Round 11
+    { "white": 25059530, "black": 2016192, "round": 11, "result": "0-1" }, // Pragg vs Hikaru
+    { "white": 5029465, "black": 4168119, "round": 11, "result": "0-1" }, // Vidit vs Nepo
+    { "white": 46616543, "black": 2020009, "round": 11, "result": "1/2-1/2" }, // Gukesh vs Fabi
+    { "white": 12573981, "black": 13402960, "round": 11, "result": "1-0" }, // Alireza vs Abasov
+    // Round 12
+    { "white": 4168119, "black": 25059530, "round": 12, "result": "1/2-1/2" }, // Nepo vs Pragg
+    { "white": 2016192, "black": 12573981, "round": 12, "result": "1-0" }, // Hikaru vs Alireza
+    { "white": 13402960, "black": 46616543, "round": 12, "result": "0-1" }, // Abasov vs Gukesh
+    { "white": 2020009, "black": 5029465, "round": 12, "result": "1-0" }, // Fabi vs Vidit
+    // Round 13
+    { "white": 4168119, "black": 2016192, "round": 13, "result": "1/2-1/2" }, // Nepo vs Hikaru
+    { "white": 25059530, "black": 2020009, "round": 13, "result": "0-1" }, // Pragg vs Fabi
+    { "white": 5029465, "black": 13402960, "round": 13, "result": "1/2-1/2" }, // Vidit vs Abasov
+    { "white": 46616543, "black": 12573981, "round": 13, "result": "1-0" }, // Gukesh vs Alireza
+    // Round 14
+    { "white": 2016192, "black": 46616543, "round": 14, "result": "1/2-1/2" }, // Hikaru vs Gukesh
+    { "white": 2020009, "black": 4168119, "round": 14, "result": "1/2-1/2" }, // Fabi vs Nepo
+    { "white": 12573981, "black": 5029465, "round": 14, "result": "1/2-1/2" }, // Alireza vs Vidit
+    { "white": 13402960, "black": 25059530, "round": 14, "result": "0-1" } // Abasov vs Pragg
+  ]
+}

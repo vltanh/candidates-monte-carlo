@@ -1,0 +1,182 @@
+{
+  "gpr": 4,
+  "tiebreak": "fide2026",
+  "players": [
+    {
+      "fide_id": 2016192,
+      "name": "Nakamura, Hikaru",
+      "rating": 2810,
+      "rapid_rating": 2742,
+      "blitz_rating": 2838,
+      "history": [2813, 2810, 2810, 2810, 2810, 2810],
+      "games_played": [6, 5, 0, 0, 0, 0],
+      "rapid_history": [2732, 2732, 2742, 2742, 2742, 2742],
+      "rapid_games_played": [18, 0, 10, 0, 0, 0],
+      "blitz_history": [2838, 2838, 2838, 2838, 2838, 2838],
+      "blitz_games_played": [0, 0, 0, 0, 0, 0]
+    },
+    {
+      "fide_id": 2020009,
+      "name": "Caruana, Fabiano",
+      "rating": 2793,
+      "rapid_rating": 2727,
+      "blitz_rating": 2749,
+      "history": [2795, 2795, 2795, 2795, 2795, 2793],
+      "games_played": [15, 0, 0, 0, 0, 16],
+      "rapid_history": [2751, 2751, 2727, 2727, 2727, 2727],
+      "rapid_games_played": [22, 0, 25, 0, 0, 2],
+      "blitz_history": [2751, 2751, 2769, 2769, 2769, 2749],
+      "blitz_games_played": [8, 0, 23, 0, 0, 15]
+    },
+    {
+      "fide_id": 8603405,
+      "name": "Wei, Yi",
+      "rating": 2754,
+      "rapid_rating": 2726,
+      "blitz_rating": 2698,
+      "history": [2752, 2754, 2754, 2754, 2754, 2754],
+      "games_played": [11, 14, 0, 0, 0, 0],
+      "rapid_history": [2758, 2751, 2746, 2726, 2726, 2726],
+      "rapid_games_played": [0, 12, 12, 9, 0, 0],
+      "blitz_history": [2695, 2705, 2705, 2698, 2698, 2698],
+      "blitz_games_played": [0, 2, 0, 18, 0, 0]
+    },
+    {
+      "fide_id": 24116068,
+      "name": "Giri, Anish",
+      "rating": 2753,
+      "rapid_rating": 2689,
+      "blitz_rating": 2666,
+      "history": [2769, 2760, 2760, 2760, 2753, 2753],
+      "games_played": [14, 4, 0, 0, 13, 0],
+      "rapid_history": [2685, 2685, 2689, 2689, 2689, 2689],
+      "rapid_games_played": [0, 0, 25, 0, 0, 0],
+      "blitz_history": [2701, 2701, 2666, 2666, 2666, 2666],
+      "blitz_games_played": [0, 0, 19, 0, 0, 0]
+    },
+    {
+      "fide_id": 14205483,
+      "name": "Sindarov, Javokhir",
+      "rating": 2745,
+      "rapid_rating": 2727,
+      "blitz_rating": 2662,
+      "history": [2721, 2726, 2726, 2726, 2745, 2745],
+      "games_played": [0, 14, 0, 0, 13, 0],
+      "rapid_history": [2688, 2704, 2727, 2727, 2727, 2727],
+      "rapid_games_played": [0, 10, 25, 0, 0, 0],
+      "blitz_history": [2632, 2632, 2662, 2662, 2662, 2662],
+      "blitz_games_played": [0, 0, 21, 0, 0, 0]
+    },
+    {
+      "fide_id": 25059530,
+      "name": "Praggnanandhaa R",
+      "rating": 2741,
+      "rapid_rating": 2663,
+      "blitz_rating": 2698,
+      "history": [2768, 2761, 2758, 2758, 2741, 2741],
+      "games_played": [4, 6, 9, 0, 13, 0],
+      "rapid_history": [2679, 2663, 2662, 2663, 2663, 2663],
+      "rapid_games_played": [4, 6, 25, 9, 0, 0],
+      "blitz_history": [2699, 2703, 2691, 2698, 2698, 2698],
+      "blitz_games_played": [8, 2, 19, 18, 0, 0]
+    },
+    {
+      "fide_id": 24175439,
+      "name": "Esipenko, Andrey",
+      "rating": 2698,
+      "rapid_rating": 2657,
+      "blitz_rating": 2651,
+      "history": [2681, 2698, 2698, 2698, 2698, 2698],
+      "games_played": [11, 14, 0, 0, 0, 9],
+      "rapid_history": [2626, 2649, 2657, 2657, 2657, 2657],
+      "rapid_games_played": [0, 16, 13, 0, 0, 0],
+      "blitz_history": [2659, 2659, 2651, 2651, 2651, 2651],
+      "blitz_games_played": [0, 0, 19, 0, 0, 0]
+    },
+    {
+      "fide_id": 24651516,
+      "name": "Bluebaum, Matthias",
+      "rating": 2695,
+      "rapid_rating": 2587,
+      "blitz_rating": 2634,
+      "history": [2680, 2679, 2679, 2684, 2698, 2695],
+      "games_played": [7, 6, 2, 2, 13, 4],
+      "rapid_history": [2587, 2587, 2587, 2587, 2587, 2587],
+      "rapid_games_played": [0, 0, 0, 0, 0, 0],
+      "blitz_history": [2634, 2634, 2634, 2634, 2634, 2634],
+      "blitz_games_played": [0, 0, 0, 0, 0, 0]
+    }
+  ],
+  "schedule": [
+    // Round 1
+    { "white": 2020009, "black": 2016192, "round": 1, "result": "1-0" }, // Fabi vs Hikaru
+    { "white": 25059530, "black": 24116068, "round": 1, "result": "1-0" }, // Pragg vs Anish
+    { "white": 24651516, "black": 8603405, "round": 1, "result": "1/2-1/2" }, // Bluebaum vs Wei Yi
+    { "white": 14205483, "black": 24175439, "round": 1, "result": "1-0" }, // Sindarov vs Esipenko
+    // Round 2
+    { "white": 24175439, "black": 2016192, "round": 2, "result": "1/2-1/2" }, // Esipenko vs Hikaru
+    { "white": 24116068, "black": 2020009, "round": 2, "result": "1/2-1/2" }, // Anish vs Fabi
+    { "white": 8603405, "black": 25059530, "round": 2, "result": "1/2-1/2" }, // Wei Yi vs Pragg
+    { "white": 14205483, "black": 24651516, "round": 2, "result": "1/2-1/2" }, // Sindarov vs Bluebaum
+    // Round 3
+    { "white": 24651516, "black": 24175439, "round": 3, "result": "1/2-1/2" }, // Bluebaum vs Esipenko
+    { "white": 25059530, "black": 14205483, "round": 3, "result": "0-1" }, // Pragg vs Sindarov
+    { "white": 2020009, "black": 8603405, "round": 3, "result": "1-0" }, // Fabi vs Wei Yi
+    { "white": 2016192, "black": 24116068, "round": 3, "result": "1/2-1/2" }, // Hikaru vs Anish
+    // Round 4
+    { "white": 24175439, "black": 24116068, "round": 4, "result": "0-1" }, // Esipenko vs Anish
+    { "white": 8603405, "black": 2016192, "round": 4, "result": "1/2-1/2" }, // Wei Yi vs Hikaru
+    { "white": 14205483, "black": 2020009, "round": 4, "result": "1-0" }, // Sindarov vs Fabi
+    { "white": 24651516, "black": 25059530, "round": 4, "result": "1/2-1/2" }, // Bluebaum vs Pragg
+    // Round 5
+    { "white": 25059530, "black": 24175439, "round": 5, "result": "1/2-1/2" }, // Pragg vs Esipenko
+    { "white": 2020009, "black": 24651516, "round": 5, "result": "1-0" }, // Fabi vs Bluebaum
+    { "white": 2016192, "black": 14205483, "round": 5, "result": "0-1" }, // Hikaru vs Sindarov
+    { "white": 24116068, "black": 8603405, "round": 5, "result": "1/2-1/2" }, // Anish vs Wei Yi
+    // Round 6
+    { "white": 2020009, "black": 24175439, "round": 6, "result": "1/2-1/2" }, // Fabi vs Esipenko
+    { "white": 2016192, "black": 25059530, "round": 6, "result": "1/2-1/2" }, // Hikaru vs Pragg
+    { "white": 24116068, "black": 24651516, "round": 6, "result": "1/2-1/2" }, // Anish vs Bluebaum
+    { "white": 8603405, "black": 14205483, "round": 6, "result": "0-1" }, // Wei Yi vs Sindarov
+    // Round 7
+    { "white": 24175439, "black": 8603405, "round": 7, "result": "0-1" }, // Esipenko vs Wei Yi
+    { "white": 14205483, "black": 24116068, "round": 7, "result": "1/2-1/2" }, // Sindarov vs Anish
+    { "white": 24651516, "black": 2016192, "round": 7, "result": "1/2-1/2" }, // Bluebaum vs Hikaru
+    { "white": 25059530, "black": 2020009, "round": 7, "result": "1/2-1/2" }, // Pragg vs Fabi
+    // Round 8
+    { "white": 24175439, "black": 14205483, "round": 8 }, // Esipenko vs Sindarov
+    { "white": 8603405, "black": 24651516, "round": 8 }, // Wei Yi vs Bluebaum
+    { "white": 24116068, "black": 25059530, "round": 8 }, // Anish vs Pragg
+    { "white": 2016192, "black": 2020009, "round": 8 }, // Hikaru vs Fabi
+    // Round 9
+    { "white": 2016192, "black": 24175439, "round": 9 }, // Hikaru vs Esipenko
+    { "white": 2020009, "black": 24116068, "round": 9 }, // Fabi vs Anish
+    { "white": 25059530, "black": 8603405, "round": 9 }, // Pragg vs Wei Yi
+    { "white": 24651516, "black": 14205483, "round": 9 }, // Bluebaum vs Sindarov
+    // Round 10
+    { "white": 24175439, "black": 24651516, "round": 10 }, // Esipenko vs Bluebaum
+    { "white": 14205483, "black": 25059530, "round": 10 }, // Sindarov vs Pragg
+    { "white": 8603405, "black": 2020009, "round": 10 }, // Wei Yi vs Fabi
+    { "white": 24116068, "black": 2016192, "round": 10 }, // Anish vs Hikaru
+    // Round 11
+    { "white": 24116068, "black": 24175439, "round": 11 }, // Anish vs Esipenko
+    { "white": 2016192, "black": 8603405, "round": 11 }, // Hikaru vs Wei Yi
+    { "white": 2020009, "black": 14205483, "round": 11 }, // Fabi vs Sindarov
+    { "white": 25059530, "black": 24651516, "round": 11 }, // Pragg vs Bluebaum
+    // Round 12
+    { "white": 24175439, "black": 25059530, "round": 12 }, // Esipenko vs Pragg
+    { "white": 24651516, "black": 2020009, "round": 12 }, // Bluebaum vs Fabi
+    { "white": 14205483, "black": 2016192, "round": 12 }, // Sindarov vs Hikaru
+    { "white": 8603405, "black": 24116068, "round": 12 }, // Wei Yi vs Anish
+    // Round 13
+    { "white": 8603405, "black": 24175439, "round": 13 }, // Wei Yi vs Esipenko
+    { "white": 24116068, "black": 14205483, "round": 13 }, // Anish vs Sindarov
+    { "white": 2016192, "black": 24651516, "round": 13 }, // Hikaru vs Bluebaum
+    { "white": 2020009, "black": 25059530, "round": 13 }, // Fabi vs Pragg
+    // Round 14
+    { "white": 24175439, "black": 2020009, "round": 14 }, // Esipenko vs Fabi
+    { "white": 25059530, "black": 2016192, "round": 14 }, // Pragg vs Hikaru
+    { "white": 24651516, "black": 24116068, "round": 14 }, // Bluebaum vs Anish
+    { "white": 14205483, "black": 8603405, "round": 14 } // Sindarov vs Wei Yi
+  ]
+}

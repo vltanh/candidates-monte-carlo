@@ -155,7 +155,7 @@ def evaluate(
     for i, r in enumerate(rounds):
         config = {**(hyper_base or {}), **params, "runs": eval_runs}
 
-        with tempfile.NamedTemporaryFile(mode="w", suffix=".json", delete=False) as fh:
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".jsonc", delete=False) as fh:
             json.dump(config, fh)
             tmp = Path(fh.name)
 

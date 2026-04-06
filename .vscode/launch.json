@@ -7,8 +7,8 @@
             "request": "launch",
             "program": "${workspaceFolder}/bin/chess_montecarlo_debug",
             "args": [
-                "configs/best_hparams_22_24.json",
-                "data/candidates2026.json",
+                "configs/best_hparams_22_24.jsonc",
+                "data/candidates2026.jsonc",
                 "1"
             ],
             "stopAtEntry": false,
