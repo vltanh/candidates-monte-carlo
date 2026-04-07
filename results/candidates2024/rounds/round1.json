@@ -1,0 +1,417 @@
+{
+    "metadata": {
+        "time_seconds": 22.963934437
+    },
+    "winner_probs": {
+        "Caruana, Fabiano": 0.270814,
+        "Nakamura, Hikaru": 0.132749,
+        "Firouzja, Alireza": 0.072087,
+        "Nepomniachtchi, Ian": 0.065083,
+        "Praggnanandhaa R": 0.15105,
+        "Gukesh D": 0.235946,
+        "Vidit, Santosh Gujrathi": 0.050388,
+        "Abasov, Nijat": 0.021883
+    },
+    "expected_points": {
+        "Caruana, Fabiano": 8.2488525,
+        "Nakamura, Hikaru": 7.25922,
+        "Firouzja, Alireza": 6.592245,
+        "Nepomniachtchi, Ian": 6.4538265,
+        "Praggnanandhaa R": 7.5090265,
+        "Gukesh D": 8.1289925,
+        "Vidit, Santosh Gujrathi": 6.2611435,
+        "Abasov, Nijat": 5.5466935
+    },
+    "rank_matrix": {
+        "Caruana, Fabiano": [
+            0.270814,
+            0.194954,
+            0.156724,
+            0.124195,
+            0.096895,
+            0.073741,
+            0.051908,
+            0.030769
+        ],
+        "Nakamura, Hikaru": [
+            0.132749,
+            0.135886,
+            0.144187,
+            0.141909,
+            0.134254,
+            0.122863,
+            0.106667,
+            0.081485
+        ],
+        "Firouzja, Alireza": [
+            0.072087,
+            0.093707,
+            0.116266,
+            0.13177,
+            0.143373,
+            0.150779,
+            0.15169,
+            0.140328
+        ],
+        "Nepomniachtchi, Ian": [
+            0.065083,
+            0.086026,
+            0.108053,
+            0.126015,
+            0.140828,
+            0.154179,
+            0.162186,
+            0.15763
+        ],
+        "Praggnanandhaa R": [
+            0.15105,
+            0.160908,
+            0.153565,
+            0.141997,
+            0.127841,
+            0.110305,
+            0.09024,
+            0.064094
+        ],
+        "Gukesh D": [
+            0.235946,
+            0.204213,
+            0.157813,
+            0.127146,
+            0.102161,
+            0.079129,
+            0.057974,
+            0.035618
+        ],
+        "Vidit, Santosh Gujrathi": [
+            0.050388,
+            0.078119,
+            0.0992,
+            0.119356,
+            0.138849,
+            0.156707,
+            0.173612,
+            0.183769
+        ],
+        "Abasov, Nijat": [
+            0.021883,
+            0.046187,
+            0.064192,
+            0.087612,
+            0.115799,
+            0.152297,
+            0.205723,
+            0.306307
+        ]
+    },
+    "game_probs": {
+        "1": {
+            "Caruana, Fabiano|Nakamura, Hikaru": [
+                0.469256,
+                0.33791,
+                0.192834
+            ],
+            "Abasov, Nijat|Nepomniachtchi, Ian": [
+                0.339402,
+                0.356594,
+                0.304004
+            ],
+            "Firouzja, Alireza|Praggnanandhaa R": [
+                0.343587,
+                0.355238,
+                0.301175
+            ],
+            "Gukesh D|Vidit, Santosh Gujrathi": [
+                0.530742,
+                0.314773,
+                0.154485
+            ]
+        },
+        "2": {
+            "Praggnanandhaa R|Gukesh D": [
+                0.360802,
+                0.355414,
+                0.283784
+            ],
+            "Nakamura, Hikaru|Vidit, Santosh Gujrathi": [
+                0.482376,
+                0.313416,
+                0.204208
+            ],
+            "Nepomniachtchi, Ian|Firouzja, Alireza": [
+                0.396834,
+                0.349022,
+                0.254144
+            ],
+            "Caruana, Fabiano|Abasov, Nijat": [
+                0.591453,
+                0.281483,
+                0.127064
+            ]
+        },
+        "3": {
+            "Gukesh D|Nepomniachtchi, Ian": [
+                0.531523,
+                0.290286,
+                0.178191
+            ],
+            "Abasov, Nijat|Nakamura, Hikaru": [
+                0.304696,
+                0.317228,
+                0.378076
+            ],
+            "Firouzja, Alireza|Caruana, Fabiano": [
+                0.302265,
+                0.337678,
+                0.360057
+            ],
+            "Vidit, Santosh Gujrathi|Praggnanandhaa R": [
+                0.332814,
+                0.329841,
+                0.337345
+            ]
+        },
+        "4": {
+            "Nakamura, Hikaru|Praggnanandhaa R": [
+                0.413294,
+                0.297854,
+                0.288852
+            ],
+            "Nepomniachtchi, Ian|Vidit, Santosh Gujrathi": [
+                0.443685,
+                0.290852,
+                0.265463
+            ],
+            "Caruana, Fabiano|Gukesh D": [
+                0.43136,
+                0.298818,
+                0.269822
+            ],
+            "Abasov, Nijat|Firouzja, Alireza": [
+                0.358692,
+                0.302368,
+                0.33894
+            ]
+        },
+        "5": {
+            "Praggnanandhaa R|Nepomniachtchi, Ian": [
+                0.50255,
+                0.280871,
+                0.216579
+            ],
+            "Firouzja, Alireza|Nakamura, Hikaru": [
+                0.394931,
+                0.285993,
+                0.319076
+            ],
+            "Gukesh D|Abasov, Nijat": [
+                0.598962,
+                0.253433,
+                0.147605
+            ],
+            "Vidit, Santosh Gujrathi|Caruana, Fabiano": [
+                0.292827,
+                0.310425,
+                0.396748
+            ]
+        },
+        "6": {
+            "Nepomniachtchi, Ian|Caruana, Fabiano": [
+                0.31757,
+                0.2849,
+                0.39753
+            ],
+            "Gukesh D|Nakamura, Hikaru": [
+                0.504228,
+                0.249602,
+                0.24617
+            ],
+            "Vidit, Santosh Gujrathi|Firouzja, Alireza": [
+                0.419474,
+                0.279763,
+                0.300763
+            ],
+            "Praggnanandhaa R|Abasov, Nijat": [
+                0.571801,
+                0.248671,
+                0.179528
+            ]
+        },
+        "7": {
+            "Firouzja, Alireza|Gukesh D": [
+                0.337855,
+                0.276573,
+                0.385572
+            ],
+            "Nakamura, Hikaru|Nepomniachtchi, Ian": [
+                0.497874,
+                0.257318,
+                0.244808
+            ],
+            "Caruana, Fabiano|Praggnanandhaa R": [
+                0.499119,
+                0.251181,
+                0.2497
+            ],
+            "Abasov, Nijat|Vidit, Santosh Gujrathi": [
+                0.398271,
+                0.259628,
+                0.342101
+            ]
+        },
+        "8": {
+            "Praggnanandhaa R|Firouzja, Alireza": [
+                0.512557,
+                0.247359,
+                0.240084
+            ],
+            "Vidit, Santosh Gujrathi|Gukesh D": [
+                0.321442,
+                0.259802,
+                0.418756
+            ],
+            "Nakamura, Hikaru|Caruana, Fabiano": [
+                0.381415,
+                0.260211,
+                0.358374
+            ],
+            "Nepomniachtchi, Ian|Abasov, Nijat": [
+                0.511278,
+                0.24501,
+                0.243712
+            ]
+        },
+        "9": {
+            "Vidit, Santosh Gujrathi|Nakamura, Hikaru": [
+                0.390584,
+                0.242848,
+                0.366568
+            ],
+            "Gukesh D|Praggnanandhaa R": [
+                0.494902,
+                0.234319,
+                0.270779
+            ],
+            "Firouzja, Alireza|Nepomniachtchi, Ian": [
+                0.466638,
+                0.240646,
+                0.292716
+            ],
+            "Abasov, Nijat|Caruana, Fabiano": [
+                0.27806,
+                0.23912,
+                0.48282
+            ]
+        },
+        "10": {
+            "Praggnanandhaa R|Vidit, Santosh Gujrathi": [
+                0.53745,
+                0.23065,
+                0.2319
+            ],
+            "Nakamura, Hikaru|Abasov, Nijat": [
+                0.567218,
+                0.22359,
+                0.209192
+            ],
+            "Nepomniachtchi, Ian|Gukesh D": [
+                0.340754,
+                0.245346,
+                0.4139
+            ],
+            "Caruana, Fabiano|Firouzja, Alireza": [
+                0.567484,
+                0.224324,
+                0.208192
+            ]
+        },
+        "11": {
+            "Praggnanandhaa R|Nakamura, Hikaru": [
+                0.474616,
+                0.22861,
+                0.296774
+            ],
+            "Vidit, Santosh Gujrathi|Nepomniachtchi, Ian": [
+                0.443435,
+                0.237306,
+                0.319259
+            ],
+            "Gukesh D|Caruana, Fabiano": [
+                0.451942,
+                0.229276,
+                0.318782
+            ],
+            "Firouzja, Alireza|Abasov, Nijat": [
+                0.52701,
+                0.22814,
+                0.24485
+            ]
+        },
+        "12": {
+            "Nepomniachtchi, Ian|Praggnanandhaa R": [
+                0.385059,
+                0.242098,
+                0.372843
+            ],
+            "Nakamura, Hikaru|Firouzja, Alireza": [
+                0.499853,
+                0.231666,
+                0.268481
+            ],
+            "Abasov, Nijat|Gukesh D": [
+                0.287986,
+                0.238478,
+                0.473536
+            ],
+            "Caruana, Fabiano|Vidit, Santosh Gujrathi": [
+                0.585904,
+                0.21672,
+                0.197376
+            ]
+        },
+        "13": {
+            "Nepomniachtchi, Ian|Nakamura, Hikaru": [
+                0.405939,
+                0.233124,
+                0.360937
+            ],
+            "Praggnanandhaa R|Caruana, Fabiano": [
+                0.411357,
+                0.228473,
+                0.36017
+            ],
+            "Vidit, Santosh Gujrathi|Abasov, Nijat": [
+                0.503767,
+                0.227118,
+                0.269115
+            ],
+            "Gukesh D|Firouzja, Alireza": [
+                0.557662,
+                0.215343,
+                0.226995
+            ]
+        },
+        "14": {
+            "Nakamura, Hikaru|Gukesh D": [
+                0.400613,
+                0.232914,
+                0.366473
+            ],
+            "Caruana, Fabiano|Nepomniachtchi, Ian": [
+                0.571801,
+                0.21547,
+                0.212729
+            ],
+            "Firouzja, Alireza|Vidit, Santosh Gujrathi": [
+                0.478736,
+                0.233135,
+                0.288129
+            ],
+            "Abasov, Nijat|Praggnanandhaa R": [
+                0.329053,
+                0.238074,
+                0.432873
+            ]
+        }
+    }
+}

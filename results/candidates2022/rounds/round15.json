@@ -1,0 +1,108 @@
+{
+    "metadata": {
+        "time_seconds": 0.103599795
+    },
+    "winner_probs": {
+        "Ding, Liren": 0.0,
+        "Firouzja, Alireza": 0.0,
+        "Caruana, Fabiano": 0.0,
+        "Nepomniachtchi, Ian": 1.0,
+        "Rapport, Richard": 0.0,
+        "Nakamura, Hikaru": 0.0,
+        "Radjabov, Teimour": 0.0,
+        "Duda, Jan-Krzysztof": 0.0
+    },
+    "expected_points": {
+        "Ding, Liren": 8.0,
+        "Firouzja, Alireza": 6.0,
+        "Caruana, Fabiano": 6.5,
+        "Nepomniachtchi, Ian": 9.5,
+        "Rapport, Richard": 5.5,
+        "Nakamura, Hikaru": 7.5,
+        "Radjabov, Teimour": 7.5,
+        "Duda, Jan-Krzysztof": 5.5
+    },
+    "rank_matrix": {
+        "Ding, Liren": [
+            0.0,
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+        ],
+        "Firouzja, Alireza": [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0,
+            0.0,
+            0.0
+        ],
+        "Caruana, Fabiano": [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0,
+            0.0,
+            0.0,
+            0.0
+        ],
+        "Nepomniachtchi, Ian": [
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+        ],
+        "Rapport, Richard": [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0
+        ],
+        "Nakamura, Hikaru": [
+            0.0,
+            0.0,
+            0.0,
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+        ],
+        "Radjabov, Teimour": [
+            0.0,
+            0.0,
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+        ],
+        "Duda, Jan-Krzysztof": [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0,
+            0.0
+        ]
+    },
+    "game_probs": {}
+}

@@ -1,0 +1,241 @@
+{
+    "metadata": {
+        "time_seconds": 12.803969606
+    },
+    "winner_probs": {
+        "Nakamura, Hikaru": 0.009195,
+        "Caruana, Fabiano": 0.09384,
+        "Wei, Yi": 0.009693,
+        "Giri, Anish": 0.040552,
+        "Sindarov, Javokhir": 0.837135,
+        "Praggnanandhaa R": 0.00342,
+        "Esipenko, Andrey": 0.000156,
+        "Bluebaum, Matthias": 0.006009
+    },
+    "expected_points": {
+        "Nakamura, Hikaru": 6.5395955,
+        "Caruana, Fabiano": 7.92135,
+        "Wei, Yi": 6.4651975,
+        "Giri, Anish": 7.3945035,
+        "Sindarov, Javokhir": 10.0027075,
+        "Praggnanandhaa R": 6.104353,
+        "Esipenko, Andrey": 5.1875595,
+        "Bluebaum, Matthias": 6.3847335
+    },
+    "rank_matrix": {
+        "Nakamura, Hikaru": [
+            0.009195,
+            0.071673,
+            0.141836,
+            0.175089,
+            0.179219,
+            0.173307,
+            0.153464,
+            0.096217
+        ],
+        "Caruana, Fabiano": [
+            0.09384,
+            0.386332,
+            0.226641,
+            0.133501,
+            0.08061,
+            0.047219,
+            0.023964,
+            0.007893
+        ],
+        "Wei, Yi": [
+            0.009693,
+            0.06679,
+            0.116371,
+            0.153424,
+            0.174689,
+            0.182246,
+            0.174365,
+            0.122422
+        ],
+        "Giri, Anish": [
+            0.040552,
+            0.238049,
+            0.24605,
+            0.18353,
+            0.132763,
+            0.090545,
+            0.05125,
+            0.017261
+        ],
+        "Sindarov, Javokhir": [
+            0.837135,
+            0.113204,
+            0.034321,
+            0.010852,
+            0.003453,
+            0.000896,
+            0.000137,
+            2e-06
+        ],
+        "Praggnanandhaa R": [
+            0.00342,
+            0.038612,
+            0.081347,
+            0.127813,
+            0.163108,
+            0.190504,
+            0.219106,
+            0.17609
+        ],
+        "Esipenko, Andrey": [
+            0.000156,
+            0.008525,
+            0.026162,
+            0.052045,
+            0.085004,
+            0.133719,
+            0.215026,
+            0.479363
+        ],
+        "Bluebaum, Matthias": [
+            0.006009,
+            0.076815,
+            0.127272,
+            0.163746,
+            0.181154,
+            0.181564,
+            0.162688,
+            0.100752
+        ]
+    },
+    "game_probs": {
+        "9": {
+            "Nakamura, Hikaru|Esipenko, Andrey": [
+                0.462251,
+                0.287185,
+                0.250564
+            ],
+            "Caruana, Fabiano|Giri, Anish": [
+                0.57195,
+                0.225706,
+                0.202344
+            ],
+            "Praggnanandhaa R|Wei, Yi": [
+                0.358325,
+                0.271351,
+                0.370324
+            ],
+            "Bluebaum, Matthias|Sindarov, Javokhir": [
+                0.248769,
+                0.291358,
+                0.459873
+            ]
+        },
+        "10": {
+            "Esipenko, Andrey|Bluebaum, Matthias": [
+                0.322308,
+                0.309296,
+                0.368396
+            ],
+            "Sindarov, Javokhir|Praggnanandhaa R": [
+                0.545397,
+                0.272415,
+                0.182188
+            ],
+            "Wei, Yi|Caruana, Fabiano": [
+                0.38486,
+                0.301175,
+                0.313965
+            ],
+            "Giri, Anish|Nakamura, Hikaru": [
+                0.406468,
+                0.325052,
+                0.26848
+            ]
+        },
+        "11": {
+            "Giri, Anish|Esipenko, Andrey": [
+                0.45939,
+                0.302245,
+                0.238365
+            ],
+            "Nakamura, Hikaru|Wei, Yi": [
+                0.422974,
+                0.267782,
+                0.309244
+            ],
+            "Caruana, Fabiano|Sindarov, Javokhir": [
+                0.453159,
+                0.225438,
+                0.321403
+            ],
+            "Praggnanandhaa R|Bluebaum, Matthias": [
+                0.377492,
+                0.296418,
+                0.32609
+            ]
+        },
+        "12": {
+            "Esipenko, Andrey|Praggnanandhaa R": [
+                0.373527,
+                0.302,
+                0.324473
+            ],
+            "Bluebaum, Matthias|Caruana, Fabiano": [
+                0.387279,
+                0.313342,
+                0.299379
+            ],
+            "Sindarov, Javokhir|Nakamura, Hikaru": [
+                0.485043,
+                0.278158,
+                0.236799
+            ],
+            "Wei, Yi|Giri, Anish": [
+                0.37371,
+                0.297097,
+                0.329193
+            ]
+        },
+        "13": {
+            "Wei, Yi|Esipenko, Andrey": [
+                0.418152,
+                0.301588,
+                0.28026
+            ],
+            "Giri, Anish|Sindarov, Javokhir": [
+                0.326839,
+                0.252886,
+                0.420275
+            ],
+            "Nakamura, Hikaru|Bluebaum, Matthias": [
+                0.441969,
+                0.280524,
+                0.277507
+            ],
+            "Caruana, Fabiano|Praggnanandhaa R": [
+                0.607844,
+                0.227202,
+                0.164954
+            ]
+        },
+        "14": {
+            "Esipenko, Andrey|Caruana, Fabiano": [
+                0.337701,
+                0.267355,
+                0.394944
+            ],
+            "Praggnanandhaa R|Nakamura, Hikaru": [
+                0.369036,
+                0.286384,
+                0.34458
+            ],
+            "Bluebaum, Matthias|Giri, Anish": [
+                0.379691,
+                0.303065,
+                0.317244
+            ],
+            "Sindarov, Javokhir|Wei, Yi": [
+                0.485898,
+                0.249382,
+                0.26472
+            ]
+        }
+    }
+}

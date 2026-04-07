@@ -1,0 +1,108 @@
+{
+    "metadata": {
+        "time_seconds": 0.096382446
+    },
+    "winner_probs": {
+        "Caruana, Fabiano": 0.0,
+        "Nakamura, Hikaru": 0.0,
+        "Firouzja, Alireza": 0.0,
+        "Nepomniachtchi, Ian": 0.0,
+        "Praggnanandhaa R": 0.0,
+        "Gukesh D": 1.0,
+        "Vidit, Santosh Gujrathi": 0.0,
+        "Abasov, Nijat": 0.0
+    },
+    "expected_points": {
+        "Caruana, Fabiano": 8.5,
+        "Nakamura, Hikaru": 8.5,
+        "Firouzja, Alireza": 5.0,
+        "Nepomniachtchi, Ian": 8.5,
+        "Praggnanandhaa R": 7.0,
+        "Gukesh D": 9.0,
+        "Vidit, Santosh Gujrathi": 6.0,
+        "Abasov, Nijat": 3.5
+    },
+    "rank_matrix": {
+        "Caruana, Fabiano": [
+            0.0,
+            0.0,
+            0.0,
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+        ],
+        "Nakamura, Hikaru": [
+            0.0,
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+        ],
+        "Firouzja, Alireza": [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0,
+            0.0
+        ],
+        "Nepomniachtchi, Ian": [
+            0.0,
+            0.0,
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+        ],
+        "Praggnanandhaa R": [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0,
+            0.0,
+            0.0,
+            0.0
+        ],
+        "Gukesh D": [
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+        ],
+        "Vidit, Santosh Gujrathi": [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0,
+            0.0,
+            0.0
+        ],
+        "Abasov, Nijat": [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0
+        ]
+    },
+    "game_probs": {}
+}

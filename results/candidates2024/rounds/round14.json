@@ -1,0 +1,131 @@
+{
+    "metadata": {
+        "time_seconds": 2.844301922
+    },
+    "winner_probs": {
+        "Caruana, Fabiano": 0.152114,
+        "Nakamura, Hikaru": 0.252771,
+        "Firouzja, Alireza": 0.0,
+        "Nepomniachtchi, Ian": 0.068587,
+        "Praggnanandhaa R": 0.0,
+        "Gukesh D": 0.526528,
+        "Vidit, Santosh Gujrathi": 0.0,
+        "Abasov, Nijat": 0.0
+    },
+    "expected_points": {
+        "Caruana, Fabiano": 8.6394435,
+        "Nakamura, Hikaru": 8.4781575,
+        "Firouzja, Alireza": 5.0993445,
+        "Nepomniachtchi, Ian": 8.3605565,
+        "Praggnanandhaa R": 6.609386,
+        "Gukesh D": 9.0218425,
+        "Vidit, Santosh Gujrathi": 5.9006555,
+        "Abasov, Nijat": 3.890614
+    },
+    "rank_matrix": {
+        "Caruana, Fabiano": [
+            0.152114,
+            0.334386,
+            0.230116,
+            0.283384,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+        ],
+        "Nakamura, Hikaru": [
+            0.252771,
+            0.163312,
+            0.406951,
+            0.176966,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+        ],
+        "Firouzja, Alireza": [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.945054,
+            0.054946
+        ],
+        "Nepomniachtchi, Ian": [
+            0.068587,
+            0.393501,
+            0.103673,
+            0.434239,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+        ],
+        "Praggnanandhaa R": [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.821541,
+            0.178459,
+            0.0,
+            0.0
+        ],
+        "Gukesh D": [
+            0.526528,
+            0.108801,
+            0.25926,
+            0.105411,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+        ],
+        "Vidit, Santosh Gujrathi": [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.178459,
+            0.821541,
+            0.0,
+            0.0
+        ],
+        "Abasov, Nijat": [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.054946,
+            0.945054
+        ]
+    },
+    "game_probs": {
+        "14": {
+            "Nakamura, Hikaru|Gukesh D": [
+                0.364671,
+                0.226973,
+                0.408356
+            ],
+            "Caruana, Fabiano|Nepomniachtchi, Ian": [
+                0.4865,
+                0.305887,
+                0.207613
+            ],
+            "Firouzja, Alireza|Vidit, Santosh Gujrathi": [
+                0.461521,
+                0.275647,
+                0.262832
+            ],
+            "Abasov, Nijat|Praggnanandhaa R": [
+                0.209383,
+                0.362462,
+                0.428155
+            ]
+        }
+    }
+}

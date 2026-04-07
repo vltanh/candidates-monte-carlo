@@ -29,10 +29,12 @@ enum TimeControl
 };
 
 // "shared"   — tied players split the win probability (random selection per iteration)
-// "fide2026" — Rapid mini-match → Blitz mini-match → sudden-death Blitz knockout
+// "fide2024" — Rapid mini-match → Blitz mini-match → Infinite sudden-death Blitz
+// "fide2026" — Rapid mini-match → Blitz mini-match → Sudden-death Armageddon
 enum class TiebreakMode
 {
     SHARED,
+    FIDE2024,
     FIDE2026
 };
 
@@ -95,8 +97,8 @@ struct ScheduledGame
 
 struct Config
 {
-    int N;   // number of players — read from tournament JSON
-    int GPR; // games per round   — read from "gpr" field (default N/2)
+    int N;
+    int GPR;
     TiebreakMode tiebreak;
 
     std::vector<std::string> names;
@@ -150,13 +152,11 @@ static double parseResult(const std::string &s)
 
 static Config buildConfig(const std::string &hyperPath, const std::string &tourneyPath, int cliSimRound)
 {
-    // 1. Parse hyperparameters
     std::ifstream fh(hyperPath);
     if (!fh)
         throw std::runtime_error("Cannot open hyperparameters: " + hyperPath);
     json hDoc = json::parse(fh, nullptr, true, true);
 
-    // 2. Parse tournament data
     std::ifstream ft(tourneyPath);
     if (!ft)
         throw std::runtime_error("Cannot open tournament: " + tourneyPath);
@@ -164,7 +164,6 @@ static Config buildConfig(const std::string &hyperPath, const std::string &tourn
 
     Config cfg;
 
-    // ── Hyperparameters ───────────────────────────────────────────────────────
     cfg.runs = hDoc.value("runs", 10'000'000);
     cfg.mapIters = hDoc.value("map_iters", 100);
     cfg.mapTolerance = hDoc.value("map_tolerance", 1e-8);
@@ -191,15 +190,18 @@ static Config buildConfig(const std::string &hyperPath, const std::string &tourn
 
     cfg.simulateFromRound = cliSimRound;
 
-    // ── Tournament structure ──────────────────────────────────────────────────
     const auto &players = tDoc.at("players");
     cfg.N = (int)players.size();
     cfg.GPR = tDoc.value("gpr", cfg.N / 2);
 
     std::string tbStr = tDoc.value("tiebreak", "shared");
-    cfg.tiebreak = (tbStr == "fide2026") ? TiebreakMode::FIDE2026 : TiebreakMode::SHARED;
+    if (tbStr == "fide2026")
+        cfg.tiebreak = TiebreakMode::FIDE2026;
+    else if (tbStr == "fide2024")
+        cfg.tiebreak = TiebreakMode::FIDE2024;
+    else
+        cfg.tiebreak = TiebreakMode::SHARED;
 
-    // ── Players ───────────────────────────────────────────────────────────────
     cfg.names.resize(cfg.N);
     cfg.ratings.resize(cfg.N);
     cfg.rapidRatings.resize(cfg.N);
@@ -248,9 +250,6 @@ static Config buildConfig(const std::string &hyperPath, const std::string &tourn
         cfg.velB[i] = parseVelocity(p, "blitz_history", "blitz_games_played");
     }
 
-    // ── Schedule ──────────────────────────────────────────────────────────────
-    // Round is read from the "round" field if present; otherwise inferred from
-    // position using GPR (backwards-compatible with JSONs that predate this field).
     const auto &schedule = tDoc.at("schedule");
     for (int gi = 0; gi < (int)schedule.size(); ++gi)
     {
@@ -285,6 +284,10 @@ struct EncounterTable
     std::vector<double> W_W, W_B;
     std::vector<double> decisiveW, totalW, decisiveB, totalB;
 
+    // For tiebreaks
+    std::vector<double> wins;
+    std::vector<std::vector<double>> scoreMatrix;
+
     void init(const Config &cfg)
     {
         N = cfg.N;
@@ -300,6 +303,9 @@ struct EncounterTable
         totalW.assign(N, 0.0);
         decisiveB.assign(N, 0.0);
         totalB.assign(N, 0.0);
+
+        wins.assign(N, 0.0);
+        scoreMatrix.assign(N, std::vector<double>(N, 0.0));
 
         for (int i = 0; i < N; ++i)
         {
@@ -328,6 +334,14 @@ struct EncounterTable
         totalW[w] += 1.0;
         decisiveB[b] += isDecisive;
         totalB[b] += 1.0;
+
+        scoreMatrix[w][b] += whitePoints;
+        scoreMatrix[b][w] += 1.0 - whitePoints;
+
+        if (whitePoints == 1.0)
+            wins[w] += 1.0;
+        else if (whitePoints == 0.0)
+            wins[b] += 1.0;
     }
 
     double getDynamicAggressionW(int p, const Config &cfg) const
@@ -433,14 +447,12 @@ static double simulateGame(const EncounterTable &et, int w, int b, Rng &rng,
         lW = et.lambdaW[w];
         lB = et.lambdaB[b];
 
-        // 1. Intrinsic player style multiplier
         double dynAggW = et.getDynamicAggressionW(w, cfg);
         double dynAggB = et.getDynamicAggressionB(b, cfg);
         double baselineAgg = (cfg.defaultAggW + cfg.defaultAggB) / 2.0;
         double matchAgg = (dynAggW + dynAggB) / 2.0;
         double styleMultiplier = baselineAgg / std::max(0.01, matchAgg);
 
-        // 2. Standings game-theory multiplier
         double leaderPts = *std::max_element(et.points.begin(), et.points.end());
         int totalRounds = (cfg.knownGames.size() + cfg.schedule.size()) / cfg.GPR;
 
@@ -455,21 +467,17 @@ static double simulateGame(const EncounterTable &et, int w, int b, Rng &rng,
                 return 1.0;
             if (R < 0.75)
             {
-                // Contender: desperation peaks at R ≈ 0.375, shrinks the draw band
                 double dist = std::abs(R - 0.375) / 0.375;
                 return 1.0 - cfg.standingsAggression * (1.0 - dist);
             }
             else
             {
-                // Near-eliminated: widens the draw band
                 double chillFactor = std::min(1.0, (R - 0.75) / 0.25);
                 return 1.0 + (cfg.standingsAggression * 1.5) * chillFactor;
             }
         };
 
         double standingsMultiplier = (calcMotivation(w) + calcMotivation(b)) / 2.0;
-
-        // 3. Combine to dynamically scale the draw band
         nu = cfg.classicalNu * styleMultiplier * standingsMultiplier;
     }
 
@@ -482,7 +490,7 @@ static double simulateGame(const EncounterTable &et, int w, int b, Rng &rng,
     return 0.0;
 }
 
-// ─── Playoff simulation (FIDE 2026 Regulations 4.4.2) ────────────────────────
+// ─── Playoff simulation ──────────────────────────────────────────────────────
 
 static std::vector<int> playoffMatch(EncounterTable &et, int p1, int p2,
                                      Rng &rng, TimeControl tc, const Config &cfg)
@@ -527,19 +535,37 @@ static std::vector<int> playoffRoundRobin(EncounterTable &et, const std::vector<
 
 static int knockoutMatch(EncounterTable &et, int p1, int p2, Rng &rng, const Config &cfg)
 {
-    int w1 = (rng() < 0.5) ? p1 : p2;
-    int b1 = (w1 == p1) ? p2 : p1;
-    double r1 = simulateGame(et, w1, b1, rng, BLITZ, cfg);
-    if (r1 != 0.5)
-        return (r1 == 1.0) ? w1 : b1;
+    if (cfg.tiebreak == TiebreakMode::FIDE2024)
+    {
+        int w = (rng() < 0.5) ? p1 : p2;
+        int b = (w == p1) ? p2 : p1;
 
-    double r2 = simulateGame(et, b1, w1, rng, BLITZ, cfg);
-    if (r2 != 0.5)
-        return (r2 == 1.0) ? b1 : w1;
+        while (true)
+        {
+            double r = simulateGame(et, w, b, rng, BLITZ, cfg);
+            if (r == 1.0)
+                return w;
+            if (r == 0.0)
+                return b;
+            std::swap(w, b);
+        }
+    }
+    else
+    {
+        int w1 = (rng() < 0.5) ? p1 : p2;
+        int b1 = (w1 == p1) ? p2 : p1;
+        double r1 = simulateGame(et, w1, b1, rng, BLITZ, cfg);
+        if (r1 != 0.5)
+            return (r1 == 1.0) ? w1 : b1;
 
-    int sdw = (rng() < 0.5) ? w1 : b1;
-    int sdb = (sdw == w1) ? b1 : w1;
-    return (simulateGame(et, sdw, sdb, rng, BLITZ, cfg) == 1.0) ? sdw : sdb;
+        double r2 = simulateGame(et, b1, w1, rng, BLITZ, cfg);
+        if (r2 != 0.5)
+            return (r2 == 1.0) ? b1 : w1;
+
+        int sdw = (rng() < 0.5) ? w1 : b1;
+        int sdb = (sdw == w1) ? b1 : w1;
+        return (simulateGame(et, sdw, sdb, rng, BLITZ, cfg) == 1.0) ? sdw : sdb;
+    }
 }
 
 static int simulatePlayoff(EncounterTable &et, std::vector<int> tied, Rng &rng, const Config &cfg)
@@ -611,17 +637,36 @@ static void runOneIteration(const Config &cfg, Rng &rng, ThreadResult &out, Enco
     std::vector<int> standingsOrder(cfg.N);
     std::iota(standingsOrder.begin(), standingsOrder.end(), 0);
 
-    // Add tiny random jitter to cleanly break non-first-place ties in the ranks
-    std::vector<double> jitteredPoints(cfg.N);
+    // 4.4.2.3.a: Sonneborn-Berger
+    std::vector<double> sb(cfg.N, 0.0);
     for (int i = 0; i < cfg.N; ++i)
     {
-        jitteredPoints[i] = et.points[i] + rng() * 1e-6;
+        for (int j = 0; j < cfg.N; ++j)
+        {
+            sb[i] += et.scoreMatrix[i][j] * et.points[j];
+        }
+    }
+
+    // 4.4.2.3.d: Random Jitter (Drawing of lots)
+    std::vector<double> jitter(cfg.N);
+    for (int i = 0; i < cfg.N; ++i)
+    {
+        jitter[i] = rng();
     }
 
     std::sort(standingsOrder.begin(), standingsOrder.end(), [&](int a, int b)
-              { return jitteredPoints[a] > jitteredPoints[b]; });
+              {
+        if (std::abs(et.points[a] - et.points[b]) > 1e-9) 
+            return et.points[a] > et.points[b];
+            
+        if (std::abs(sb[a] - sb[b]) > 1e-9) 
+            return sb[a] > sb[b];
+            
+        if (et.wins[a] != et.wins[b]) 
+            return et.wins[a] > et.wins[b];
+            
+        return jitter[a] > jitter[b]; });
 
-    // Find precise ties for 1st place
     double maxPts = et.points[standingsOrder[0]];
     std::vector<int> top;
     for (int i = 0; i < cfg.N; ++i)
@@ -633,7 +678,7 @@ static void runOneIteration(const Config &cfg, Rng &rng, ThreadResult &out, Enco
     int winner = standingsOrder[0];
     if (top.size() > 1)
     {
-        if (cfg.tiebreak == TiebreakMode::FIDE2026)
+        if (cfg.tiebreak != TiebreakMode::SHARED)
         {
             winner = simulatePlayoff(et, top, rng, cfg);
         }
@@ -642,11 +687,12 @@ static void runOneIteration(const Config &cfg, Rng &rng, ThreadResult &out, Enco
             std::uniform_int_distribution<int> d(0, (int)top.size() - 1);
             winner = top[d(rng.eng)];
         }
-        // Rotate actual winner to index 0 for accurate rank matrix mapping
+
         auto it = std::find(standingsOrder.begin(), standingsOrder.end(), winner);
         if (it != standingsOrder.begin())
         {
-            std::iter_swap(standingsOrder.begin(), it);
+            standingsOrder.erase(it);
+            standingsOrder.insert(standingsOrder.begin(), winner);
         }
     }
 
@@ -693,6 +739,10 @@ static void runMonteCarlo(const Config &cfg, int totalIters)
 
     int base = totalIters / nThreads;
     int rem = totalIters % nThreads;
+
+    // --- Start Timer ---
+    auto t0 = std::chrono::high_resolution_clock::now();
+
     for (int t = 0; t < nThreads; ++t)
     {
         int iters = base + (t < rem ? 1 : 0);
@@ -702,7 +752,10 @@ static void runMonteCarlo(const Config &cfg, int totalIters)
     for (auto &th : threads)
         th.join();
 
-    // Aggregate thread results
+    // --- End Timer ---
+    auto t1 = std::chrono::high_resolution_clock::now();
+    double elapsed_time = std::chrono::duration<double>(t1 - t0).count();
+
     std::vector<int> wins(cfg.N, 0);
     std::vector<double> expectedPoints(cfg.N, 0.0);
     std::vector<std::vector<int>> rankMatrix(cfg.N, std::vector<int>(cfg.N, 0));
@@ -729,12 +782,17 @@ static void runMonteCarlo(const Config &cfg, int totalIters)
         }
     }
 
-    // Output pure JSON
-    json jOut = json::object();
-    jOut["winner_probs"] = json::object();
-    jOut["expected_points"] = json::object();
-    jOut["rank_matrix"] = json::object();
-    jOut["game_probs"] = json::object();
+    // Using ordered_json preserves the exact top-to-bottom insertion order
+    // and prevents "10" from sorting before "2".
+    nlohmann::ordered_json jOut;
+
+    // 1. Metadata (Wall-clock time)
+    jOut["metadata"] = {{"time_seconds", elapsed_time}};
+
+    // 2. End-Tournament Results (Placed at the top)
+    jOut["winner_probs"] = nlohmann::ordered_json::object();
+    jOut["expected_points"] = nlohmann::ordered_json::object();
+    jOut["rank_matrix"] = nlohmann::ordered_json::object();
 
     for (int i = 0; i < cfg.N; ++i)
     {
@@ -742,12 +800,15 @@ static void runMonteCarlo(const Config &cfg, int totalIters)
         jOut["winner_probs"][name] = (double)wins[i] / totalIters;
         jOut["expected_points"][name] = expectedPoints[i] / totalIters;
 
-        jOut["rank_matrix"][name] = json::array();
+        jOut["rank_matrix"][name] = nlohmann::ordered_json::array();
         for (int r = 0; r < cfg.N; ++r)
         {
             jOut["rank_matrix"][name].push_back((double)rankMatrix[i][r] / totalIters);
         }
     }
+
+    // 3. Round-by-Round Results
+    jOut["game_probs"] = nlohmann::ordered_json::object();
 
     int completedGames = static_cast<int>(cfg.knownGames.size());
     for (int i = 0; i < (int)cfg.schedule.size(); ++i)
@@ -758,17 +819,19 @@ static void runMonteCarlo(const Config &cfg, int totalIters)
 
         if (!jOut["game_probs"].contains(rKey))
         {
-            jOut["game_probs"][rKey] = json::object();
+            jOut["game_probs"][rKey] = nlohmann::ordered_json::object();
         }
 
         auto [w, b] = cfg.schedule[i];
         std::string pairKey = cfg.names[w] + "|" + cfg.names[b];
-        jOut["game_probs"][rKey][pairKey] = {
-            (double)tracker[w][b][0] / totalIters,
-            (double)tracker[w][b][1] / totalIters,
-            (double)tracker[w][b][2] / totalIters};
+
+        // Use an array to preserve exactly [White Win, Draw, Black Win]
+        jOut["game_probs"][rKey][pairKey] = nlohmann::ordered_json::array({(double)tracker[w][b][0] / totalIters,
+                                                                           (double)tracker[w][b][1] / totalIters,
+                                                                           (double)tracker[w][b][2] / totalIters});
     }
 
+    // Dump with 4-space indent
     std::cout << jOut.dump(4) << "\n";
 }
 
