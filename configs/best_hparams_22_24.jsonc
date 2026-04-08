@@ -1,9 +1,9 @@
 {
   // Trial metadata
   // Rank: #1
-  // Trial: 9601
-  // Game Brier: 0.309668
-  // Rank RPS: 0.075905
+  // Trial: 4343
+  // Game Brier: 0.291072
+  // Rank RPS: 0.103397
 
   // Simulation
   "runs": 1000000,
@@ -11,27 +11,27 @@
   "map_tolerance": 1e-8,
 
   // MAP prior weights
-  "prior_weight_known": 2.631502,
-  "prior_weight_sim":   4.003018,
+  "prior_weight_known": 7.956829,
+  "prior_weight_sim":   9.305541,
 
   // Rating initialization & velocity 
-  "initial_white_adv":   84.819417,
-  "velocity_time_decay": 0.385905,
-  "lookahead_factor":    4.889800,
+  "initial_white_adv":   19.520652,
+  "velocity_time_decay": 0.312772,
+  "lookahead_factor":    4.996202,
 
   // Cross-time-control blending
-  "rapid_form_weight": -0.395600,
-  "blitz_form_weight": -0.382080,
-  "color_bleed":        0.008152,
+  "rapid_form_weight": -0.383144,
+  "blitz_form_weight":  -0.343931,
+  "color_bleed":        0.009073,
 
   // Draw model
-  "classical_nu": 1.119406,
-  "rapid_nu":     0.960898,
-  "blitz_nu":     0.603050,
+  "classical_nu": 2.167537,
+  "rapid_nu":     0.218795,
+  "blitz_nu":     0.024624,
 
   // Hybrid Aggression & Game Theory 
-  "agg_prior_weight":      18.236859,
-  "default_aggression_w":   0.240386,
-  "default_aggression_b":   0.058487,
-  "standings_aggression":   0.081493
+  "agg_prior_weight":      35.698982,
+  "default_aggression_w":   0.229408,
+  "default_aggression_b":   0.032875,
+  "standings_aggression":   0.108660
 }

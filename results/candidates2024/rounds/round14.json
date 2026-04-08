@@ -1,43 +1,43 @@
 {
     "metadata": {
-        "time_seconds": 2.844301922
+        "time_seconds": 3.224987418
     },
     "winner_probs": {
-        "Caruana, Fabiano": 0.152114,
-        "Nakamura, Hikaru": 0.252771,
+        "Caruana, Fabiano": 0.134511,
+        "Nakamura, Hikaru": 0.216288,
         "Firouzja, Alireza": 0.0,
-        "Nepomniachtchi, Ian": 0.068587,
+        "Nepomniachtchi, Ian": 0.071142,
         "Praggnanandhaa R": 0.0,
-        "Gukesh D": 0.526528,
+        "Gukesh D": 0.578059,
         "Vidit, Santosh Gujrathi": 0.0,
         "Abasov, Nijat": 0.0
     },
     "expected_points": {
-        "Caruana, Fabiano": 8.6394435,
-        "Nakamura, Hikaru": 8.4781575,
-        "Firouzja, Alireza": 5.0993445,
-        "Nepomniachtchi, Ian": 8.3605565,
-        "Praggnanandhaa R": 6.609386,
-        "Gukesh D": 9.0218425,
-        "Vidit, Santosh Gujrathi": 5.9006555,
-        "Abasov, Nijat": 3.890614
+        "Caruana, Fabiano": 8.5846805,
+        "Nakamura, Hikaru": 8.4724945,
+        "Firouzja, Alireza": 5.0542625,
+        "Nepomniachtchi, Ian": 8.4153195,
+        "Praggnanandhaa R": 6.580382,
+        "Gukesh D": 9.0275055,
+        "Vidit, Santosh Gujrathi": 5.9457375,
+        "Abasov, Nijat": 3.919618
     },
     "rank_matrix": {
         "Caruana, Fabiano": [
-            0.152114,
-            0.334386,
-            0.230116,
-            0.283384,
+            0.134511,
+            0.203691,
+            0.293449,
+            0.368349,
             0.0,
             0.0,
             0.0,
             0.0
         ],
         "Nakamura, Hikaru": [
-            0.252771,
-            0.163312,
-            0.406951,
-            0.176966,
+            0.216288,
+            0.211873,
+            0.385847,
+            0.185992,
             0.0,
             0.0,
             0.0,
@@ -50,14 +50,14 @@
             0.0,
             0.0,
             0.0,
-            0.945054,
-            0.054946
+            0.967601,
+            0.032399
         ],
         "Nepomniachtchi, Ian": [
-            0.068587,
-            0.393501,
-            0.103673,
-            0.434239,
+            0.071142,
+            0.43682,
+            0.177549,
+            0.314489,
             0.0,
             0.0,
             0.0,
@@ -68,16 +68,16 @@
             0.0,
             0.0,
             0.0,
-            0.821541,
-            0.178459,
+            0.819154,
+            0.180846,
             0.0,
             0.0
         ],
         "Gukesh D": [
-            0.526528,
-            0.108801,
-            0.25926,
-            0.105411,
+            0.578059,
+            0.147616,
+            0.143155,
+            0.13117,
             0.0,
             0.0,
             0.0,
@@ -88,8 +88,8 @@
             0.0,
             0.0,
             0.0,
-            0.178459,
-            0.821541,
+            0.180846,
+            0.819154,
             0.0,
             0.0
         ],
@@ -100,31 +100,31 @@
             0.0,
             0.0,
             0.0,
-            0.054946,
-            0.945054
+            0.032399,
+            0.967601
         ]
     },
     "game_probs": {
         "14": {
             "Nakamura, Hikaru|Gukesh D": [
-                0.364671,
-                0.226973,
-                0.408356
+                0.274325,
+                0.396339,
+                0.329336
             ],
             "Caruana, Fabiano|Nepomniachtchi, Ian": [
-                0.4865,
-                0.305887,
-                0.207613
+                0.338202,
+                0.492957,
+                0.168841
             ],
             "Firouzja, Alireza|Vidit, Santosh Gujrathi": [
-                0.461521,
-                0.275647,
-                0.262832
+                0.320513,
+                0.467499,
+                0.211988
             ],
             "Abasov, Nijat|Praggnanandhaa R": [
-                0.209383,
-                0.362462,
-                0.428155
+                0.153485,
+                0.532266,
+                0.314249
             ]
         }
     }

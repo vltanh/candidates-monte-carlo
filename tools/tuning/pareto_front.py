@@ -3,10 +3,11 @@
 Visualize the Pareto front from a multi-objective Optuna study.
 
 Usage:
-  python tools/viz/pareto_front.py [db_path] [study_name]
-  python tools/viz/pareto_front.py db/tuning_2024.db chess_montecarlo
-  python tools/viz/pareto_front.py db/tuning_2024.db --method knee
-  python tools/viz/pareto_front.py db/tuning_2024.db --method weighted --weights 0.7 0.3
+  python tools/tuning/pareto_front.py db/tuning_22_24.db
+  python tools/tuning/pareto_front.py db/tuning_22_24.db --save results/pareto/front.png
+  python tools/tuning/pareto_front.py db/tuning_22_24.db --method knee
+  python tools/tuning/pareto_front.py db/tuning_22_24.db --method weighted --weights 0.7 0.3
+  python tools/tuning/pareto_front.py db/tuning_22_24.db --method auc
 """
 
 import argparse
@@ -47,11 +48,15 @@ def load_study(db_path: Path, study_name: str) -> optuna.Study:
 
 
 def _normalize(pareto_trials: list[optuna.trial.FrozenTrial]) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
-    """Returns (vals, mins, ranges) where vals is shape (N, 2), normalized to [0,1]."""
+    """Returns (vals, mins, ranges) for scale-invariant normalization.
+
+    Normalizes as (val - min) / min (fractional excess above best), so objectives
+    with very different absolute ranges are compared proportionally rather than
+    being collapsed to the same [0, 1] interval.
+    """
     vals = np.array([t.values for t in pareto_trials])
     mins = vals.min(axis=0)
-    maxs = vals.max(axis=0)
-    ranges = np.where(maxs - mins == 0, 1.0, maxs - mins)
+    ranges = np.where(mins == 0, 1.0, mins)
     return vals, mins, ranges
 
 
@@ -64,11 +69,7 @@ def find_best_utopia(pareto_trials: list[optuna.trial.FrozenTrial]) -> optuna.tr
 
 
 def find_best_knee(pareto_trials: list[optuna.trial.FrozenTrial]) -> optuna.trial.FrozenTrial:
-    """
-    Knee point: maximum perpendicular distance from the line connecting the
-    two endpoints of the normalized Pareto front. This is the point of maximum
-    curvature — where trading one objective for the other is most costly.
-    """
+    """Maximum perpendicular distance from the line connecting the two Pareto endpoints — point of maximum curvature."""
     vals, mins, ranges = _normalize(pareto_trials)
     norm = (vals - mins) / ranges
 
@@ -100,6 +101,22 @@ def find_best_weighted(
     return pareto_trials[int(scores.argmin())]
 
 
+def find_best_auc(pareto_trials: list[optuna.trial.FrozenTrial]) -> optuna.trial.FrozenTrial:
+    """Area median: point whose cumulative area under the normalized Pareto curve is closest to 50% of the total."""
+    pts = sorted(pareto_trials, key=lambda t: t.values[0])
+    if len(pts) < 2:
+        return pts[0]
+
+    vals, mins, ranges = _normalize(pts)
+    norm = (vals - mins) / ranges
+
+    x, y = norm[:, 0], norm[:, 1]
+    aucs = np.cumsum((y[1:] + y[:-1]) / 2.0 * np.diff(x))
+    half = aucs[-1] / 2.0
+    idx = int(np.argmin(np.abs(aucs - half))) + 1
+    return pts[min(idx, len(pts) - 1)]
+
+
 def select_best(
     pareto_trials: list[optuna.trial.FrozenTrial],
     method: str,
@@ -112,6 +129,8 @@ def select_best(
         w = weights or [0.5, 0.5]
         label = f"Weighted sum ({w[0]:.2g} × Game Brier + {w[1]:.2g} × Rank RPS)"
         return find_best_weighted(pareto_trials, w), label
+    elif method == "auc":
+        return find_best_auc(pareto_trials), "Area under Pareto curve (AUC)"
     else:  # utopia (default)
         return find_best_utopia(pareto_trials), "Utopia distance"
 
@@ -125,9 +144,7 @@ def print_pareto_table(
         return
 
     # Display order: always utopia distance (independent of selection method)
-    vals_arr = np.array([t.values for t in pareto_trials])
-    mins = vals_arr.min(axis=0)
-    ranges = np.where(vals_arr.max(axis=0) - mins == 0, 1.0, vals_arr.max(axis=0) - mins)
+    _, mins, ranges = _normalize(pareto_trials)
     sorted_trials = sorted(
         pareto_trials,
         key=lambda t: float(np.sqrt((((np.array(t.values) - mins) / ranges) ** 2).sum())),
@@ -305,13 +322,14 @@ def main() -> None:
     )
     parser.add_argument(
         "--method",
-        choices=["utopia", "knee", "weighted"],
+        choices=["utopia", "knee", "weighted", "auc"],
         default="utopia",
         help=(
             "Method for selecting the suggested best trial: "
-            "'utopia' (closest to ideal corner, default), "
+            "'utopia' (closest to ideal corner under scale-invariant normalization, default), "
             "'knee' (maximum curvature / elbow point), "
-            "'weighted' (weighted sum — use with --weights)"
+            "'weighted' (weighted sum — use with --weights), "
+            "'auc' (area median of the normalized Pareto curve)"
         ),
     )
     parser.add_argument(

@@ -14,9 +14,10 @@ from pathlib import Path
 
 EVAL_RUNS = 10_000
 
-FUTURE_DECAY_WEIGHT = 0.35  # Decays weight for predicting games further into the future
+FUTURE_DECAY_WEIGHT = 0.80  # Decays weight for predicting games further into the future
+MACRO_DECAY_WEIGHT = 0.95  # Gentle decay to favor early-tournament Rank RPS accuracy
 WINNER_EVAL_CUTOFF = 1.0  # Evaluate winner MSE for all rounds
-DECISIVE_GAME_WEIGHT = 2.5  # Multiplier for penalizing misses on decisive games
+DECISIVE_GAME_WEIGHT = 1.0  # Weights draws and decisive games equally
 
 # ── Data Utilities ─────────────────────────────────────────────────────────────
 
@@ -121,7 +122,7 @@ def evaluate(
             return float("inf"), float("inf"), float("inf"), float("inf")
 
         # ------------------------------------------------------------------
-        # 1. Game Brier Loss (Time Decay & Decisive Outcome Weighted)
+        # 1. Game Brier Loss (Time Decay & Decisive Weighted)
         # ------------------------------------------------------------------
         for g in [g for g in games if g["round"] >= r]:
             g_round = str(g["round"])
@@ -140,19 +141,19 @@ def evaluate(
                 brier_loss = (
                     (pw - act_w) ** 2 + (pd - act_d) ** 2 + (pb - act_b) ** 2
                 ) / 2.0
-                weight = (FUTURE_DECAY_WEIGHT ** (int(g_round) - r)) * (
-                    DECISIVE_GAME_WEIGHT if actual != 0.5 else 1.0
-                )
+
+                time_weight = FUTURE_DECAY_WEIGHT ** (int(g_round) - r)
+                outcome_weight = DECISIVE_GAME_WEIGHT if actual != 0.5 else 1.0
+                weight = time_weight * outcome_weight
 
                 cumulative_game_loss += brier_loss * weight
                 cumulative_game_weight += weight
 
         # ------------------------------------------------------------------
-        # 2. Macro State Losses (Expected Points, RPS, Winner)
+        # 2. Macro State Losses (Expected Points, RPS, Winner) - Gently Decayed
         # ------------------------------------------------------------------
         run_winner_mse, run_pts_mse, run_rps = float("nan"), float("nan"), float("nan")
         if actual_winners and i < winner_cutoff_idx:
-            # Reconstruct ground truth distributions for ties
             final_scores = {p: 0.0 for p in all_players}
             for g in games:
                 final_scores[g["white"]] += g["result"]
@@ -197,10 +198,12 @@ def evaluate(
             run_pts_mse /= N_players
             run_rps /= N_players
 
-            cumulative_winner_mse += run_winner_mse * r
-            cumulative_pts_mse += run_pts_mse * r
-            cumulative_rps += run_rps * r
-            total_macro_weight += r
+            # Gentle decay based on the round number
+            macro_weight = MACRO_DECAY_WEIGHT ** (r - 1)
+            cumulative_winner_mse += run_winner_mse * macro_weight
+            cumulative_pts_mse += run_pts_mse * macro_weight
+            cumulative_rps += run_rps * macro_weight
+            total_macro_weight += macro_weight
 
         if verbose:
             game_str = (

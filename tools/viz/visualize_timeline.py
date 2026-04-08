@@ -225,7 +225,8 @@ ax_line.set_xticks(range(0, 15))
 ax_line.grid(True, linestyle="--", alpha=0.6)
 
 latest_probs = df_history[df_history["Completed Rounds"] == max_k - 1].copy()
-latest_probs = latest_probs.sort_values(by="Win %", ascending=True).reset_index(
+latest_probs["Points"] = latest_probs["Player"].map(lambda p: current_standings.get(p, 0.0))
+latest_probs = latest_probs.sort_values(by=["Win %", "Points"], ascending=True).reset_index(
     drop=True
 )
 

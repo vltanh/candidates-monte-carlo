@@ -15,17 +15,17 @@ A multi-threaded Monte Carlo simulator for chess tournaments with a fixed schedu
 
 *Round 8 results: Esipenko–Sindarov drew, Wei Yi–Bluebaum drew, Anish beat Pragg, Hikaru beat Fabi*
 
-- ✓ **Anish beat Pragg**: model had Anish at 38.5% to win and 37.3% to draw; correct prediction
-- ✓ **Hikaru beat Fabi**: model had Hikaru at 37.4% to win and 31.1% to draw; correct prediction
-- ✗ **Esipenko–Sindarov drew**: model had Sindarov at 61.8% to win and only 21.5% to draw; the game ended in a draw
-- ✗ **Wei Yi–Bluebaum drew**: model had Wei Yi at 37.9% to win and 31.1% to draw; the game ended in a draw
-- Win probs: Sindarov **83.7%**, Fabi 9.4%, Anish 4.1% (others: 2.8%); Fabi dropped from 14.4% after the loss; Anish climbed to 4.1%
+- ✓ **Wei Yi–Bluebaum drew**: draw predicted at 47.4%; correct prediction
+- ✗ **Esipenko–Sindarov drew**: Sindarov win predicted at 41.2% over draw at 40.8%; Sindarov drew; a leader with Black and a near-insurmountable lead has every incentive to play for safety, which the model's standing-based draw multiplier only partially captures
+- ✗ **Anish beat Pragg**: draw predicted at 51.2%; Anish won; the model correctly placed Anish's winning chances (28.6%) above Pragg's (20.2%)
+- ✗ **Hikaru beat Fabi**: draw predicted at 47.4%; Hikaru won; the model gave Hikaru an extremely marginal win edge (26.33% vs 26.27%); effectively no directional signal
+- Win probs: Sindarov climbed to **85.8%** (from 80.6%); Fabi dropped sharply to **8.3%** (from 15.9%) after the loss; Anish rose to **4.0%** (from 1.5%) after the win
 
 *Round 9 predictions:*
-- Hikaru–Esipenko: **46.2%** / 28.7% / 25.1%, Hikaru favoured
-- Fabi–Anish: **57.2%** / 22.6% / 20.2%, Fabi the strong favourite; key duel for second place
-- Pragg–Wei Yi: 35.8% / 27.1% / **37.0%**, Wei Yi slight favourite
-- Bluebaum–Sindarov: 24.9% / 29.1% / **46.0%**, Sindarov strong favourite
+- Hikaru–Esipenko: 34.9% / **45.5%** / 19.6%, draw most likely; Hikaru with higher winning chances
+- Fabi–Anish: 38.5% / **40.5%** / 21.0%, draw most likely; Fabi with higher winning chances; key duel for second place
+- Pragg–Wei Yi: 25.3% / **43.9%** / 30.9%, draw most likely; Wei Yi with higher winning chances
+- Bluebaum–Sindarov: 21.0% / **46.3%** / 32.7%, draw most likely; Sindarov with higher winning chances
 
 </details>
 
@@ -36,17 +36,17 @@ A multi-threaded Monte Carlo simulator for chess tournaments with a fixed schedu
 
 *Round 7 results: Wei Yi beat Esipenko, Sindarov–Anish drew, Bluebaum–Hikaru drew, Pragg–Fabi drew*
 
-- ✓ **Wei Yi beat Esipenko**: model had Wei Yi at 36.9% to win; correct prediction
-- ✗ **Sindarov–Anish drew**: model had Sindarov at 53.9% to win and only 24.8% to draw; a 2.5-point lead removed urgency to press
-- ✗ **Bluebaum–Hikaru drew**: model had Bluebaum at 37.1% to win and 34.0% to draw; the game ended in a draw
-- ✗ **Pragg–Fabi drew**: model had Pragg at 37.3% to win and 28.1% to draw; Fabi has drawn 2 straight since his R5 win vs Bluebaum
-- Sindarov barely moved: **80.2%** (from 80.2%); drawing cost almost nothing with the lead this large
+- ✓ **Sindarov–Anish drew**: draw predicted at 43.4%; correct prediction
+- ✓ **Bluebaum–Hikaru drew**: draw predicted at 49.4%; correct prediction
+- ✓ **Pragg–Fabi drew**: draw predicted at 44.4%; correct prediction
+- ✗ **Wei Yi beat Esipenko**: draw predicted at 46.2%; Wei Yi won; the model correctly placed Wei Yi's winning chances (30.1%) above Esipenko's (23.7%)
+- Sindarov barely moved: **80.6%** (from 78.8%); drawing cost almost nothing with the lead this large; Fabi slipped to **15.9%** (from 16.8%)
 
 *Round 8 predictions:*
-- Esipenko–Sindarov: 16.7% / 21.5% / **61.8%**, Sindarov the strong favourite; Esipenko at 2/7 was an extreme underdog
-- Wei Yi–Bluebaum: **37.9%** / 31.1% / 31.0%, Wei Yi with a slight edge
-- Anish–Pragg: **38.5%** / 37.3% / 24.2%, Anish with a slight edge
-- Hikaru–Fabi: **37.4%** / 31.1% / 31.6%, Hikaru with a slight edge
+- Esipenko–Sindarov: 18.0% / 40.8% / **41.2%**, Sindarov win the top prediction; Esipenko at 2/7 was an extreme underdog
+- Wei Yi–Bluebaum: 28.5% / **47.4%** / 24.1%, draw most likely; Wei Yi with higher winning chances
+- Anish–Pragg: 28.6% / **51.2%** / 20.2%, draw most likely; Anish with higher winning chances
+- Hikaru–Fabi: 26.3% / **47.4%** / 26.3%, draw most likely; perfectly balanced; Fabi needs a win to stay alive
 
 </details>
 
@@ -57,17 +57,17 @@ A multi-threaded Monte Carlo simulator for chess tournaments with a fixed schedu
 
 *Round 6 results: Fabi–Esipenko drew, Hikaru–Pragg drew, Anish–Bluebaum drew, Sindarov beat Wei Yi*
 
-- ✓ **Sindarov beat Wei Yi**: model had Sindarov at 41.7% to win; correct prediction
-- ✗ **Fabi–Esipenko drew**: model's biggest miss of the tournament; Fabi was a **65.5% favourite** with only 21.1% to draw, and his inability to convert against lower-rated players is the central story
-- ✗ **Hikaru–Pragg drew**: model had Hikaru at 41.9% to win and 32.4% to draw; the game ended in a draw
-- ✗ **Anish–Bluebaum drew**: model had Anish at 40.3% to win and 32.6% to draw; the game ended in a draw
-- Win probs: Sindarov **80.2%**, Fabi 14.4%; Fabi's draw combined with Sindarov's win collapsed the race
+- ✓ **Hikaru–Pragg drew**: draw predicted at 48.1%; correct prediction
+- ✓ **Anish–Bluebaum drew**: draw predicted at 48.7%; correct prediction
+- ✗ **Fabi–Esipenko drew**: Fabi win predicted at 43.6% with draw at 40.5%; the game ended in a draw; Fabi's inability to convert against lower-rated players is the central story
+- ✗ **Sindarov beat Wei Yi**: draw predicted at 47.3%; Sindarov won; the model correctly placed Sindarov's winning chances (29.7%) above Wei Yi's (23.1%)
+- Win probs: Sindarov surged to **78.8%** (from 62.2%) while Fabi dropped to **16.8%** (from 28.1%); Fabi's draw combined with Sindarov's win collapsed the race
 
 *Round 7 predictions:*
-- Esipenko–Wei Yi: 33.1% / 30.0% / **36.9%**, Wei Yi favoured
-- Sindarov–Anish: **53.9%** / 24.8% / 21.4%, Sindarov the strong favourite
-- Bluebaum–Hikaru: **37.1%** / 34.0% / 28.9%, Bluebaum with a slight edge
-- Pragg–Fabi: **37.3%** / 28.1% / 34.7%, Pragg with a slight edge
+- Esipenko–Wei Yi: 23.7% / **46.2%** / 30.1%, draw most likely; Wei Yi with higher winning chances
+- Sindarov–Anish: 34.5% / **43.4%** / 22.1%, draw most likely; Sindarov with higher winning chances
+- Bluebaum–Hikaru: 24.0% / **49.4%** / 26.6%, draw most likely; Hikaru with slight win edge
+- Pragg–Fabi: 23.1% / **44.4%** / 32.6%, draw most likely; Fabi with higher winning chances; needs points to stay in contention
 
 </details>
 
@@ -78,17 +78,17 @@ A multi-threaded Monte Carlo simulator for chess tournaments with a fixed schedu
 
 *Round 5 results: Pragg–Esipenko drew, Fabi beat Bluebaum, Sindarov beat Hikaru, Anish–Wei Yi drew*
 
-- ✓ **Fabi beat Bluebaum**: model had Fabi at 53.4% to win and 27.8% to draw; correct prediction
-- ✗ **Sindarov beat Hikaru**: model had Hikaru barely ahead at 34.5% with Sindarov at 32.8%; Sindarov won despite being the underdog, though the margin was minimal
-- ✗ **Anish–Wei Yi drew**: model had Anish at 42.2% to win and 32.0% to draw; the game ended in a draw
-- ✗ **Pragg–Esipenko drew**: model had Pragg at 46.3% to win with only 26.9% drawing; drew
-- Win probs: Sindarov **62.4%**, Fabi 26.7%; Sindarov's 4.5/5 gave him commanding odds
+- ✓ **Pragg–Esipenko drew**: draw predicted at 44.8%; correct prediction
+- ✓ **Anish–Wei Yi drew**: draw predicted at 48.5%; correct prediction
+- ✗ **Fabi beat Bluebaum**: draw predicted at 46.3%; Fabi won; the model correctly placed Fabi's winning chances (35.4%) above Bluebaum's (18.3%)
+- ✗ **Sindarov beat Hikaru**: draw predicted at 49.4%; Sindarov won despite Hikaru having the marginal win edge (25.6% vs 25.0%); wrong direction by the narrowest margin
+- Win probs: Sindarov extended his lead to **62.2%** (from 51.1%), Fabi recovered slightly to **28.1%** (from 24.9%); Sindarov's 4.5/5 gave him commanding odds
 
 *Round 6 predictions:*
-- Fabi–Esipenko: **65.5%** / 21.1% / 13.4%, Fabi the overwhelming favourite; model expected him to close the gap
-- Hikaru–Pragg: **41.9%** / 32.4% / 25.7%, Hikaru favoured
-- Anish–Bluebaum: **40.3%** / 32.6% / 27.1%, Anish favoured
-- Wei Yi–Sindarov: 28.1% / 30.2% / **41.7%**, Sindarov favoured
+- Fabi–Esipenko: **43.6%** / 40.5% / 15.8%, Fabi win the top prediction; model expected him to capitalize on the rating gap and close on Sindarov
+- Hikaru–Pragg: 31.8% / **48.1%** / 20.1%, draw most likely; Hikaru with higher winning chances
+- Anish–Bluebaum: 28.9% / **48.7%** / 22.4%, draw most likely; Anish with higher winning chances
+- Wei Yi–Sindarov: 23.1% / **47.3%** / 29.7%, draw most likely; Sindarov with higher winning chances
 
 </details>
 
@@ -99,17 +99,17 @@ A multi-threaded Monte Carlo simulator for chess tournaments with a fixed schedu
 
 *Round 4 results: Anish beat Esipenko, Wei Yi–Hikaru drew, Sindarov beat Fabi, Bluebaum–Pragg drew*
 
-- ✓ **Sindarov beat Fabi**: model had Sindarov at 40.0% to win and 33.8% to draw; **the tournament's turning point** as Sindarov opened a 1-point lead
-- ✗ **Anish beat Esipenko**: model had Esipenko at 39.5% to win and Anish at only 27.8%; Anish won despite being the underdog, making it a wrong-direction miss
-- ✗ **Wei Yi–Hikaru drew**: model had Wei Yi at 40.4% to win and 32.5% to draw; the game ended in a draw
-- ✗ **Bluebaum–Pragg drew**: model had Bluebaum at 39.5% to win and 36.4% to draw; the game ended in a draw
-- Win probs: Sindarov **48.4%**, Fabi 25.6%; gap widens with Sindarov at 3.5/4
+- ✓ **Wei Yi–Hikaru drew**: draw predicted at 49.3%; correct prediction
+- ✓ **Bluebaum–Pragg drew**: draw predicted at 51.9%; correct prediction
+- ✗ **Sindarov beat Fabi**: draw predicted at 50.8%; Sindarov won; the model barely placed Sindarov's winning chances (25.2%) above Fabi's (24.0%); **the tournament's turning point** as Sindarov opened a 1-point lead
+- ✗ **Anish beat Esipenko**: draw predicted at 49.2%; Anish won; the model correctly placed Anish's winning chances (26.5%) above Esipenko's (24.3%)
+- Win probs swung sharply: Sindarov surged to **51.1%** (from 32.0%) while Fabi collapsed to **24.9%** (from 44.1%); Sindarov now a clear favourite at 3.5/4
 
 *Round 5 predictions:*
-- Pragg–Esipenko: **46.3%** / 26.9% / 26.8%, Pragg favoured
-- Fabi–Bluebaum: **53.4%** / 27.8% / 18.7%, Fabi the strong favourite
-- Hikaru–Sindarov: **34.5%** / 32.8% / 32.8%, near three-way split with Hikaru barely ahead
-- Anish–Wei Yi: **42.2%** / 32.0% / 25.8%, Anish favoured
+- Pragg–Esipenko: 30.5% / **44.8%** / 24.7%, draw most likely; Pragg with higher winning chances
+- Fabi–Bluebaum: 35.4% / **46.3%** / 18.3%, draw most likely; Fabi with higher winning chances; key bounce-back opportunity after R4 loss
+- Hikaru–Sindarov: 25.6% / **49.4%** / 25.0%, draw most likely; near three-way split
+- Anish–Wei Yi: 27.9% / **48.5%** / 23.5%, draw most likely; Anish with higher winning chances after R4 win
 
 </details>
 
@@ -120,17 +120,17 @@ A multi-threaded Monte Carlo simulator for chess tournaments with a fixed schedu
 
 *Round 3 results: Bluebaum–Esipenko drew, Sindarov beat Pragg, Fabi beat Wei Yi, Hikaru–Anish drew*
 
-- ✓ **Fabi beat Wei Yi**: model had Fabi at 49.2% to win and 30.8% to draw; correct prediction
-- ✗ **Sindarov beat Pragg**: model had Pragg at 36.9% to win and Sindarov at only 30.2%; Sindarov won, which was the wrong direction
-- ✗ **Bluebaum–Esipenko drew**: model had Bluebaum at 48.7% to win and 31.0% to draw; the biggest miss of the round
-- ✗ **Hikaru–Anish drew**: model had Hikaru at 50.6% to win and only 29.5% to draw; another expected win became a draw
-- Win probs: Fabi **41.6%**, Sindarov **32.5%**; Fabi led despite equal standing, and the model weighed opponent quality
+- ✓ **Bluebaum–Esipenko drew**: draw predicted at 49.2%; correct prediction
+- ✓ **Hikaru–Anish drew**: draw predicted at 47.9%; correct prediction
+- ✗ **Fabi beat Wei Yi**: draw predicted at 48.8%; Fabi won; the model correctly placed Fabi's winning chances (31.6%) above Wei Yi's (19.6%)
+- ✗ **Sindarov beat Pragg**: draw predicted at 49.8%; Sindarov won; the model correctly placed Sindarov's winning chances (28.1%) above Pragg's (22.1%)
+- Win probs surged for both winners: Fabi jumped to **44.1%** (from 33.3%), Sindarov climbed to **32.0%** (from 23.0%); Fabi led despite equal standing, and the model weighed opponent quality
 
 *Round 4 predictions:*
-- Esipenko–Anish: **39.5%** / 32.7% / 27.8%, Esipenko favoured
-- Wei Yi–Hikaru: **40.4%** / 32.5% / 27.1%, Wei Yi favoured
-- Sindarov–Fabi: **40.0%** / 33.8% / 26.3%, Sindarov with a slight edge
-- Bluebaum–Pragg: **39.5%** / 36.4% / 24.1%, Bluebaum favoured
+- Esipenko–Anish: 24.3% / **49.2%** / 26.5%, draw most likely; Anish with slight win edge
+- Wei Yi–Hikaru: 25.8% / **49.3%** / 24.9%, draw most likely; essentially even
+- Sindarov–Fabi: 25.2% / **50.8%** / 24.0%, draw most likely; essentially even; the key clash between the top two
+- Bluebaum–Pragg: 27.2% / **51.9%** / 20.9%, draw most likely; Bluebaum with higher winning chances
 
 </details>
 
@@ -141,17 +141,17 @@ A multi-threaded Monte Carlo simulator for chess tournaments with a fixed schedu
 
 *Round 2 results: ALL FOUR games drew: Esipenko–Hikaru, Anish–Fabi, Wei Yi–Pragg, Sindarov–Bluebaum*
 
-- ✓ **Anish–Fabi drew**: model had draw as the most likely outcome at 35.6%; correct prediction
-- ✗ **Esipenko–Hikaru drew**: model had Esipenko at 37.5% to win and 32.0% to draw; drew
-- ✗ **Wei Yi–Pragg drew**: model had Wei Yi at 47.1% to win and 33.4% to draw; drew
-- ✗ **Sindarov–Bluebaum drew**: model had Sindarov at 49.2% to win and only 30.7% to draw; drew
-- Early-round draws were consistently underestimated; win probs after all draws: Fabi **33.5%**, Sindarov **20.6%**, Pragg **10.1%**
+- ✓ **Esipenko–Hikaru drew**: draw predicted at 48.8%; correct prediction
+- ✓ **Anish–Fabi drew**: draw predicted at 51.6%; correct prediction
+- ✓ **Wei Yi–Pragg drew**: draw predicted at 50.9%; correct prediction
+- ✓ **Sindarov–Bluebaum drew**: draw predicted at 49.0%; correct prediction
+- Win probs barely shifted after four draws: Fabi held at **33.3%** (from 32.4%), Sindarov slipped to **23.0%** (from 23.5%), Pragg ticked up to **10.6%** (from 9.7%)
 
 *Round 3 predictions:*
-- Bluebaum–Esipenko: **48.7%** / 31.0% / 20.3%, Bluebaum strongly favoured; Esipenko lost R1, widening the rating gap
-- Pragg–Sindarov: **36.9%** / 32.9% / 30.2%, Pragg with a slight edge as White despite Sindarov's R1 win
-- Fabi–Wei Yi: **49.2%** / 30.8% / 20.0%, Fabi strongly favoured
-- Hikaru–Anish: **50.6%** / 29.5% / 19.9%, Hikaru strongly favoured
+- Bluebaum–Esipenko: 30.5% / **49.2%** / 20.3%, draw most likely; Bluebaum with higher winning chances; Esipenko's R1 loss widened the rating gap
+- Pragg–Sindarov: 22.1% / **49.8%** / 28.1%, draw most likely; Sindarov with higher winning chances as his R1 win carries forward
+- Fabi–Wei Yi: 31.6% / **48.8%** / 19.6%, draw most likely; Fabi with higher winning chances as the pre-tournament front-runner
+- Hikaru–Anish: 31.6% / **47.9%** / 20.5%, draw most likely; Hikaru with higher winning chances as White despite R1 loss
 
 </details>
 
@@ -162,17 +162,17 @@ A multi-threaded Monte Carlo simulator for chess tournaments with a fixed schedu
 
 *Round 1 results: Fabi beat Hikaru, Sindarov beat Esipenko, Pragg beat Anish, Bluebaum–Wei Yi drew*
 
-- ✓ **Fabi beat Hikaru**: model had Fabi at 42.4% to win and 34.8% to draw; correct prediction
-- ✓ **Sindarov beat Esipenko**: model had Sindarov at 49.0% to win; correct prediction
-- ✗ **Bluebaum–Wei Yi drew**: model had Bluebaum at 38.8% to win and 35.1% to draw; the game ended in a draw
-- ✗ **Pragg beat Anish**: model had draw as most likely at 35.5% with Pragg at 34.8% and Anish at 29.6%; Pragg won; prediction was a draw, but the model correctly placed Pragg's winning chances above Anish's
-- All three R1 winners jumped sharply: Fabi 21.6% → **30.6%**, Sindarov 17.1% → **23.7%**, Pragg 5.1% → **8.3%**; moderate priors still amplified single-game results immediately
+- ✗ **Fabi beat Hikaru**: draw predicted at 51.9%; Fabi won; the model correctly placed Fabi's winning chances (26.5%) above Hikaru's (21.5%)
+- ✗ **Sindarov beat Esipenko**: draw predicted at 50.5%; Sindarov won; the model correctly placed Sindarov's winning chances (31.8%) above Esipenko's (17.7%)
+- ✓ **Bluebaum–Wei Yi drew**: draw predicted at 51.5%; correct prediction
+- ✗ **Pragg beat Anish**: draw predicted at 51.6%; Pragg won despite Anish having higher winning chances (26.5% vs 21.9%); wrong direction
+- All three R1 winners jumped sharply: Fabi 21.5% → **32.4%**, Sindarov 16.1% → **23.5%**, Pragg 5.7% → **9.7%**; strong priors still amplified single-game results immediately
 
 *Round 2 predictions:*
-- Esipenko–Hikaru: **37.5%** / 32.0% / 30.5%, Esipenko now favoured (flipped from pre-R1); moderate priors absorb Hikaru's R1 loss meaningfully
-- Anish–Fabi: 34.8% / **35.6%** / 29.6%, draw most likely
-- Wei Yi–Pragg: **47.1%** / 33.4% / 19.5%, Wei Yi favoured
-- Sindarov–Bluebaum: **49.2%** / 30.7% / 20.2%, Sindarov boosted further by his R1 win
+- Esipenko–Hikaru: 21.7% / **48.8%** / 29.5%, draw most likely; Hikaru with higher winning chances
+- Anish–Fabi: 22.0% / **51.6%** / 26.4%, draw most likely; Fabi with higher winning chances
+- Wei Yi–Pragg: 30.1% / **50.9%** / 19.0%, draw most likely; Wei Yi with higher winning chances
+- Sindarov–Bluebaum: 31.2% / **49.0%** / 19.8%, draw most likely; Sindarov with higher winning chances
 
 </details>
 
@@ -183,17 +183,17 @@ A multi-threaded Monte Carlo simulator for chess tournaments with a fixed schedu
 
 *Pre-tournament predictions*
 
-- **Fabi** was the favourite at **21.6%**: consistent profile across all three time controls gave a stable overall estimate
-- **Hikaru at 17.3%** despite the highest classical Elo (2810): flat classical trend and weaker rapid/blitz velocity
-- **Sindarov at 17.1%** with only 2745 Elo: strongly rising classical trend [2721→2745, +24 pts] and improving rapid history; the model rewarded recent momentum
-- **Bluebaum at 9.9%** for a 2695-rated player: positive classical trend with no drag from weak secondary time controls
-- **Pragg at only 5.1%** despite his FIDE ranking: classical rating falling [2768→2741, −27 pts]; the model tracked the trend, not the name
+- **Fabi** was the favourite at **21.5%**: consistent profile across all three time controls gave a stable overall estimate
+- **Hikaru at 18.7%** despite the highest classical Elo (2810): flat classical trend and weaker rapid/blitz velocity
+- **Sindarov at 16.1%** with only 2745 Elo: strongly rising classical trend [2721→2745, +24 pts] and improving rapid history; the model rewarded recent momentum
+- **Bluebaum at 8.5%** for a 2695-rated player: positive classical trend with no drag from weak secondary time controls
+- **Pragg at only 5.7%** despite his FIDE ranking: classical rating falling [2768→2741, −27 pts]; the model tracked the trend, not the name
 
 *Round 1 predictions:*
-- Fabi–Hikaru: **42.4%** / 34.8% / 22.8%, Fabi the strong favourite
-- Pragg–Anish: 34.8% / **35.5%** / 29.6%, draw most likely
-- Bluebaum–Wei Yi: **38.8%** / 35.1% / 26.1%, Bluebaum favoured
-- Sindarov–Esipenko: **49.0%** / 32.9% / 18.1%, Sindarov the strong favourite
+- Fabi–Hikaru: 26.5% / **51.9%** / 21.5%, draw most likely; Fabi with higher winning chances
+- Pragg–Anish: 21.9% / **51.6%** / 26.5%, draw most likely; Anish with higher winning chances
+- Bluebaum–Wei Yi: 24.0% / **51.5%** / 24.5%, draw most likely; essentially even
+- Sindarov–Esipenko: 31.8% / **50.5%** / 17.7%, draw most likely; Sindarov with higher winning chances
 
 </details>
 
@@ -330,33 +330,36 @@ For each round K with known results, the binary runs with `simulate_from_round =
 Rank RPS is accumulated with an exponential discount of 0.95 per round, slightly favouring early-round accuracy. Game Brier weights each predicted game exponentially less the further into the future it falls from the simulation point. When multiple tournament files are supplied, scores are averaged across tournaments. `EVAL_RUNS` in `tools/tuning/utils.py` controls Monte Carlo iterations per trial (default 10 000).
 
 ```bash
-python tools/viz/pareto_front.py db/tuning_22_24.db
-python tools/viz/pareto_front.py db/tuning_22_24.db --save results/pareto/tuning_22_24.png
+python tools/tuning/pareto_front.py db/tuning_22_24.db
+python tools/tuning/pareto_front.py db/tuning_22_24.db --save results/pareto/tuning_22_24.png
+python tools/tuning/pareto_front.py db/tuning_22_24.db --method knee
+python tools/tuning/pareto_front.py db/tuning_22_24.db --method weighted --weights 0.7 0.3
+python tools/tuning/pareto_front.py db/tuning_22_24.db --method auc
 ```
-
-**2022 + 2024 Candidates: 8 970 trials, 48 Pareto-optimal:**
 
 ![Pareto Front](results/pareto/tuning_22_24.png)
 
-`pareto_front.py` ranks Pareto-optimal trials by **Normalized Distance to Utopia**; each objective is scaled to a zero-to-one range, then straight-line distance to the best-seen corner is minimized. The #1 trial is saved as `configs/best_hparams_22_24.jsonc` and used for the 2026 Candidates predictions.
+All methods use scale-invariant normalization: each objective divided by its minimum value (percentage deviation from best), which correctly accounts for objectives with different absolute ranges. `--method` (default `utopia`) selects the suggested best trial: `utopia` minimizes distance to the ideal corner; `knee` finds the point of maximum curvature; `weighted` minimizes a weighted sum (`--weights W_GAME W_RPS`, default `0.5 0.5`); `auc` returns the area median (50% of the curve area).
+
+The #1 trial is saved as `configs/best_hparams_22_24.jsonc` and used for the 2026 Candidates predictions.
 
 ### `best_hparams_22_24.jsonc`: parameter interpretation
 
 | Parameter | Value | Interpretation |
 |---|---|---|
-| `prior_weight_known/sim` | 2.63 / 4.00 | Moderate priors; the model updates meaningfully on each result but does not overreact to a single game |
-| `initial_white_adv` | 84.8 Elo | Large White color advantage; White and Black starting ratings are initialized ~85 Elo apart (±42 each) |
-| `lookahead_factor` | 4.89 | Rating trend is strongly extrapolated forward; players with rising ratings are credited substantially |
-| `velocity_time_decay` | 0.386 | Steep decay; recent rating history is weighted heavily over older entries |
-| `rapid_form_weight / blitz_form_weight` | −0.40 / −0.38 | Rapid and blitz trends slightly reduce the classical form anchor |
-| `color_bleed` | 0.0082 | Minimal cross-pollination between White and Black latent strengths; color-specific ratings are nearly independent |
-| `classical_nu` | 1.12 | Moderate draw rate for classical games |
-| `rapid_nu` | 0.96 | Slightly lower draw rate for rapid tiebreaks |
-| `blitz_nu` | 0.60 | Lowest draw rate for blitz tiebreaks |
-| `agg_prior_weight` | 18.2 | Moderate aggression prior; individual aggression scores can deviate meaningfully from the default |
-| `default_aggression_w` | 0.240 | Prior for White decisive-game fraction; ~24% of White games are expected to be decisive before any game history is observed |
-| `default_aggression_b` | 0.058 | Prior for Black decisive-game fraction; ~6% of Black games decisive by default, roughly one quarter the White rate; Black is expected to be very drawish before any game history is observed |
-| `standings_aggression` | 0.081 | Small desperation effect; tournament standings have some influence on game aggression |
+| `prior_weight_known/sim` | 7.96 / 9.31 | Strong priors; each result shifts ratings meaningfully but not dramatically |
+| `initial_white_adv` | 19.5 Elo | Small White color advantage; White and Black starting ratings are initialized ~10 Elo apart (±9.8 each) |
+| `lookahead_factor` | 5.00 | Rating trend is strongly extrapolated forward; players with rising ratings are credited substantially |
+| `velocity_time_decay` | 0.313 | Steep decay; recent rating history is weighted heavily over older entries |
+| `rapid_form_weight / blitz_form_weight` | −0.38 / −0.34 | Rapid and blitz trends slightly reduce the classical form anchor |
+| `color_bleed` | 0.0091 | Minimal cross-pollination between White and Black latent strengths; color-specific ratings are nearly independent |
+| `classical_nu` | 2.17 | High draw rate for classical games; draws are the modal outcome between similarly-rated players |
+| `rapid_nu` | 0.22 | Low draw rate for rapid tiebreaks; rapid is substantially more decisive than classical |
+| `blitz_nu` | 0.025 | Very low draw rate for blitz; almost all blitz tiebreakers produce a decisive result |
+| `agg_prior_weight` | 35.7 | Strong aggression prior; individual style scores are anchored tightly to the default |
+| `default_aggression_w` | 0.229 | Prior for White decisive-game fraction; ~23% of White games are expected to be decisive before any game history is observed |
+| `default_aggression_b` | 0.033 | Prior for Black decisive-game fraction; ~3.3% of Black games decisive by default; Black has a very drawish baseline |
+| `standings_aggression` | 0.109 | Small desperation effect; tournament standings have some influence on game aggression |
 
 ## Evaluating a fixed parameter set
 
@@ -397,7 +400,7 @@ python tools/viz/make_gif.py results/candidates2026/
 python tools/viz/make_gif.py results/candidates2026/ -d 3000 --last-duration 10000
 ```
 
-`generate_rounds.py` invokes the binary once per round and saves the JSON output to `round{N}.json` files. `visualize_timeline.py` reads all `round{N}.txt` or `round{N}.json` files in the given directory and produces a dashboard PNG showing win probability timeline, current win % bar chart, and per-round match prediction breakdowns (with actual results highlighted in gold).
+`generate_rounds.py` invokes the binary once per round and saves the JSON output to `round{N}.json` files. `visualize_timeline.py` reads all `round{N}.txt` or `round{N}.json` files in the given directory and produces a dashboard PNG showing win probability timeline, current win % bar chart (players with equal win probability are ordered by their current points), and per-round match prediction breakdowns (with actual results highlighted in gold).
 
 ## How the model works
 
