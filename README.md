@@ -8,7 +8,28 @@ A multi-threaded Monte Carlo simulator for chess tournaments with a fixed schedu
 
 **[https://vltanh.github.io/assets/chess/candidates2026.html](https://vltanh.github.io/assets/chess/candidates2026.html)**
 
-### Round 9
+### Round 10
+
+![Round 10](results/candidates2026/r10.png)
+
+*Round 9 results: Hikaru–Esipenko drew, Anish beat Fabi, Pragg–Wei Yi drew, Bluebaum–Sindarov drew*
+
+- ✓ **Hikaru–Esipenko drew**: draw predicted at 45.5%; correct prediction
+- ✓ **Pragg–Wei Yi drew**: draw predicted at 43.9%; correct prediction; Pragg had a winning position but blundered to a draw despite being the lower-probability side (25.3% vs Wei Yi's 30.9%)
+- ✓ **Bluebaum–Sindarov drew**: draw predicted at 46.3%; correct prediction; Sindarov had a winning position but blundered to a draw
+- ✗ **Anish beat Fabi**: draw predicted at 40.5% with Fabi win at 38.5%; Anish won despite having lower winning chances (21.0% vs 38.5%); wrong direction
+- Win probs: Sindarov holds at **87.4%** (from 85.8%); Anish surged to **9.9%** (from 4.0%) after the upset win; Fabi collapsed to **1.7%** (from 8.3%)
+
+*Round 10 predictions:*
+- Esipenko–Bluebaum: 23.6% / **47.5%** / 28.9%, draw most likely; Bluebaum with higher winning chances
+- Sindarov–Pragg: 36.9% / **45.5%** / 17.6%, draw most likely; Sindarov with higher winning chances
+- Wei Yi–Fabi: 25.7% / **47.1%** / 27.1%, draw most likely; essentially even; Fabi needs a win to keep any hope alive
+- Anish–Hikaru: 27.0% / **48.6%** / 24.3%, draw most likely; Anish with higher winning chances
+
+### Previous rounds
+
+<details>
+<summary>Round 9</summary>
 
 ![Round 9](results/candidates2026/r9.png)
 
@@ -26,7 +47,7 @@ A multi-threaded Monte Carlo simulator for chess tournaments with a fixed schedu
 - Pragg–Wei Yi: 25.3% / **43.9%** / 30.9%, draw most likely; Wei Yi with higher winning chances
 - Bluebaum–Sindarov: 21.0% / **46.3%** / 32.7%, draw most likely; Sindarov with higher winning chances
 
-### Previous rounds
+</details>
 
 <details>
 <summary>Round 8</summary>
