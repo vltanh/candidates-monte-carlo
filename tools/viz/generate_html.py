@@ -363,12 +363,14 @@ section h2{font-size:1rem;font-weight:600;color:#c8d0e7;text-transform:uppercase
 .note{font-size:.76rem;color:#4a5278;margin-top:.65rem;font-style:italic}
 
 /* round tabs */
-.tabs-wrap{overflow-x:auto;padding-bottom:.5rem;margin-bottom:2rem}
-.tabs{display:flex;gap:.4rem;white-space:nowrap}
+.tabs-wrap{padding-bottom:.5rem;margin-bottom:2rem}
+.tabs{display:flex;gap:.4rem;flex-wrap:wrap}
 .tab{padding:.35rem .8rem;border-radius:6px;border:1px solid #2a3050;background:#131728;
   color:#8a93b2;font-size:.82rem;cursor:pointer;transition:all .15s;user-select:none}
-.tab:hover{background:#1e2438;color:#c8d0e7}
+.tab:hover:not(:disabled){background:#1e2438;color:#c8d0e7}
 .tab.active{background:#1e2440;border-color:#4a6eff;color:#f5e27a;font-weight:600}
+.tab:disabled{opacity:.32;cursor:not-allowed;border-color:#1a1f35;color:#3a4260}
+.tab:disabled::after{content:'🔒';font-size:.65rem;margin-left:.3rem;opacity:.7}
 
 /* charts */
 .chart-wrap{position:relative}.chart-wrap.tall{height:380px}.chart-wrap.med{height:270px}
@@ -394,6 +396,13 @@ tbody tr:hover{background:#191e35}
 .winpct.hi{color:#f5e27a;font-weight:600}
 .bar-mini{height:5px;border-radius:3px;background:#1e2438;margin-top:3px;overflow:hidden}
 .bar-fill{height:100%;border-radius:3px}
+
+/* player toggles */
+.player-toggles{display:flex;flex-wrap:wrap;gap:.4rem;margin-bottom:.9rem}
+.ptoggle{display:inline-flex;align-items:center;gap:.35rem;padding:.22rem .65rem;
+  border-radius:999px;border:1.5px solid;cursor:pointer;font-size:.8rem;
+  background:transparent;transition:opacity .15s;user-select:none}
+.ptoggle.off{opacity:.28;text-decoration:line-through}
 
 /* game cards */
 .games-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:.75rem}
@@ -488,8 +497,9 @@ details[open] summary::before{transform:rotate(90deg)}
 <section>
   <h2>Win Probability Timeline</h2>
   <div class="card">
+    <div class="player-toggles" id="playerToggles"></div>
     <div class="chart-wrap tall"><canvas id="cTimeline"></canvas></div>
-    <p class="note">Click a tab above to see predictions entering that round. Dashed line marks the selected round.</p>
+    <p class="note">Click a tab above to see predictions entering that round. Dashed line marks the selected round. Click a player chip to show/hide them.</p>
   </div>
 </section>
 
@@ -576,6 +586,8 @@ details[open] summary::before{transform:rotate(90deg)}
 // ═══════════════════════════════════════════════
 let currentIdx = DATA.rounds.length - 1;
 let winPctChart, timelineChart, expScoreChart, paretoChart;
+let hiddenPlayers = new Set();
+let sortedPlayers = [];   // dataset order used by timeline + expScore charts
 
 // quick lookup
 const P_MAP = Object.fromEntries(DATA.players.map(p => [p.key, p]));
@@ -630,6 +642,7 @@ document.addEventListener('DOMContentLoaded', () => {
   initTimeline();
   initExpScore();
   initWinPct();
+  buildPlayerToggles();
   buildTournamentPlayers();
 
   if (DATA.pareto) buildPareto();
@@ -644,12 +657,64 @@ document.addEventListener('DOMContentLoaded', () => {
 // ═══════════════════════════════════════════════
 function buildTabs(){
   const wrap = document.getElementById('tabs');
-  DATA.rounds.forEach((r, i) => {
+  const available = DATA.rounds.length;
+  const total = DATA.meta.total_rounds;
+  for (let i = 0; i <= total; i++){
     const btn = document.createElement('button');
-    btn.className = 'tab';
-    btn.textContent = r.label;
-    btn.onclick = () => setRound(i);
+    if (i < available){
+      btn.className = 'tab';
+      btn.textContent = DATA.rounds[i].label;
+      btn.onclick = (idx => () => setRound(idx))(i);
+    } else {
+      const label = i === 0 ? 'Before R1' : `After R${i}`;
+      btn.className = 'tab';
+      btn.textContent = label;
+      btn.disabled = true;
+      btn.title = 'Round not yet played';
+    }
     wrap.appendChild(btn);
+  }
+}
+
+// ═══════════════════════════════════════════════
+// PLAYER TOGGLES
+// ═══════════════════════════════════════════════
+function buildPlayerToggles(){
+  const wrap = document.getElementById('playerToggles');
+  DATA.players.forEach(p => {
+    const btn = document.createElement('button');
+    btn.className = 'ptoggle';
+    btn.dataset.key = p.key;
+    btn.style.borderColor = p.color;
+    btn.style.color = p.color;
+    btn.innerHTML = `<span style="width:8px;height:8px;border-radius:50%;background:${p.color};flex-shrink:0"></span>${p.short}`;
+    btn.onclick = () => togglePlayer(p.key);
+    wrap.appendChild(btn);
+  });
+}
+
+function togglePlayer(key){
+  if (hiddenPlayers.has(key)) hiddenPlayers.delete(key);
+  else hiddenPlayers.add(key);
+
+  // update chip appearance
+  document.querySelectorAll('.ptoggle').forEach(btn => {
+    btn.classList.toggle('off', hiddenPlayers.has(btn.dataset.key));
+  });
+
+  updateChartVisibility();
+  updateStandings(DATA.rounds[currentIdx]);
+  updateHeatmap(DATA.rounds[currentIdx]);
+}
+
+function updateChartVisibility(){
+  [timelineChart, expScoreChart].forEach(chart => {
+    if (!chart) return;
+    sortedPlayers.forEach((p, i) => {
+      const vis = !hiddenPlayers.has(p.key);
+      chart.setDatasetVisibility(i, vis);
+    });
+    chart.update();
   });
 }
 
@@ -697,7 +762,9 @@ function updateStandings(round){
   sorted.forEach((p,i) => {
     const score = round.actual_scores[p.key]??0;
     const wp    = round.winner_probs[p.key]??0;
+    const hidden = hiddenPlayers.has(p.key);
     const tr = document.createElement('tr');
+    tr.style.opacity = hidden ? '0.35' : '';
     tr.innerHTML = `
       <td class="rank-num ${i===0?'gold':''}">${i+1}</td>
       <td><div class="pcell"><span class="dot" style="background:${p.color}"></span>${p.short}</div></td>
@@ -710,11 +777,12 @@ function updateStandings(round){
     tb.appendChild(tr);
   });
 
-  // bar chart
-  winPctChart.data.labels = sorted.map(p => p.short);
-  winPctChart.data.datasets[0].data = sorted.map(p => +(((round.winner_probs[p.key]??0)*100).toFixed(2)));
-  winPctChart.data.datasets[0].backgroundColor = sorted.map(p => hexAlpha(p.color, 0.7));
-  winPctChart.data.datasets[0].borderColor      = sorted.map(p => p.color);
+  // bar chart — only visible players
+  const visibleSorted = sorted.filter(p => !hiddenPlayers.has(p.key));
+  winPctChart.data.labels = visibleSorted.map(p => p.short);
+  winPctChart.data.datasets[0].data = visibleSorted.map(p => +(((round.winner_probs[p.key]??0)*100).toFixed(2)));
+  winPctChart.data.datasets[0].backgroundColor = visibleSorted.map(p => hexAlpha(p.color, 0.7));
+  winPctChart.data.datasets[0].borderColor      = visibleSorted.map(p => p.color);
   winPctChart.update();
 }
 
@@ -778,9 +846,11 @@ function updateHeatmap(round){
     [...Array(n)].map((_,i) => `<th>${i+1}${['st','nd','rd'][i]??'th'}</th>`).join('') + '</tr>';
   tbl.appendChild(thead);
 
-  // sort by P(rank 1) desc
-  const sorted = [...DATA.players].sort((a,b) =>
-    ((round.rank_matrix[b.key]??[0])[0]??0)-((round.rank_matrix[a.key]??[0])[0]??0));
+  // sort by P(rank 1) desc, exclude hidden players
+  const sorted = [...DATA.players]
+    .filter(p => !hiddenPlayers.has(p.key))
+    .sort((a,b) =>
+      ((round.rank_matrix[b.key]??[0])[0]??0)-((round.rank_matrix[a.key]??[0])[0]??0));
 
   const tbody = document.createElement('tbody');
   sorted.forEach(p => {
@@ -802,9 +872,10 @@ function updateHeatmap(round){
 // ═══════════════════════════════════════════════
 function initTimeline(){
   const labels = DATA.rounds.map(r => r.label);
-  const sortedP = [...DATA.players].sort((a,b) =>
+  sortedPlayers = [...DATA.players].sort((a,b) =>
     (DATA.rounds[DATA.rounds.length-1].winner_probs[b.key]??0) -
     (DATA.rounds[DATA.rounds.length-1].winner_probs[a.key]??0));
+  const sortedP = sortedPlayers;
 
   timelineChart = new Chart(document.getElementById('cTimeline').getContext('2d'), {
     type:'line',
