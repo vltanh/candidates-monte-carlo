@@ -4,12 +4,11 @@ A multi-threaded Monte Carlo simulator for chess tournaments with a fixed schedu
 
 ## 2026 Candidates: Live Predictions
 
-![Animation](results/candidates2026/animation.gif)
+### Dashboard
 
-<!-- Add new rounds here (most recent first): copy the <details> block and update the round number and image path -->
+**[https://vltanh.github.io/assets/chess/candidates2026.html](https://vltanh.github.io/assets/chess/candidates2026.html)**
 
-<details>
-<summary>Round 9 (latest)</summary>
+### Round 9
 
 ![Round 9](results/candidates2026/r9.png)
 
@@ -27,7 +26,7 @@ A multi-threaded Monte Carlo simulator for chess tournaments with a fixed schedu
 - Pragg–Wei Yi: 25.3% / **43.9%** / 30.9%, draw most likely; Wei Yi with higher winning chances
 - Bluebaum–Sindarov: 21.0% / **46.3%** / 32.7%, draw most likely; Sindarov with higher winning chances
 
-</details>
+### Previous rounds
 
 <details>
 <summary>Round 8</summary>
@@ -210,7 +209,6 @@ results/                 Per-tournament visualizations and simulation outputs
   candidates2026/
     rounds/              round{N}.json simulation outputs
     r{N}.png             Per-round bar charts
-    animation.gif        Animated GIF of all rounds
 db/                      Optuna SQLite databases for hyperparameter tuning
 tools/
   data/
@@ -223,7 +221,7 @@ tools/
     generate_rounds.py     Run the C++ engine for each round and save JSON outputs
     visualize_timeline.py  Generate dashboard PNGs from round outputs
     pareto_front.py        Visualize Optuna Pareto front and print best trials
-    make_gif.py            Combine round PNGs into an animated GIF
+    generate_html.py       Generate self-contained interactive HTML visualization
 install.sh               Dependency installation snippet
 ```
 
@@ -395,12 +393,16 @@ python tools/viz/visualize_timeline.py results/candidates2026/rounds/
 python tools/viz/visualize_timeline.py results/candidates2026/rounds/ -o my_output.png
 python tools/viz/visualize_timeline.py results/candidates2026/rounds/ -k 5 -t data/candidates2026.jsonc
 
-# Combine all round PNGs into an animated GIF
-python tools/viz/make_gif.py results/candidates2026/
-python tools/viz/make_gif.py results/candidates2026/ -d 3000 --last-duration 10000
+# Generate self-contained interactive HTML visualization
+python tools/viz/generate_html.py \
+    --tournament data/candidates2026.jsonc \
+    --rounds results/candidates2026/rounds/ \
+    --hparams configs/best_hparams_22_24.jsonc \
+    --db db/tuning_22_24.db \
+    --output vltanh.github.io/assets/chess/candidates2026.html
 ```
 
-`generate_rounds.py` invokes the binary once per round and saves the JSON output to `round{N}.json` files. `visualize_timeline.py` reads all `round{N}.txt` or `round{N}.json` files in the given directory and produces a dashboard PNG showing win probability timeline, current win % bar chart (players with equal win probability are ordered by their current points), and per-round match prediction breakdowns (with actual results highlighted in gold).
+`generate_rounds.py` invokes the binary once per round and saves the JSON output to `round{N}.json` files. `visualize_timeline.py` reads all `round{N}.txt` or `round{N}.json` files in the given directory and produces a dashboard PNG showing win probability timeline, current win % bar chart (players with equal win probability are ordered by their current points), and per-round match prediction breakdowns (with actual results highlighted in gold). `generate_html.py` produces a single self-contained HTML file with all rounds embedded, including an interactive Pareto front chart and hyperparameter table — suitable for publishing directly to GitHub Pages.
 
 ## How the model works
 
