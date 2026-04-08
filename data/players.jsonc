@@ -15,5 +15,10 @@
   { "fide_id": 8603677, "name": "Ding, Liren", "alias": "Ding" },
   { "fide_id": 738590, "name": "Rapport, Richard", "alias": "Rapport" },
   { "fide_id": 13400924, "name": "Radjabov, Teimour", "alias": "Radjabov" },
-  { "fide_id": 1170546, "name": "Duda, Jan-Krzysztof", "alias": "Duda" }
+  { "fide_id": 1170546, "name": "Duda, Jan-Krzysztof", "alias": "Duda" },
+  { "fide_id": 35009192, "name": "Erigaisi Arjun", "alias": "Arjun" },
+  { "fide_id": 14204118, "name": "Abdusattorov, Nodirbek", "alias": "Nordibek A" },
+  { "fide_id": 5072786, "name": "Aravindh, Chithambaram VR.", "alias": "Aravindh" },
+  { "fide_id": 14203987, "name": "Yakubboev, Nodirbek", "alias": "Nordibek Y" },
+  { "fide_id": 14204223, "name": "Vokhidov, Shamsiddin", "alias": "Vokhidov" }
 ]

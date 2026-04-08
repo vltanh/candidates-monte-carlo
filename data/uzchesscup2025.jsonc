@@ -1,0 +1,192 @@
+{
+  "gpr": 5,
+  "tiebreak": "shared",
+  "players": [
+    {
+      "fide_id": 35009192,
+      "name": "Erigaisi Arjun",
+      "rating": 2782,
+      "rapid_rating": 2708,
+      "blitz_rating": 2738,
+      "history": [2801, 2801, 2777, 2782, 2782, 2782],
+      "games_played": [9, 0, 13, 2, 3, 0],
+      "rapid_history": [2708, 2708, 2708, 2708, 2708, 2708],
+      "rapid_games_played": [13, 0, 0, 0, 0, 0],
+      "blitz_history": [2738, 2738, 2738, 2738, 2738, 2738],
+      "blitz_games_played": [13, 0, 0, 0, 0, 0]
+    },
+    {
+      "fide_id": 25059530,
+      "name": "Praggnanandhaa R",
+      "rating": 2767,
+      "rapid_rating": 2688,
+      "blitz_rating": 2734,
+      "history": [2741, 2741, 2758, 2758, 2758, 2767],
+      "games_played": [1, 0, 13, 9, 0, 9],
+      "rapid_history": [2684, 2684, 2684, 2684, 2688, 2688],
+      "rapid_games_played": [13, 0, 0, 0, 9, 0],
+      "blitz_history": [2717, 2717, 2717, 2717, 2717, 2734],
+      "blitz_games_played": [13, 0, 0, 0, 0, 20]
+    },
+    {
+      "fide_id": 14204118,
+      "name": "Abdusattorov, Nodirbek",
+      "rating": 2767,
+      "rapid_rating": 2732,
+      "blitz_rating": 2694,
+      "history": [2768, 2766, 2773, 2773, 2771, 2767],
+      "games_played": [18, 2, 13, 0, 2, 18],
+      "rapid_history": [2732, 2732, 2732, 2732, 2732, 2732],
+      "rapid_games_played": [13, 0, 0, 0, 0, 0],
+      "blitz_history": [2694, 2694, 2694, 2694, 2694, 2694],
+      "blitz_games_played": [13, 0, 0, 0, 0, 0]
+    },
+    {
+      "fide_id": 4168119,
+      "name": "Nepomniachtchi, Ian",
+      "rating": 2757,
+      "rapid_rating": 2762,
+      "blitz_rating": 2809,
+      "history": [2754, 2754, 2753, 2757, 2757, 2757],
+      "games_played": [1, 0, 2, 11, 0, 0],
+      "rapid_history": [2758, 2758, 2758, 2758, 2758, 2762],
+      "rapid_games_played": [13, 0, 0, 0, 0, 9],
+      "blitz_history": [2786, 2809, 2809, 2809, 2809, 2809],
+      "blitz_games_played": [13, 15, 0, 0, 0, 0]
+    },
+    {
+      "fide_id": 5072786,
+      "name": "Aravindh, Chithambaram VR.",
+      "rating": 2749,
+      "rapid_rating": 2576,
+      "blitz_rating": 2611,
+      "history": [2726, 2729, 2731, 2749, 2749, 2749],
+      "games_played": [2, 2, 2, 11, 0, 0],
+      "rapid_history": [2550, 2550, 2550, 2550, 2576, 2576],
+      "rapid_games_played": [13, 0, 0, 0, 9, 0],
+      "blitz_history": [2622, 2622, 2622, 2622, 2622, 2611],
+      "blitz_games_played": [13, 0, 0, 0, 0, 18]
+    },
+    {
+      "fide_id": 738590,
+      "name": "Rapport, Richard",
+      "rating": 2714,
+      "rapid_rating": 2709,
+      "blitz_rating": 2631,
+      "history": [2721, 2718, 2713, 2722, 2722, 2714],
+      "games_played": [0, 2, 8, 11, 0, 7],
+      "rapid_history": [2709, 2709, 2709, 2709, 2709, 2709],
+      "rapid_games_played": [0, 0, 0, 0, 0, 0],
+      "blitz_history": [2687, 2687, 2631, 2631, 2631, 2631],
+      "blitz_games_played": [0, 0, 20, 0, 0, 0]
+    },
+    {
+      "fide_id": 14205483,
+      "name": "Sindarov, Javokhir",
+      "rating": 2710,
+      "rapid_rating": 2668,
+      "blitz_rating": 2626,
+      "history": [2692, 2700, 2707, 2706, 2706, 2710],
+      "games_played": [10, 2, 4, 2, 3, 7],
+      "rapid_history": [2668, 2668, 2668, 2668, 2668, 2668],
+      "rapid_games_played": [13, 0, 0, 0, 0, 0],
+      "blitz_history": [2626, 2626, 2626, 2626, 2626, 2626],
+      "blitz_games_played": [13, 0, 0, 0, 0, 0]
+    },
+    {
+      "fide_id": 12539929,
+      "name": "Maghsoodloo, Parham",
+      "rating": 2691,
+      "rapid_rating": 2669,
+      "blitz_rating": 2674,
+      "history": [2674, 2680, 2677, 2684, 2706, 2691],
+      "games_played": [18, 2, 9, 2, 15, 8],
+      "rapid_history": [2669, 2669, 2669, 2669, 2669, 2669],
+      "rapid_games_played": [0, 0, 0, 6, 0, 0],
+      "blitz_history": [2668, 2668, 2654, 2638, 2638, 2674],
+      "blitz_games_played": [0, 0, 5, 5, 0, 12]
+    },
+    {
+      "fide_id": 14203987,
+      "name": "Yakubboev, Nodirbek",
+      "rating": 2659,
+      "rapid_rating": 2547,
+      "blitz_rating": 2563,
+      "history": [2659, 2659, 2654, 2665, 2665, 2659],
+      "games_played": [18, 0, 13, 9, 0, 17],
+      "rapid_history": [2541, 2541, 2541, 2541, 2541, 2547],
+      "rapid_games_played": [0, 0, 0, 0, 0, 2],
+      "blitz_history": [2560, 2560, 2560, 2563, 2563, 2563],
+      "blitz_games_played": [0, 0, 0, 2, 0, 0]
+    },
+    {
+      "fide_id": 14204223,
+      "name": "Vokhidov, Shamsiddin",
+      "rating": 2644,
+      "rapid_rating": 2519,
+      "blitz_rating": 2581,
+      "history": [2670, 2670, 2670, 2648, 2641, 2644],
+      "games_played": [18, 0, 0, 9, 10, 13],
+      "rapid_history": [2524, 2524, 2524, 2524, 2524, 2519],
+      "rapid_games_played": [13, 0, 0, 0, 0, 2],
+      "blitz_history": [2595, 2595, 2595, 2595, 2595, 2581],
+      "blitz_games_played": [13, 0, 0, 0, 0, 2]
+    }
+  ],
+  "schedule": [
+    // Round 1
+    { "white": 5072786, "black": 25059530, "round": 1, "result": "1/2-1/2" }, // Aravindh vs Pragg
+    { "white": 14203987, "black": 35009192, "round": 1, "result": "0-1" }, // Nordibek Y vs Arjun
+    { "white": 12539929, "black": 738590, "round": 1, "result": "1/2-1/2" }, // Maghsoodloo vs Rapport
+    { "white": 4168119, "black": 14205483, "round": 1, "result": "0-1" }, // Nepo vs Sindarov
+    { "white": 14204118, "black": 14204223, "round": 1, "result": "1-0" }, // Nordibek A vs Vokhidov
+    // Round 2
+    { "white": 25059530, "black": 14204223, "round": 2, "result": "1-0" }, // Pragg vs Vokhidov
+    { "white": 14205483, "black": 14204118, "round": 2, "result": "1/2-1/2" }, // Sindarov vs Nordibek A
+    { "white": 738590, "black": 4168119, "round": 2, "result": "1/2-1/2" }, // Rapport vs Nepo
+    { "white": 35009192, "black": 12539929, "round": 2, "result": "1/2-1/2" }, // Arjun vs Maghsoodloo
+    { "white": 5072786, "black": 14203987, "round": 2, "result": "0-1" }, // Aravindh vs Nordibek Y
+    // Round 3
+    { "white": 14203987, "black": 25059530, "round": 3, "result": "1/2-1/2" }, // Nordibek Y vs Pragg
+    { "white": 12539929, "black": 5072786, "round": 3, "result": "1/2-1/2" }, // Maghsoodloo vs Aravindh
+    { "white": 4168119, "black": 35009192, "round": 3, "result": "1/2-1/2" }, // Nepo vs Arjun
+    { "white": 14204118, "black": 738590, "round": 3, "result": "1-0" }, // Nordibek A vs Rapport
+    { "white": 14204223, "black": 14205483, "round": 3, "result": "1/2-1/2" }, // Vokhidov vs Sindarov
+    // Round 4
+    { "white": 25059530, "black": 14205483, "round": 4, "result": "1-0" }, // Pragg vs Sindarov
+    { "white": 738590, "black": 14204223, "round": 4, "result": "1/2-1/2" }, // Rapport vs Vokhidov
+    { "white": 35009192, "black": 14204118, "round": 4, "result": "1/2-1/2" }, // Arjun vs Nordibek A
+    { "white": 5072786, "black": 4168119, "round": 4, "result": "1/2-1/2" }, // Aravindh vs Nepo
+    { "white": 14203987, "black": 12539929, "round": 4, "result": "0-1" }, // Nordibek Y vs Maghsoodloo
+    // Round 5
+    { "white": 12539929, "black": 25059530, "round": 5, "result": "1-0" }, // Maghsoodloo vs Pragg
+    { "white": 4168119, "black": 14203987, "round": 5, "result": "1/2-1/2" }, // Nepo vs Nordibek Y
+    { "white": 14204118, "black": 5072786, "round": 5, "result": "1-0" }, // Nordibek A vs Aravindh
+    { "white": 14204223, "black": 35009192, "round": 5, "result": "0-1" }, // Vokhidov vs Arjun
+    { "white": 14205483, "black": 738590, "round": 5, "result": "1-0" }, // Sindarov vs Rapport
+    // Round 6
+    { "white": 25059530, "black": 738590, "round": 6, "result": "0-1" }, // Pragg vs Rapport
+    { "white": 35009192, "black": 14205483, "round": 6, "result": "1/2-1/2" }, // Arjun vs Sindarov
+    { "white": 5072786, "black": 14204223, "round": 6, "result": "1/2-1/2" }, // Aravindh vs Vokhidov
+    { "white": 14203987, "black": 14204118, "round": 6, "result": "1-0" }, // Nordibek Y vs Nordibek A
+    { "white": 12539929, "black": 4168119, "round": 6, "result": "1/2-1/2" }, // Maghsoodloo vs Nepo
+    // Round 7
+    { "white": 4168119, "black": 25059530, "round": 7, "result": "1/2-1/2" }, // Nepo vs Pragg
+    { "white": 14204118, "black": 12539929, "round": 7, "result": "1-0" }, // Nordibek A vs Maghsoodloo
+    { "white": 14204223, "black": 14203987, "round": 7, "result": "1/2-1/2" }, // Vokhidov vs Nordibek Y
+    { "white": 14205483, "black": 5072786, "round": 7, "result": "1-0" }, // Sindarov vs Aravindh
+    { "white": 738590, "black": 35009192, "round": 7, "result": "1/2-1/2" }, // Rapport vs Arjun
+    // Round 8
+    { "white": 25059530, "black": 35009192, "round": 8, "result": "1-0" }, // Pragg vs Arjun
+    { "white": 5072786, "black": 738590, "round": 8, "result": "0-1" }, // Aravindh vs Rapport
+    { "white": 14203987, "black": 14205483, "round": 8, "result": "1/2-1/2" }, // Nordibek Y vs Sindarov
+    { "white": 12539929, "black": 14204223, "round": 8, "result": "0-1" }, // Maghsoodloo vs Vokhidov
+    { "white": 4168119, "black": 14204118, "round": 8, "result": "1/2-1/2" }, // Nepo vs Nordibek A
+    // Round 9
+    { "white": 14204118, "black": 25059530, "round": 9, "result": "0-1" }, // Nordibek A vs Pragg
+    { "white": 14204223, "black": 4168119, "round": 9, "result": "1-0" }, // Vokhidov vs Nepo
+    { "white": 14205483, "black": 12539929, "round": 9, "result": "1/2-1/2" }, // Sindarov vs Maghsoodloo
+    { "white": 738590, "black": 14203987, "round": 9, "result": "1/2-1/2" }, // Rapport vs Nordibek Y
+    { "white": 35009192, "black": 5072786, "round": 9, "result": "1/2-1/2" } // Arjun vs Aravindh
+  ]
+}

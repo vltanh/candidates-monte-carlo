@@ -1,0 +1,396 @@
+{
+    "metadata": {
+        "time_seconds": 12.637580715
+    },
+    "winner_probs": {
+        "Erigaisi Arjun": 0.153258,
+        "Praggnanandhaa R": 0.159446,
+        "Abdusattorov, Nodirbek": 0.110955,
+        "Nepomniachtchi, Ian": 0.062849,
+        "Aravindh, Chithambaram VR.": 0.241056,
+        "Rapport, Richard": 0.052539,
+        "Sindarov, Javokhir": 0.092366,
+        "Maghsoodloo, Parham": 0.024726,
+        "Yakubboev, Nodirbek": 0.054347,
+        "Vokhidov, Shamsiddin": 0.048458
+    },
+    "expected_points": {
+        "Erigaisi Arjun": 4.9248725,
+        "Praggnanandhaa R": 4.948422,
+        "Abdusattorov, Nodirbek": 4.686086,
+        "Nepomniachtchi, Ian": 4.2951225,
+        "Aravindh, Chithambaram VR.": 5.2862805,
+        "Rapport, Richard": 4.1903075,
+        "Sindarov, Javokhir": 4.5590225,
+        "Maghsoodloo, Parham": 3.762155,
+        "Yakubboev, Nodirbek": 4.2147275,
+        "Vokhidov, Shamsiddin": 4.133004
+    },
+    "rank_matrix": {
+        "Erigaisi Arjun": [
+            0.153258,
+            0.142459,
+            0.129273,
+            0.116714,
+            0.104942,
+            0.093497,
+            0.083363,
+            0.072376,
+            0.060186,
+            0.043932
+        ],
+        "Praggnanandhaa R": [
+            0.159446,
+            0.143415,
+            0.128592,
+            0.116583,
+            0.104255,
+            0.093323,
+            0.08249,
+            0.070848,
+            0.058227,
+            0.042821
+        ],
+        "Abdusattorov, Nodirbek": [
+            0.110955,
+            0.116202,
+            0.115598,
+            0.113646,
+            0.109957,
+            0.103612,
+            0.097398,
+            0.089226,
+            0.07921,
+            0.064196
+        ],
+        "Nepomniachtchi, Ian": [
+            0.062849,
+            0.077981,
+            0.088804,
+            0.097366,
+            0.103109,
+            0.108964,
+            0.113143,
+            0.115798,
+            0.117492,
+            0.114494
+        ],
+        "Aravindh, Chithambaram VR.": [
+            0.241056,
+            0.173816,
+            0.137244,
+            0.111143,
+            0.091552,
+            0.075855,
+            0.061322,
+            0.048761,
+            0.036317,
+            0.022934
+        ],
+        "Rapport, Richard": [
+            0.052539,
+            0.068835,
+            0.080653,
+            0.090844,
+            0.099757,
+            0.107918,
+            0.115069,
+            0.122408,
+            0.129213,
+            0.132764
+        ],
+        "Sindarov, Javokhir": [
+            0.092366,
+            0.103323,
+            0.107424,
+            0.109017,
+            0.109141,
+            0.107246,
+            0.103802,
+            0.098467,
+            0.091427,
+            0.077787
+        ],
+        "Maghsoodloo, Parham": [
+            0.024726,
+            0.038933,
+            0.052293,
+            0.064849,
+            0.079121,
+            0.094035,
+            0.112355,
+            0.13598,
+            0.167569,
+            0.230139
+        ],
+        "Yakubboev, Nodirbek": [
+            0.054347,
+            0.071095,
+            0.083551,
+            0.092394,
+            0.100687,
+            0.108582,
+            0.114702,
+            0.120747,
+            0.125875,
+            0.12802
+        ],
+        "Vokhidov, Shamsiddin": [
+            0.048458,
+            0.063941,
+            0.076568,
+            0.087444,
+            0.097479,
+            0.106968,
+            0.116356,
+            0.125389,
+            0.134484,
+            0.142913
+        ]
+    },
+    "game_probs": {
+        "1": {
+            "Aravindh, Chithambaram VR.|Praggnanandhaa R": [
+                0.287548,
+                0.516431,
+                0.196021
+            ],
+            "Yakubboev, Nodirbek|Erigaisi Arjun": [
+                0.18662,
+                0.506297,
+                0.307083
+            ],
+            "Maghsoodloo, Parham|Rapport, Richard": [
+                0.211667,
+                0.511027,
+                0.277306
+            ],
+            "Nepomniachtchi, Ian|Sindarov, Javokhir": [
+                0.228572,
+                0.511884,
+                0.259544
+            ],
+            "Abdusattorov, Nodirbek|Vokhidov, Shamsiddin": [
+                0.314708,
+                0.502916,
+                0.182376
+            ]
+        },
+        "2": {
+            "Praggnanandhaa R|Vokhidov, Shamsiddin": [
+                0.349759,
+                0.486489,
+                0.163752
+            ],
+            "Sindarov, Javokhir|Abdusattorov, Nodirbek": [
+                0.247293,
+                0.513032,
+                0.239675
+            ],
+            "Rapport, Richard|Nepomniachtchi, Ian": [
+                0.251828,
+                0.509526,
+                0.238646
+            ],
+            "Erigaisi Arjun|Maghsoodloo, Parham": [
+                0.394004,
+                0.473773,
+                0.132223
+            ],
+            "Aravindh, Chithambaram VR.|Yakubboev, Nodirbek": [
+                0.38366,
+                0.473012,
+                0.143328
+            ]
+        },
+        "3": {
+            "Yakubboev, Nodirbek|Praggnanandhaa R": [
+                0.19396,
+                0.485406,
+                0.320634
+            ],
+            "Maghsoodloo, Parham|Aravindh, Chithambaram VR.": [
+                0.130304,
+                0.463837,
+                0.405859
+            ],
+            "Nepomniachtchi, Ian|Erigaisi Arjun": [
+                0.205122,
+                0.484754,
+                0.310124
+            ],
+            "Abdusattorov, Nodirbek|Rapport, Richard": [
+                0.320849,
+                0.481817,
+                0.197334
+            ],
+            "Vokhidov, Shamsiddin|Sindarov, Javokhir": [
+                0.223776,
+                0.490905,
+                0.285319
+            ]
+        },
+        "4": {
+            "Praggnanandhaa R|Sindarov, Javokhir": [
+                0.315184,
+                0.475982,
+                0.208834
+            ],
+            "Rapport, Richard|Vokhidov, Shamsiddin": [
+                0.279781,
+                0.475688,
+                0.244531
+            ],
+            "Erigaisi Arjun|Abdusattorov, Nodirbek": [
+                0.297188,
+                0.484329,
+                0.218483
+            ],
+            "Aravindh, Chithambaram VR.|Nepomniachtchi, Ian": [
+                0.38608,
+                0.45622,
+                0.1577
+            ],
+            "Yakubboev, Nodirbek|Maghsoodloo, Parham": [
+                0.32904,
+                0.467643,
+                0.203317
+            ]
+        },
+        "5": {
+            "Maghsoodloo, Parham|Praggnanandhaa R": [
+                0.165818,
+                0.44862,
+                0.385562
+            ],
+            "Nepomniachtchi, Ian|Yakubboev, Nodirbek": [
+                0.284272,
+                0.476885,
+                0.238843
+            ],
+            "Abdusattorov, Nodirbek|Aravindh, Chithambaram VR.": [
+                0.213142,
+                0.475235,
+                0.311623
+            ],
+            "Vokhidov, Shamsiddin|Erigaisi Arjun": [
+                0.199274,
+                0.466728,
+                0.333998
+            ],
+            "Sindarov, Javokhir|Rapport, Richard": [
+                0.31832,
+                0.468975,
+                0.212705
+            ]
+        },
+        "6": {
+            "Praggnanandhaa R|Rapport, Richard": [
+                0.366784,
+                0.447803,
+                0.185413
+            ],
+            "Erigaisi Arjun|Sindarov, Javokhir": [
+                0.321748,
+                0.457883,
+                0.220369
+            ],
+            "Aravindh, Chithambaram VR.|Vokhidov, Shamsiddin": [
+                0.411581,
+                0.431448,
+                0.156971
+            ],
+            "Yakubboev, Nodirbek|Abdusattorov, Nodirbek": [
+                0.230163,
+                0.468219,
+                0.301618
+            ],
+            "Maghsoodloo, Parham|Nepomniachtchi, Ian": [
+                0.22548,
+                0.469321,
+                0.305199
+            ]
+        },
+        "7": {
+            "Nepomniachtchi, Ian|Praggnanandhaa R": [
+                0.215928,
+                0.460814,
+                0.323258
+            ],
+            "Abdusattorov, Nodirbek|Maghsoodloo, Parham": [
+                0.374724,
+                0.460597,
+                0.164679
+            ],
+            "Vokhidov, Shamsiddin|Yakubboev, Nodirbek": [
+                0.26255,
+                0.490784,
+                0.246666
+            ],
+            "Sindarov, Javokhir|Aravindh, Chithambaram VR.": [
+                0.20552,
+                0.47619,
+                0.31829
+            ],
+            "Rapport, Richard|Erigaisi Arjun": [
+                0.205057,
+                0.471729,
+                0.323214
+            ]
+        },
+        "8": {
+            "Praggnanandhaa R|Erigaisi Arjun": [
+                0.282667,
+                0.466041,
+                0.251292
+            ],
+            "Aravindh, Chithambaram VR.|Rapport, Richard": [
+                0.393896,
+                0.444023,
+                0.162081
+            ],
+            "Yakubboev, Nodirbek|Sindarov, Javokhir": [
+                0.237069,
+                0.476848,
+                0.286083
+            ],
+            "Maghsoodloo, Parham|Vokhidov, Shamsiddin": [
+                0.232761,
+                0.480776,
+                0.286463
+            ],
+            "Nepomniachtchi, Ian|Abdusattorov, Nodirbek": [
+                0.232869,
+                0.485113,
+                0.282018
+            ]
+        },
+        "9": {
+            "Abdusattorov, Nodirbek|Praggnanandhaa R": [
+                0.245415,
+                0.47965,
+                0.274935
+            ],
+            "Vokhidov, Shamsiddin|Nepomniachtchi, Ian": [
+                0.249967,
+                0.500954,
+                0.249079
+            ],
+            "Sindarov, Javokhir|Maghsoodloo, Parham": [
+                0.349786,
+                0.48421,
+                0.166004
+            ],
+            "Rapport, Richard|Yakubboev, Nodirbek": [
+                0.262715,
+                0.501587,
+                0.235698
+            ],
+            "Erigaisi Arjun|Aravindh, Chithambaram VR.": [
+                0.233781,
+                0.493347,
+                0.272872
+            ]
+        }
+    }
+}

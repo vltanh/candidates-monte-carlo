@@ -1,0 +1,180 @@
+{
+    "metadata": {
+        "time_seconds": 2.153790143
+    },
+    "winner_probs": {
+        "Erigaisi Arjun": 0.008624,
+        "Praggnanandhaa R": 0.046802,
+        "Abdusattorov, Nodirbek": 0.743086,
+        "Nepomniachtchi, Ian": 0.0,
+        "Aravindh, Chithambaram VR.": 0.0,
+        "Rapport, Richard": 0.0,
+        "Sindarov, Javokhir": 0.201488,
+        "Maghsoodloo, Parham": 0.0,
+        "Yakubboev, Nodirbek": 0.0,
+        "Vokhidov, Shamsiddin": 0.0
+    },
+    "expected_points": {
+        "Erigaisi Arjun": 5.003678,
+        "Praggnanandhaa R": 4.946175,
+        "Abdusattorov, Nodirbek": 6.053825,
+        "Nepomniachtchi, Ian": 4.0091985,
+        "Aravindh, Chithambaram VR.": 2.496322,
+        "Rapport, Richard": 4.4994635,
+        "Sindarov, Javokhir": 5.6089315,
+        "Maghsoodloo, Parham": 4.3910685,
+        "Yakubboev, Nodirbek": 4.5005365,
+        "Vokhidov, Shamsiddin": 3.4908015
+    },
+    "rank_matrix": {
+        "Erigaisi Arjun": [
+            0.008624,
+            0.06266,
+            0.317742,
+            0.427474,
+            0.131037,
+            0.052463,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+        ],
+        "Praggnanandhaa R": [
+            0.046802,
+            0.175977,
+            0.345055,
+            0.144751,
+            0.14582,
+            0.128294,
+            0.013301,
+            0.0,
+            0.0,
+            0.0
+        ],
+        "Abdusattorov, Nodirbek": [
+            0.743086,
+            0.111156,
+            0.123781,
+            0.021977,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+        ],
+        "Nepomniachtchi, Ian": [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.122542,
+            0.358547,
+            0.304401,
+            0.21451,
+            0.0
+        ],
+        "Aravindh, Chithambaram VR.": [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.005845,
+            0.994155
+        ],
+        "Rapport, Richard": [
+            0.0,
+            0.0,
+            0.014234,
+            0.081348,
+            0.115687,
+            0.17669,
+            0.317117,
+            0.294924,
+            0.0,
+            0.0
+        ],
+        "Sindarov, Javokhir": [
+            0.201488,
+            0.565571,
+            0.078904,
+            0.056709,
+            0.07344,
+            0.023888,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+        ],
+        "Maghsoodloo, Parham": [
+            0.0,
+            0.084336,
+            0.063918,
+            0.045796,
+            0.259812,
+            0.22822,
+            0.184374,
+            0.133544,
+            0.0,
+            0.0
+        ],
+        "Yakubboev, Nodirbek": [
+            0.0,
+            0.0003,
+            0.056366,
+            0.221945,
+            0.274204,
+            0.267903,
+            0.082848,
+            0.096434,
+            0.0,
+            0.0
+        ],
+        "Vokhidov, Shamsiddin": [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.043813,
+            0.170697,
+            0.779645,
+            0.005845
+        ]
+    },
+    "game_probs": {
+        "9": {
+            "Abdusattorov, Nodirbek|Praggnanandhaa R": [
+                0.326382,
+                0.454886,
+                0.218732
+            ],
+            "Vokhidov, Shamsiddin|Nepomniachtchi, Ian": [
+                0.21451,
+                0.552583,
+                0.232907
+            ],
+            "Sindarov, Javokhir|Maghsoodloo, Parham": [
+                0.378434,
+                0.460995,
+                0.160571
+            ],
+            "Rapport, Richard|Yakubboev, Nodirbek": [
+                0.223908,
+                0.551111,
+                0.224981
+            ],
+            "Erigaisi Arjun|Aravindh, Chithambaram VR.": [
+                0.23886,
+                0.529636,
+                0.231504
+            ]
+        }
+    }
+}

@@ -29,5 +29,5 @@ for i in {1..15}; do python tools/viz/visualize_timeline.py results/candidates20
 for i in {1..15}; do python tools/viz/visualize_timeline.py results/candidates2024/rounds -k $i -o results/candidates2024/r${i}.png -t data/candidates2024.jsonc; done
 for i in {1..15}; do python tools/viz/visualize_timeline.py results/candidates2022/rounds -k $i -o results/candidates2022/r${i}.png -t data/candidates2022.jsonc; done
 
-# Animated GIF
-python tools/viz/make_gif.py results/candidates2026/ -o results/candidates2026/animation.gif
+# Dashboard
+python tools/viz/generate_html.py --tournament data/candidates2026.jsonc --rounds results/candidates2026/rounds/ --hparams configs/best_hparams_22_24.jsonc --db db/tuning_22_24.db --output /home/vltanh/Documents/vltanh.github.io/assets/chess/candidates2026.html

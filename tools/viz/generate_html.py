@@ -103,23 +103,31 @@ def load_jsonc(path: Path) -> tuple[dict, dict[str, str]]:
 
 # ── player helpers ────────────────────────────────────────────────────────────
 
-_SHORT_OVERRIDES: dict[str, str] = {
-    "Praggnanandhaa R": "Pragg",
-    "Praggnanandhaa, R": "Pragg",
-}
-
-def short_name(full: str) -> str:
-    if full in _SHORT_OVERRIDES:
-        return _SHORT_OVERRIDES[full]
-    return full.split(",")[0].strip() if "," in full else full.split()[0]
+def _fallback_short(full: str) -> str:
+    """Last-resort short name when no alias is available."""
+    if "," in full:
+        return full.split(",")[0].strip()
+    return full.split()[0]
 
 
-def build_players(t_data: dict) -> list[dict]:
+def load_aliases(path: Path) -> dict[str, str]:
+    """Load name→alias mapping from a players.jsonc file."""
+    try:
+        data = json.loads(strip_jsonc(path.read_text(encoding="utf-8")))
+        return {p["name"]: p["alias"] for p in data if "alias" in p}
+    except FileNotFoundError:
+        return {}
+    except Exception as e:
+        print(f"Warning: could not load players file {path}: {e}", file=sys.stderr)
+        return {}
+
+
+def build_players(t_data: dict, aliases: dict[str, str]) -> list[dict]:
     raw = sorted(t_data["players"], key=lambda p: p.get("rating", 0), reverse=True)
     return [
         {
             "key":          p["name"],
-            "short":        short_name(p["name"]),
+            "short":        aliases.get(p["name"]) or _fallback_short(p["name"]),
             "color":        PLAYER_COLORS[i % len(PLAYER_COLORS)],
             "fide_id":      p.get("fide_id"),
             "rating":       p.get("rating"),
@@ -220,6 +228,34 @@ def build_rounds(
         })
     return result
 
+# ── all-rounds game predictions ──────────────────────────────────────────────
+
+def build_all_games(
+    rounds:    list[tuple[int, dict]],
+    sched_idx: dict[int, list[dict]],
+) -> list[dict]:
+    """For each tournament round: use that round's own JSON if available,
+    otherwise fall back to the latest JSON (for future rounds)."""
+    round_map      = {rn: d for rn, d in rounds}
+    _, latest_data = rounds[-1]
+    result = []
+    for rn in sorted(sched_idx.keys()):
+        src = round_map.get(rn, latest_data)
+        rp  = src.get("game_probs", {}).get(str(rn), {})
+        result.append({
+            "round_num": rn,
+            "games": [
+                {
+                    "white":  g["white"],
+                    "black":  g["black"],
+                    "probs":  rp.get(f"{g['white']}|{g['black']}", [1/3, 1/3, 1/3]),
+                    "result": g["result"],
+                }
+                for g in sched_idx.get(rn, [])
+            ],
+        })
+    return result
+
 # ── Pareto ────────────────────────────────────────────────────────────────────
 
 def load_pareto(db_path: Path, study_name: str, max_scatter: int = 600) -> dict | None:
@@ -292,8 +328,9 @@ def assemble(
     hp:      dict | None,
     hp_meta: dict[str, str],
     pareto:  dict | None,
+    aliases: dict[str, str] | None = None,
 ) -> dict:
-    players   = build_players(t_data)
+    players   = build_players(t_data, aliases or {})
     cum       = cumulative_scores(t_data)
     sched_idx = schedule_by_round(t_data)
     rds       = build_rounds(rounds, cum, sched_idx)
@@ -315,8 +352,9 @@ def assemble(
             "tiebreak":     tiebreak_labels.get(t_data.get("tiebreak", ""), t_data.get("tiebreak", "")),
             "total_rounds": total_r,
         },
-        "players": players,
-        "rounds":  rds,
+        "players":   players,
+        "rounds":    rds,
+        "all_games": build_all_games(rounds, sched_idx),
         "hparams": build_hparams(hp, hp_meta) if hp else None,
         "pareto":  pareto,
         "tournament_players": [
@@ -405,20 +443,35 @@ tbody tr:hover{background:#191e35}
 .ptoggle.off{opacity:.28;text-decoration:line-through}
 
 /* game cards */
-.games-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:.75rem}
+.games-grid{display:grid;gap:.75rem}
 .gcard{background:#131728;border:1px solid #1e2438;border-radius:8px;padding:.9rem 1rem}
 .gcard .round-label{font-size:.75rem;color:#6b7494;text-transform:uppercase;letter-spacing:.04em;margin-bottom:.35rem}
-.gcard .players{font-weight:600;font-size:.93rem;display:flex;align-items:center;gap:.35rem;margin-bottom:.7rem;flex-wrap:wrap}
+.gcard .players{font-weight:600;font-size:.93rem;display:flex;align-items:center;gap:.35rem;margin-bottom:.7rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .gcard .players .sep{color:#6b7494;font-weight:400;font-size:.78rem}
+.piece{font-size:.82rem;opacity:.85;flex-shrink:0}
 .prob-bars{height:28px;border-radius:4px;overflow:hidden;display:flex;gap:2px}
-.pb{display:flex;align-items:center;justify-content:center;font-size:.76rem;font-weight:700}
-.pb.white-win{color:#0d0f1a}.pb.draw{color:#c8d0e7;background:#4a5278!important}.pb.black-win{color:#0d0f1a}
+.pb{display:flex;align-items:center;justify-content:center;font-size:.76rem;font-weight:700;gap:.2rem}
+.pb.white-win{color:#0d0f1a}.pb.draw{color:#c8d0e7;background:#4a5278!important}.pb.black-win{color:#e8eaf6}
+.pb .ps{font-size:.68rem;opacity:.8}
 .prob-foot{display:flex;justify-content:space-between;font-size:.72rem;color:#4a5278;margin-top:3px}
 .result-badge{display:inline-block;margin-top:.5rem;padding:.12rem .5rem;border-radius:4px;
   font-size:.75rem;font-weight:700;letter-spacing:.03em}
 .result-badge.white-win{background:#4fc3f720;color:#4fc3f7;border:1px solid #4fc3f740}
 .result-badge.draw{background:#8a93b220;color:#c8d0e7;border:1px solid #8a93b240}
 .result-badge.black-win{background:#ce93d820;color:#ce93d8;border:1px solid #ce93d840}
+
+/* show-more / all-games panel */
+.show-more-btn{display:block;margin:.75rem auto 0;padding:.3rem 1.1rem;border-radius:6px;
+  border:1px solid #2a3050;background:#131728;color:#8a93b2;font-size:.82rem;
+  cursor:pointer;transition:all .15s}
+.show-more-btn:hover{background:#1e2438;color:#c8d0e7}
+.all-games-panel{margin-top:1rem}
+.games-section-lbl{font-size:.8rem;font-weight:600;color:#6b7494;text-transform:uppercase;
+  letter-spacing:.06em;margin:1.25rem 0 .5rem;display:flex;align-items:center;gap:.6rem}
+.games-section-lbl::after{content:'';flex:1;height:1px;background:#1e2438}
+.round-group{margin-bottom:1rem}
+.round-group-lbl{font-size:.72rem;color:#4a5278;text-transform:uppercase;letter-spacing:.05em;
+  margin-bottom:.4rem;padding-bottom:.2rem;border-bottom:1px solid #191d30}
 
 /* rank heatmap */
 .hm-table{width:100%;border-collapse:collapse;font-size:.81rem}
@@ -517,6 +570,12 @@ details[open] summary::before{transform:rotate(90deg)}
 <section>
   <h2 id="gamesTitle">Round Games</h2>
   <div class="games-grid" id="gamesGrid"></div>
+  <div style="display:flex;gap:.5rem;justify-content:center;margin-top:.75rem">
+    <button class="show-more-btn" id="showPastBtn" onclick="toggleSection('past')">▾ Past rounds</button>
+    <button class="show-more-btn" id="showFutureBtn" onclick="toggleSection('future')">▾ Future rounds</button>
+  </div>
+  <div class="all-games-panel" id="pastGamesPanel" style="display:none"></div>
+  <div class="all-games-panel" id="futureGamesPanel" style="display:none"></div>
 </section>
 
 <section>
@@ -588,6 +647,8 @@ let currentIdx = DATA.rounds.length - 1;
 let winPctChart, timelineChart, expScoreChart, paretoChart;
 let hiddenPlayers = new Set();
 let sortedPlayers = [];   // dataset order used by timeline + expScore charts
+let pastVisible = false;
+let futureVisible = false;
 
 // quick lookup
 const P_MAP = Object.fromEntries(DATA.players.map(p => [p.key, p]));
@@ -655,6 +716,19 @@ document.addEventListener('DOMContentLoaded', () => {
 // ═══════════════════════════════════════════════
 // TABS
 // ═══════════════════════════════════════════════
+function chooseCols(n){
+  // Pick 3 or 4 columns — whichever leaves the last row most filled (highest fill fraction).
+  // Tie-break: prefer 4 (wider grid looks better).
+  let best = 4, bestFill = -1;
+  for (const cols of [3, 4]){
+    const rem = n % cols;
+    const lastRow = rem === 0 ? cols : rem;   // if perfectly divisible, last row is full
+    const fill = lastRow / cols;
+    if (fill > bestFill){ bestFill = fill; best = cols; }
+  }
+  return best;
+}
+
 function buildTabs(){
   const wrap = document.getElementById('tabs');
   const available = DATA.rounds.length;
@@ -787,6 +861,53 @@ function updateStandings(round){
 }
 
 // ═══════════════════════════════════════════════
+// GAME CARD BUILDER (shared)
+// ═══════════════════════════════════════════════
+function makeGameCard(g, roundNum){
+  const [ww,dd,bw] = g.probs;
+  const wp = Math.round(ww*100), dp = Math.round(dd*100), bp = Math.round(bw*100);
+  const wc = P_MAP[g.white]?.color ?? '#888';
+  const bc = P_MAP[g.black]?.color ?? '#888';
+  const wn = P_MAP[g.white]?.short ?? g.white;
+  const bn = P_MAP[g.black]?.short ?? g.black;
+
+  // Gold inset shadow on the bar matching the actual result
+  const wShadow = g.result==='1-0'   ? 'box-shadow:inset 0 0 0 2.5px #f5e27a;' : '';
+  const dShadow = g.result==='1/2-1/2'? 'box-shadow:inset 0 0 0 2.5px #f5e27a;' : '';
+  const bShadow = g.result==='0-1'   ? 'box-shadow:inset 0 0 0 2.5px #f5e27a;' : '';
+
+  let resultBadge = '';
+  if (g.result==='1-0')
+    resultBadge = `<span class="result-badge white-win">✓ ${wn} won</span>`;
+  else if (g.result==='0-1')
+    resultBadge = `<span class="result-badge black-win">✓ ${bn} won</span>`;
+  else if (g.result==='1/2-1/2')
+    resultBadge = `<span class="result-badge draw">½–½ Draw</span>`;
+
+  const card = document.createElement('div');
+  card.className = 'gcard';
+  card.innerHTML = `
+    <div class="round-label">Round ${roundNum}</div>
+    <div class="players">
+      <span class="dot" style="background:${wc}"></span>${wn}
+      <span class="sep">vs</span>
+      <span class="dot" style="background:${bc}"></span>${bn}
+    </div>
+    <div class="prob-bars">
+      <div class="pb white-win" style="flex:${ww};background:${hexAlpha(wc,0.8)};${wShadow}">${wp}%</div>
+      <div class="pb draw" style="flex:${dd};${dShadow}">${dp}%</div>
+      <div class="pb black-win" style="flex:${bw};background:${hexAlpha(bc,0.65)};${bShadow}">${bp}%</div>
+    </div>
+    <div class="prob-foot">
+      <span>${wn} <span style="color:#6b7494">(W)</span></span>
+      <span>Draw</span>
+      <span>${bn} <span style="color:#6b7494">(B)</span></span>
+    </div>
+    ${resultBadge}`;
+  return card;
+}
+
+// ═══════════════════════════════════════════════
 // GAMES
 // ═══════════════════════════════════════════════
 function updateGames(round){
@@ -796,41 +917,65 @@ function updateGames(round){
     grid.innerHTML = '<p style="color:#6b7494;font-size:.88rem">No game data for this round.</p>';
     return;
   }
-  round.upcoming_games.forEach(g => {
-    const [ww,dd,bw] = g.probs;
-    const wp = Math.round(ww*100), dp = Math.round(dd*100), bp = Math.round(bw*100);
-    const wc = P_MAP[g.white]?.color ?? '#888';
-    const bc = P_MAP[g.black]?.color ?? '#888';
+  grid.style.gridTemplateColumns = `repeat(${chooseCols(round.upcoming_games.length)}, 1fr)`;
+  round.upcoming_games.forEach(g => grid.appendChild(makeGameCard(g, round.round_num)));
+  if (pastVisible)   buildPanel('past');
+  if (futureVisible) buildPanel('future');
+}
 
-    let resultBadge = '';
-    if (g.result==='1-0')
-      resultBadge = `<span class="result-badge white-win">✓ ${P_MAP[g.white]?.short??g.white} won</span>`;
-    else if (g.result==='0-1')
-      resultBadge = `<span class="result-badge black-win">✓ ${P_MAP[g.black]?.short??g.black} won</span>`;
-    else if (g.result==='1/2-1/2')
-      resultBadge = `<span class="result-badge draw">½–½ Draw</span>`;
+// ═══════════════════════════════════════════════
+// SHOW PAST / FUTURE ROUNDS
+// ═══════════════════════════════════════════════
+function toggleSection(which){
+  const isPast = which === 'past';
+  // Close the other panel first
+  const otherVisible = isPast ? futureVisible : pastVisible;
+  if (otherVisible){
+    const otherId  = isPast ? 'futureGamesPanel' : 'pastGamesPanel';
+    const otherBtn = isPast ? 'showFutureBtn'    : 'showPastBtn';
+    document.getElementById(otherId).style.display = 'none';
+    document.getElementById(otherBtn).textContent  = isPast ? '▾ Future rounds' : '▾ Past rounds';
+    if (isPast) futureVisible = false; else pastVisible = false;
+  }
+  if (isPast) pastVisible = !pastVisible; else futureVisible = !futureVisible;
+  const visible = isPast ? pastVisible : futureVisible;
+  const panelId = isPast ? 'pastGamesPanel' : 'futureGamesPanel';
+  const btnId   = isPast ? 'showPastBtn'    : 'showFutureBtn';
+  const panel   = document.getElementById(panelId);
+  const btn     = document.getElementById(btnId);
+  if (visible){
+    buildPanel(which);
+    panel.style.display = '';
+    btn.textContent = isPast ? '▴ Hide past' : '▴ Hide future';
+  } else {
+    panel.style.display = 'none';
+    btn.textContent = isPast ? '▾ Past rounds' : '▾ Future rounds';
+  }
+}
 
-    const card = document.createElement('div');
-    card.className = 'gcard';
-    card.innerHTML = `
-      <div class="round-label">Round ${round.round_num}</div>
-      <div class="players">
-        <span class="dot" style="background:${wc}"></span>${P_MAP[g.white]?.short??g.white}
-        <span class="sep">vs</span>
-        <span class="dot" style="background:${bc}"></span>${P_MAP[g.black]?.short??g.black}
-      </div>
-      <div class="prob-bars">
-        <div class="pb white-win" style="flex:${ww};background:${hexAlpha(wc,0.8)}">${wp}%</div>
-        <div class="pb draw" style="flex:${dd}">${dp}%</div>
-        <div class="pb black-win" style="flex:${bw};background:${hexAlpha(bc,0.8)}">${bp}%</div>
-      </div>
-      <div class="prob-foot">
-        <span>${P_MAP[g.white]?.short??g.white} wins</span>
-        <span>Draw</span>
-        <span>${P_MAP[g.black]?.short??g.black} wins</span>
-      </div>
-      ${resultBadge}`;
-    grid.appendChild(card);
+function buildPanel(which){
+  const isPast  = which === 'past';
+  const panel   = document.getElementById(isPast ? 'pastGamesPanel' : 'futureGamesPanel');
+  panel.innerHTML = '';
+  const curRound = DATA.rounds[currentIdx].round_num;
+  const rounds = isPast
+    ? DATA.all_games.filter(ag => ag.round_num < curRound).slice().reverse()
+    : DATA.all_games.filter(ag => ag.round_num > curRound);
+
+  rounds.forEach(ag => {
+    const completed = ag.games.every(g => g.result !== null);
+    const grp  = document.createElement('div');
+    grp.className = 'round-group';
+    const glbl = document.createElement('div');
+    glbl.className = 'round-group-lbl';
+    glbl.textContent = `Round ${ag.round_num} — ${completed ? 'Completed' : 'Upcoming'}`;
+    grp.appendChild(glbl);
+    const grid = document.createElement('div');
+    grid.className = 'games-grid';
+    grid.style.gridTemplateColumns = `repeat(${chooseCols(ag.games.length)}, 1fr)`;
+    ag.games.forEach(g => grid.appendChild(makeGameCard(g, ag.round_num)));
+    grp.appendChild(grid);
+    panel.appendChild(grp);
   });
 }
 
@@ -910,7 +1055,7 @@ function initTimeline(){
       },
       plugins:{
         legend:{position:'bottom',labels:{boxWidth:12,padding:13,font:{size:12}}},
-        tooltip:{callbacks:{label:ctx=>` ${ctx.dataset.label}: ${ctx.parsed.y.toFixed(1)}%`}},
+        tooltip:{itemSort:(a,b)=>b.parsed.y-a.parsed.y,callbacks:{label:ctx=>` ${ctx.dataset.label}: ${ctx.parsed.y.toFixed(1)}%`}},
         annotation:{annotations:{vline:{type:'line',xMin:currentIdx,xMax:currentIdx,
           borderColor:'#f5e27a80',borderWidth:2,borderDash:[6,4]}}}
       }
@@ -953,13 +1098,13 @@ function initExpScore(){
       interaction:{mode:'index',intersect:false},
       scales:{
         x:{grid:{color:'#1a1f35'},ticks:{font:{size:11}}},
-        y:{grid:{color:'#1a1f35'},min:4,max:11,
+        y:{grid:{color:'#1a1f35'},
            ticks:{stepSize:1,font:{size:11}},
            title:{display:true,text:`Expected Final Score (out of ${DATA.meta.total_rounds})`,color:'#6b7494'}}
       },
       plugins:{
         legend:{position:'bottom',labels:{boxWidth:12,padding:13,font:{size:12}}},
-        tooltip:{callbacks:{label:ctx=>` ${ctx.dataset.label}: ${ctx.parsed.y.toFixed(2)} pts`}},
+        tooltip:{itemSort:(a,b)=>b.parsed.y-a.parsed.y,callbacks:{label:ctx=>` ${ctx.dataset.label}: ${ctx.parsed.y.toFixed(2)} pts`}},
         annotation:{annotations:{vline:{type:'line',xMin:currentIdx,xMax:currentIdx,
           borderColor:'#f5e27a80',borderWidth:2,borderDash:[6,4]}}}
       }
@@ -1164,6 +1309,8 @@ def main() -> None:
                     help="Optuna study name (default: chess_montecarlo)")
     ap.add_argument("--output",     "-o", required=True, type=Path,
                     help="Output HTML file path")
+    ap.add_argument("--players-file", default="data/players.jsonc", type=Path,
+                    help="Player name/alias mapping (default: data/players.jsonc)")
 
     args = ap.parse_args()
 
@@ -1197,7 +1344,11 @@ def main() -> None:
             if pareto:
                 print(f"  {pareto['total_trials']} trials, {pareto['pareto_count']} Pareto-optimal")
 
-    data = assemble(args.tournament, t_data, rounds, hp, hp_meta, pareto)
+    aliases = load_aliases(args.players_file)
+    if aliases:
+        print(f"Loaded {len(aliases)} player aliases from: {args.players_file}")
+
+    data = assemble(args.tournament, t_data, rounds, hp, hp_meta, pareto, aliases)
 
     template = html_template()
     marker   = "/*__INJECT_DATA__*/"
