@@ -8,7 +8,28 @@ A multi-threaded Monte Carlo simulator for chess tournaments with a fixed schedu
 
 **[https://vltanh.github.io/assets/chess/candidates2026.html](https://vltanh.github.io/assets/chess/candidates2026.html)**
 
-### Round 10
+### Round 11
+
+![Round 11](results/candidates2026/r11.png)
+
+*Round 10 results: Esipenko–Bluebaum drew, Sindarov beat Pragg, Wei Yi–Fabi drew, Anish–Hikaru drew*
+
+- ✓ **Esipenko–Bluebaum drew**: draw predicted at 47.5%; correct prediction
+- ✓ **Wei Yi–Fabi drew**: draw predicted at 47.1%; correct prediction
+- ✓ **Anish–Hikaru drew**: draw predicted at 48.6%; correct prediction
+- ✗ **Sindarov beat Pragg**: draw predicted at 45.5%; Sindarov won; the model correctly placed Sindarov's winning chances (36.9%) well above Pragg's (17.6%)
+- Win probs: Sindarov surged to **95.8%** (from 87.4%) after extending his lead; Anish slipped to **3.9%** (from 9.9%) after the draw; Fabi collapsed to **0.3%** (from 1.7%) — effectively out of contention
+
+*Round 11 predictions:*
+- Anish–Esipenko: 30.1% / **50.8%** / 19.1%, draw most likely; Anish with higher winning chances
+- Hikaru–Wei Yi: 28.5% / **48.2%** / 23.3%, draw most likely; Hikaru with higher winning chances
+- Fabi–Sindarov: 30.6% / **41.5%** / 28.0%, draw most likely; essentially even; Fabi needs a win to have any hope of catching Sindarov
+- Pragg–Bluebaum: 24.1% / **51.8%** / 24.0%, draw most likely; essentially even
+
+### Previous rounds
+
+<details>
+<summary>Round 10</summary>
 
 ![Round 10](results/candidates2026/r10.png)
 
@@ -26,7 +47,7 @@ A multi-threaded Monte Carlo simulator for chess tournaments with a fixed schedu
 - Wei Yi–Fabi: 25.7% / **47.1%** / 27.1%, draw most likely; essentially even; Fabi needs a win to keep any hope alive
 - Anish–Hikaru: 27.0% / **48.6%** / 24.3%, draw most likely; Anish with higher winning chances
 
-### Previous rounds
+</details>
 
 <details>
 <summary>Round 9</summary>
