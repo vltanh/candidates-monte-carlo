@@ -18,6 +18,7 @@
 #include <cassert>
 #include <chrono>
 #include "json.hpp"
+#include "pcg_random.hpp"
 
 using json = nlohmann::json;
 
@@ -417,7 +418,7 @@ struct EncounterTable
 
 struct Rng
 {
-    std::mt19937_64 eng;
+    pcg64 eng;
     std::uniform_real_distribution<double> dist{0.0, 1.0};
     explicit Rng(uint64_t seed) : eng(seed) {}
     double operator()() { return dist(eng); }
@@ -735,7 +736,7 @@ static void runMonteCarlo(const Config &cfg, int totalIters)
 
     std::vector<ThreadResult> results(nThreads, ThreadResult(cfg.N));
     std::vector<std::thread> threads;
-    std::mt19937_64 seedGen(42);
+    pcg64 seedGen(42);
 
     int base = totalIters / nThreads;
     int rem = totalIters % nThreads;
