@@ -6,6 +6,8 @@
 
 # C++ vendored headers
 src/json.hpp
+src/pcg_random.hpp
+src/pcg_extras.hpp
 
 # Debug symbols
 *.dSYM/

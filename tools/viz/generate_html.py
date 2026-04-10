@@ -30,16 +30,16 @@ from pathlib import Path
 # ── palette ───────────────────────────────────────────────────────────────────
 
 PLAYER_COLORS = [
-    "#f5e27a",  # gold
-    "#4fc3f7",  # sky blue
-    "#81c784",  # green
-    "#ff8a65",  # coral
-    "#ce93d8",  # purple
-    "#80deea",  # cyan
-    "#ffb74d",  # amber
-    "#ef9a9a",  # rose
-    "#a5d6a7",  # light green
-    "#90caf9",  # light blue
+    "#40c4ff",  # vivid azure
+    "#ffb300",  # golden amber
+    "#00e676",  # vivid emerald
+    "#ff4081",  # hot pink
+    "#b388ff",  # vivid violet
+    "#18ffff",  # cyan neon
+    "#ff5252",  # signal red
+    "#c6ff00",  # acid lime
+    "#ff6e40",  # deep orange
+    "#ea80fc",  # bright fuchsia
 ]
 
 # ── hparam metadata ───────────────────────────────────────────────────────────
@@ -276,22 +276,32 @@ def load_pareto(db_path: Path, study_name: str, max_scatter: int = 600) -> dict 
         non_p = [t for t in all_c if t.number not in p_nums]
         step  = max(1, len(non_p) // max_scatter)
 
-        all_pts = (
-            [{"x": t.values[0], "y": t.values[1], "n": t.number, "p": False} for t in non_p[::step]]
-            + [{"x": t.values[0], "y": t.values[1], "n": t.number, "p": True} for t in pareto]
-        )
-
         vals   = np.array([t.values for t in pareto])
         mins   = vals.min(axis=0)
         ranges = np.where(mins == 0, 1.0, mins)
         norm   = (vals - mins) / ranges
         best   = pareto[int(np.sqrt((norm**2).sum(axis=1)).argmin())]
 
+        # Normalize all points by Pareto-front minimum (1.0 = optimal)
+        x_min, y_min = float(mins[0]), float(mins[1])
+
+        all_pts = (
+            [{"x": t.values[0]/x_min, "y": t.values[1]/y_min,
+              "rx": t.values[0], "ry": t.values[1], "n": t.number, "p": False}
+             for t in non_p[::step]]
+            + [{"x": t.values[0]/x_min, "y": t.values[1]/y_min,
+                "rx": t.values[0], "ry": t.values[1], "n": t.number, "p": True}
+               for t in pareto]
+        )
+
         p_sorted = sorted(pareto, key=lambda t: t.values[0])
         return {
             "all_points":   all_pts,
-            "pareto_line":  [{"x": t.values[0], "y": t.values[1], "n": t.number} for t in p_sorted],
-            "best":         {"x": best.values[0], "y": best.values[1], "n": best.number},
+            "pareto_line":  [{"x": t.values[0]/x_min, "y": t.values[1]/y_min, "n": t.number,
+                              "rx": t.values[0], "ry": t.values[1]} for t in p_sorted],
+            "best":         {"x": best.values[0]/x_min, "y": best.values[1]/y_min, "n": best.number,
+                             "rx": best.values[0], "ry": best.values[1]},
+            "norm_min":     {"x": x_min, "y": y_min},
             "total_trials": len(all_c),
             "pareto_count": len(pareto),
         }
@@ -378,260 +388,695 @@ def html_template() -> str:
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
 <title id="pageTitle">Chess Candidates — Monte Carlo</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght,SOFT@0,9..144,300..900,30..100;1,9..144,300..900,30..100&family=Figtree:ital,wght@0,300..900;1,300..900&family=JetBrains+Mono:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-annotation@3.0.1/dist/chartjs-plugin-annotation.min.js"></script>
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-body{background:#0d0f1a;color:#dde3ef;font-family:'Segoe UI',system-ui,sans-serif;font-size:15px;line-height:1.5}
-a{color:#7ec8e3}
-.page{max-width:1120px;margin:0 auto;padding:2rem 1.25rem 4rem}
 
-/* header */
-.hdr{text-align:center;margin-bottom:2rem;padding-bottom:1.5rem;border-bottom:1px solid #1e2438}
-.hdr h1{font-size:1.9rem;font-weight:700;color:#f5e27a;letter-spacing:-.5px}
-.hdr .sub{color:#8a93b2;margin-top:.3rem;font-size:.9rem}
-.badge{display:inline-block;background:#1f2640;border:1px solid #3a4260;color:#a0aec0;
-  padding:.15rem .65rem;border-radius:999px;font-size:.78rem;margin:.4rem .2rem 0}
+:root{
+  --ink:#0b1120;
+  --ink-2:#121a36;
+  --ink-3:#1a2448;
+  --paper:#f4f6fb;
+  --paper-2:#c0cceb;
+  --paper-3:#8494be;
+  --paper-4:#4e5f8a;
+  --rule:#263764;
+  --rule-2:#354d80;
+  --azure:#78b4ff;
+  --azure-2:#a0ccff;
+  --azure-3:#5090ff;
+  --cobalt:#3a66cc;
+  --signal:#ff6b7a;
+}
 
-/* section */
-section{margin-bottom:2.5rem}
-section h2{font-size:1rem;font-weight:600;color:#c8d0e7;text-transform:uppercase;
-  letter-spacing:.06em;margin-bottom:.9rem;padding-bottom:.35rem;border-bottom:1px solid #1e2438}
-.card{background:#131728;border:1px solid #1e2438;border-radius:10px;padding:1.25rem}
-.note{font-size:.76rem;color:#4a5278;margin-top:.65rem;font-style:italic}
+html{scroll-behavior:smooth}
 
-/* round tabs */
-.tabs-wrap{padding-bottom:.5rem;margin-bottom:2rem}
-.tabs{display:flex;gap:.4rem;flex-wrap:wrap}
-.tab{padding:.35rem .8rem;border-radius:6px;border:1px solid #2a3050;background:#131728;
-  color:#8a93b2;font-size:.82rem;cursor:pointer;transition:all .15s;user-select:none}
-.tab:hover:not(:disabled){background:#1e2438;color:#c8d0e7}
-.tab.active{background:#1e2440;border-color:#4a6eff;color:#f5e27a;font-weight:600}
-.tab:disabled{opacity:.32;cursor:not-allowed;border-color:#1a1f35;color:#3a4260}
-.tab:disabled::after{content:'🔒';font-size:.65rem;margin-left:.3rem;opacity:.7}
+body{
+  background:var(--ink);
+  color:var(--paper);
+  font-family:'Figtree',system-ui,-apple-system,sans-serif;
+  font-feature-settings:"ss01","kern","liga","cv11";
+  font-size:18px;
+  line-height:1.55;
+  -webkit-font-smoothing:antialiased;
+  text-rendering:optimizeLegibility;
+  min-height:100vh;
+}
+a{color:var(--azure);text-decoration-thickness:1px;text-underline-offset:3px}
+a:hover{color:var(--paper)}
 
-/* charts */
-.chart-wrap{position:relative}.chart-wrap.tall{height:380px}.chart-wrap.med{height:270px}
+.page{max-width:1180px;margin:0 auto;padding:3rem 1.5rem 5rem;position:relative}
 
-/* two-column grid */
-.two-col{display:grid;grid-template-columns:1fr 1fr;gap:1rem}
-@media(max-width:680px){.two-col{grid-template-columns:1fr}}
+/* ═══════════════ MASTHEAD ═══════════════ */
+.hdr{position:relative;text-align:center;margin-bottom:3rem;padding:0}
+.hdr .top-rule{
+  display:flex;align-items:center;justify-content:space-between;gap:1rem;
+  padding:.55rem 0;
+  border-top:1px solid var(--paper-3);
+  border-bottom:1px solid var(--paper-4);
+  font-family:'JetBrains Mono',ui-monospace,monospace;
+  font-size:.66rem;letter-spacing:.22em;
+  color:var(--paper-2);text-transform:uppercase;
+}
+.hdr .top-rule .ornament{
+  font-family:'Fraunces',serif;font-size:1.15rem;letter-spacing:.4em;
+  color:var(--azure);
+}
+.hdr h1{
+  font-family:'Fraunces',serif;
+  font-optical-sizing:auto;
+  font-variation-settings:"opsz" 144,"SOFT" 30;
+  font-weight:900;
+  font-size:clamp(2.8rem,6.8vw,4.8rem);
+  line-height:.92;
+  letter-spacing:-.028em;
+  color:var(--paper);
+  margin:1.5rem auto .5rem;
+  max-width:12ch;
+}
+.hdr h1 em{
+  font-style:italic;
+  font-variation-settings:"opsz" 144,"SOFT" 100;
+  font-weight:300;
+  color:var(--azure);
+}
+.hdr .sub{
+  font-family:'Fraunces',serif;font-style:italic;font-weight:400;
+  font-variation-settings:"opsz" 14;
+  font-size:1.05rem;
+  color:var(--paper-2);
+  margin-bottom:1.1rem;
+}
+.hdr .badges{display:flex;flex-wrap:wrap;justify-content:center;gap:.5rem;margin-bottom:1.1rem}
+.badge{
+  font-family:'JetBrains Mono',ui-monospace,monospace;
+  font-size:.66rem;letter-spacing:.11em;text-transform:uppercase;
+  color:var(--paper-2);
+  background:transparent;
+  border:1px solid var(--rule-2);
+  padding:.4rem .8rem;
+  border-radius:0;
+}
+.badge.live{color:var(--azure);border-color:var(--azure)}
+.badge.live::before{
+  content:'';display:inline-block;
+  width:6px;height:6px;border-radius:50%;
+  background:var(--azure);margin-right:.5rem;vertical-align:1px;
+  box-shadow:0 0 0 0 var(--azure);
+  animation:pulse 2s cubic-bezier(.4,0,.6,1) infinite;
+}
+@keyframes pulse{
+  0%{box-shadow:0 0 0 0 rgba(106,166,255,.6)}
+  70%{box-shadow:0 0 0 9px rgba(106,166,255,0)}
+  100%{box-shadow:0 0 0 0 rgba(106,166,255,0)}
+}
+.gh-link{
+  display:inline-flex;align-items:center;gap:.55rem;
+  padding:.55rem 1.3rem;
+  font-family:'JetBrains Mono',monospace;font-size:.75rem;
+  letter-spacing:.1em;text-transform:uppercase;text-decoration:none;
+  color:var(--paper);
+  background:var(--cobalt);
+  border:1px solid var(--cobalt);
+  transition:all .2s;
+}
+.gh-link:hover{color:var(--paper);background:var(--azure-3);border-color:var(--azure-3)}
 
-/* standings table */
-table{width:100%;border-collapse:collapse;font-size:.87rem}
-thead th{text-align:left;color:#6b7494;font-weight:600;font-size:.74rem;text-transform:uppercase;
-  letter-spacing:.05em;padding:.4rem .5rem;border-bottom:1px solid #1e2438}
-tbody tr{border-bottom:1px solid #191d30}
+/* dot-leader hairline beneath masthead */
+.hdr::after{
+  content:'';display:block;margin-top:1.5rem;height:1px;
+  background:var(--rule-2);
+}
+
+/* ═══════════════ SECTIONS ═══════════════ */
+section{margin-bottom:3.25rem}
+
+.card{
+  background:var(--ink-2);
+  border:1px solid var(--rule);
+  padding:1.5rem 1.6rem;
+  position:relative;
+}
+.card::before,.card::after{
+  content:'';position:absolute;width:14px;height:14px;pointer-events:none;
+}
+.card::before{top:-1px;left:-1px;border-top:1px solid var(--azure-3);border-left:1px solid var(--azure-3)}
+.card::after{bottom:-1px;right:-1px;border-bottom:1px solid var(--azure-3);border-right:1px solid var(--azure-3)}
+
+.note{
+  font-family:'Figtree',sans-serif;font-weight:400;
+  font-size:.88rem;color:var(--paper-3);
+  margin-top:1rem;line-height:1.55;
+}
+
+/* ═══════════════ TABS ═══════════════ */
+.tabs-wrap{
+  margin-bottom:2.75rem;
+  border-top:1px solid var(--rule);
+  border-bottom:1px solid var(--rule);
+  padding:.85rem 0;
+  position:relative;
+}
+.tabs{display:flex;gap:0;flex-wrap:wrap;justify-content:center}
+.tab{
+  padding:.55rem .85rem;
+  border:none;background:transparent;
+  font-family:'JetBrains Mono',monospace;
+  font-size:.7rem;font-weight:500;
+  letter-spacing:.11em;text-transform:uppercase;
+  color:var(--paper-3);
+  cursor:pointer;
+  position:relative;
+  transition:color .18s;
+}
+.tab:hover:not(:disabled){color:var(--paper)}
+.tab.active{color:var(--azure)}
+.tab.active::after{
+  content:'';position:absolute;left:50%;transform:translateX(-50%);
+  bottom:-.95rem;width:28px;height:2px;background:var(--azure);
+}
+.tab:disabled{color:var(--paper-4);cursor:not-allowed}
+.tab:disabled::after{content:'';display:none}
+
+/* ═══════════════ CHARTS ═══════════════ */
+.chart-wrap{position:relative}
+.chart-wrap.tall{height:400px}
+.chart-wrap.med{height:290px}
+
+.two-col{display:grid;grid-template-columns:1.05fr .95fr;gap:1.1rem}
+@media(max-width:780px){.two-col{grid-template-columns:1fr}}
+
+/* ═══════════════ STANDINGS TABLE ═══════════════ */
+table{width:100%;border-collapse:collapse;font-size:.93rem}
+thead th{
+  text-align:left;
+  font-family:'JetBrains Mono',monospace;font-weight:500;
+  font-size:.62rem;text-transform:uppercase;letter-spacing:.15em;
+  color:var(--paper-3);
+  padding:.5rem .55rem;
+  border-bottom:1px solid var(--rule-2);
+}
+tbody tr{border-bottom:1px solid var(--rule);transition:background .15s}
 tbody tr:last-child{border-bottom:none}
-tbody td{padding:.5rem .5rem;vertical-align:middle}
-tbody tr:hover{background:#191e35}
-.rank-num{color:#6b7494;font-size:.8rem;min-width:1.4rem}
-.rank-num.gold{color:#f5e27a;font-weight:700}
-.dot{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:6px;flex-shrink:0}
-.pcell{display:flex;align-items:center}
-.score{font-weight:700;font-size:1rem;color:#e8eaf6}
-.winpct{color:#a0aec0;font-size:.82rem}
-.winpct.hi{color:#f5e27a;font-weight:600}
-.bar-mini{height:5px;border-radius:3px;background:#1e2438;margin-top:3px;overflow:hidden}
-.bar-fill{height:100%;border-radius:3px}
+tbody td{padding:.75rem .55rem;vertical-align:middle}
+tbody tr:hover{background:rgba(106,166,255,.045)}
+.rank-num{
+  font-family:'Figtree',sans-serif;
+  color:var(--paper-3);font-size:1rem;font-weight:500;
+  font-feature-settings:"tnum","lnum";
+  width:2.2rem;
+}
+.rank-num.gold{
+  color:var(--azure);font-weight:700;font-size:1.25rem;
+}
+.dot{
+  display:inline-block;width:9px;height:9px;
+  flex-shrink:0;
+  transform:rotate(45deg);
+}
+.pcell{
+  display:flex;align-items:center;gap:.55rem;
+  padding-left:3px;
+  font-family:'Figtree',sans-serif;font-weight:500;
+  font-size:.95rem;
+  color:var(--paper);
+}
+.score{
+  font-family:'JetBrains Mono',monospace;
+  font-weight:600;font-size:1.05rem;color:var(--paper);
+  font-feature-settings:"tnum","lnum";
+}
+.winpct{
+  font-family:'JetBrains Mono',monospace;
+  font-feature-settings:"tnum";
+  color:var(--paper-2);font-size:.85rem;font-weight:500;
+}
+.winpct.hi{color:var(--azure);font-weight:700}
+.bar-mini{display:none}
+.bar-inline{flex:1;height:14px;background:var(--rule);overflow:hidden;min-width:80px}
+.bar-inline .bar-fill{height:100%;transition:width .3s}
+.bar-fill{height:100%}
 
-/* player toggles */
-.player-toggles{display:flex;flex-wrap:wrap;gap:.4rem;margin-bottom:.9rem}
-.ptoggle{display:inline-flex;align-items:center;gap:.35rem;padding:.22rem .65rem;
-  border-radius:999px;border:1.5px solid;cursor:pointer;font-size:.8rem;
-  background:transparent;transition:opacity .15s;user-select:none}
-.ptoggle.off{opacity:.28;text-decoration:line-through}
+/* ═══════════════ PLAYER TOGGLES ═══════════════ */
+.player-toggles{display:flex;flex-wrap:wrap;gap:.4rem;margin-bottom:1.25rem}
+.ptoggle{
+  display:inline-flex;align-items:center;gap:.45rem;
+  padding:.32rem .75rem;
+  border:1px solid;border-radius:0;
+  background:transparent;cursor:pointer;
+  font-family:'JetBrains Mono',monospace;
+  font-size:.7rem;font-weight:500;
+  letter-spacing:.06em;text-transform:uppercase;
+  user-select:none;
+  transition:all .15s;
+}
+.ptoggle:hover{background:rgba(106,166,255,.05)}
+.ptoggle.off{opacity:.22;text-decoration:line-through}
 
-/* game cards */
-.games-grid{display:grid;gap:.75rem}
-.gcard{background:#131728;border:1px solid #1e2438;border-radius:8px;padding:.9rem 1rem}
-.gcard .round-label{font-size:.75rem;color:#6b7494;text-transform:uppercase;letter-spacing:.04em;margin-bottom:.35rem}
-.gcard .players{font-weight:600;font-size:.93rem;display:flex;align-items:center;gap:.35rem;margin-bottom:.7rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.gcard .players .sep{color:#6b7494;font-weight:400;font-size:.78rem}
-.piece{font-size:.82rem;opacity:.85;flex-shrink:0}
-.prob-bars{height:28px;border-radius:4px;overflow:hidden;display:flex;gap:2px}
-.pb{display:flex;align-items:center;justify-content:center;font-size:.76rem;font-weight:700;gap:.2rem}
-.pb.white-win{color:#0d0f1a}.pb.draw{color:#c8d0e7;background:#4a5278!important}.pb.black-win{color:#e8eaf6}
-.pb .ps{font-size:.68rem;opacity:.8}
-.prob-foot{display:flex;justify-content:space-between;font-size:.72rem;color:#4a5278;margin-top:3px}
-.result-badge{display:inline-block;margin-top:.5rem;padding:.12rem .5rem;border-radius:4px;
-  font-size:.75rem;font-weight:700;letter-spacing:.03em}
-.result-badge.white-win{background:#4fc3f720;color:#4fc3f7;border:1px solid #4fc3f740}
-.result-badge.draw{background:#8a93b220;color:#c8d0e7;border:1px solid #8a93b240}
-.result-badge.black-win{background:#ce93d820;color:#ce93d8;border:1px solid #ce93d840}
+/* ═══════════════ GAME CARDS ═══════════════ */
+.games-grid{display:grid;gap:.9rem}
+.gcard{
+  background:var(--ink-2);
+  border:1px solid var(--rule);
+  padding:1rem 1.15rem 1.05rem;
+  position:relative;
+  transition:border-color .18s,background .18s;
+}
+.gcard:hover{border-color:var(--rule-2);background:var(--ink-3)}
+.gcard .round-label{
+  font-family:'JetBrains Mono',monospace;
+  font-size:.6rem;font-weight:500;
+  color:var(--paper-3);
+  text-transform:uppercase;letter-spacing:.16em;
+  margin-bottom:.55rem;
+}
+.gcard .players{
+  font-family:'Figtree',sans-serif;font-weight:600;
+  font-size:.98rem;
+  display:flex;align-items:center;gap:.45rem;
+  padding-left:3px;
+  margin-bottom:.85rem;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+  color:var(--paper);
+}
+.gcard .players .sep{
+  color:var(--paper-3);font-size:.72rem;
+  font-weight:400;text-transform:uppercase;letter-spacing:.1em;
+  margin:0 .15rem;
+}
+.piece{font-size:.88rem;flex-shrink:0;color:var(--paper-2)}
+.prob-bars{
+  height:32px;display:flex;gap:1px;
+  border:1px solid var(--rule);
+}
+.pb{
+  display:flex;align-items:center;justify-content:center;
+  font-family:'JetBrains Mono',monospace;
+  font-size:.74rem;font-weight:700;
+  font-feature-settings:"tnum";
+  gap:.2rem;letter-spacing:.02em;
+}
+.pb.white-win{color:var(--paper)}
+.pb.draw{color:var(--paper-2);background:rgba(168,184,216,.08)!important}
+.pb.black-win{color:var(--paper)}
+.pb .ps{font-size:.62rem;opacity:.75}
+.prob-foot{
+  display:flex;justify-content:space-between;
+  font-family:'JetBrains Mono',monospace;
+  font-size:.6rem;color:var(--paper-3);
+  margin-top:.45rem;letter-spacing:.08em;text-transform:uppercase;
+}
+.result-badge{
+  display:inline-block;margin-top:.7rem;
+  padding:.25rem .7rem;
+  font-family:'JetBrains Mono',monospace;
+  font-size:.64rem;font-weight:700;
+  letter-spacing:.12em;text-transform:uppercase;
+  border:1px solid #ffee58;
+  color:#ffee58;
+  background:rgba(255,238,88,.10);
+}
+.result-badge.draw{color:var(--paper);border-color:var(--paper-2);background:rgba(168,184,216,.08)}
 
-/* show-more / all-games panel */
-.show-more-btn{display:block;margin:.75rem auto 0;padding:.3rem 1.1rem;border-radius:6px;
-  border:1px solid #2a3050;background:#131728;color:#8a93b2;font-size:.82rem;
-  cursor:pointer;transition:all .15s}
-.show-more-btn:hover{background:#1e2438;color:#c8d0e7}
-.all-games-panel{margin-top:1rem}
-.games-section-lbl{font-size:.8rem;font-weight:600;color:#6b7494;text-transform:uppercase;
-  letter-spacing:.06em;margin:1.25rem 0 .5rem;display:flex;align-items:center;gap:.6rem}
-.games-section-lbl::after{content:'';flex:1;height:1px;background:#1e2438}
-.round-group{margin-bottom:1rem}
-.round-group-lbl{font-size:.72rem;color:#4a5278;text-transform:uppercase;letter-spacing:.05em;
-  margin-bottom:.4rem;padding-bottom:.2rem;border-bottom:1px solid #191d30}
+/* ═══════════════ SHOW-MORE / PANELS ═══════════════ */
+.show-more-btn{
+  display:block;margin:0 auto;
+  padding:.5rem 1.25rem;
+  border:1px solid var(--rule-2);background:transparent;
+  color:var(--paper-2);
+  font-family:'JetBrains Mono',monospace;
+  font-size:.66rem;font-weight:500;
+  letter-spacing:.14em;text-transform:uppercase;
+  cursor:pointer;transition:all .18s;
+}
+.show-more-btn:hover{color:var(--azure);border-color:var(--azure);background:rgba(106,166,255,.04)}
+.all-games-panel{margin-top:1.5rem}
+.games-section-lbl{
+  font-family:'JetBrains Mono',monospace;
+  font-size:.66rem;font-weight:500;
+  color:var(--paper-3);text-transform:uppercase;letter-spacing:.16em;
+  margin:1.75rem 0 .75rem;
+  display:flex;align-items:center;gap:.85rem;
+}
+.games-section-lbl::after{content:'';flex:1;height:1px;background:var(--rule)}
+.round-group{margin-bottom:1.4rem}
+.round-group-lbl{
+  font-family:'Figtree',sans-serif;font-weight:600;
+  font-size:.85rem;color:var(--paper-2);
+  text-transform:uppercase;letter-spacing:.1em;
+  margin-bottom:.6rem;padding-bottom:.3rem;
+  border-bottom:1px solid var(--rule);
+}
 
-/* rank heatmap */
-.hm-table{width:100%;border-collapse:collapse;font-size:.81rem}
-.hm-table th{text-align:center;color:#6b7494;font-size:.73rem;font-weight:600;
-  padding:.3rem .4rem;border-bottom:1px solid #1e2438}
+/* ═══════════════ HEATMAP ═══════════════ */
+.hm-table{width:100%;border-collapse:collapse;font-size:.82rem}
+.hm-table th{
+  text-align:center;
+  font-family:'JetBrains Mono',monospace;
+  font-size:.6rem;font-weight:500;
+  color:var(--paper-3);text-transform:uppercase;letter-spacing:.12em;
+  padding:.4rem .35rem;
+  border-bottom:1px solid var(--rule-2);
+}
 .hm-table th:first-child{text-align:left}
-.hm-table td{text-align:center;padding:.28rem .35rem;border-bottom:1px solid #191d30}
+.hm-table td{text-align:center;padding:.35rem .3rem;border-bottom:1px solid var(--rule)}
 .hm-table td:first-child{text-align:left}
-.hm-cell{display:inline-block;width:100%;padding:.18rem .25rem;border-radius:4px;font-weight:600;font-size:.78rem}
+.hm-cell{
+  display:inline-block;width:100%;padding:.25rem .25rem;
+  font-family:'JetBrains Mono',monospace;
+  font-feature-settings:"tnum";
+  font-weight:600;font-size:.74rem;letter-spacing:.02em;
+}
 
-/* pareto section */
-.pareto-meta{display:flex;gap:1.5rem;flex-wrap:wrap;margin-bottom:1rem}
-.pmeta-item{background:#1a1f35;border:1px solid #2a3050;border-radius:6px;padding:.4rem .8rem}
-.pmeta-item .pk{font-size:.72rem;color:#6b7494;text-transform:uppercase;letter-spacing:.04em}
-.pmeta-item .pv{font-size:.95rem;font-weight:700;color:#f5e27a}
+/* ═══════════════ PARETO ═══════════════ */
+.pareto-meta{display:flex;gap:.8rem;flex-wrap:wrap;margin-bottom:1.3rem}
+.pmeta-item{
+  background:transparent;
+  border:1px solid var(--rule-2);
+  padding:.55rem 1rem;
+  position:relative;
+}
+.pmeta-item .pk{
+  font-family:'JetBrains Mono',monospace;
+  font-size:.58rem;font-weight:500;
+  color:var(--paper-3);text-transform:uppercase;letter-spacing:.14em;
+  margin-bottom:.15rem;
+}
+.pmeta-item .pv{
+  font-family:'Figtree',sans-serif;
+  font-size:1.25rem;font-weight:700;
+  color:var(--azure);
+  font-feature-settings:"tnum","lnum";
+}
 
-/* hparams */
-.hp-groups{display:grid;grid-template-columns:1fr;gap:.75rem}
-.hp-group{background:#131728;border:1px solid #1e2438;border-radius:8px;padding:.9rem 1rem}
-.hp-group h4{font-size:.78rem;text-transform:uppercase;letter-spacing:.06em;color:#6b7494;
-  font-weight:600;margin-bottom:.6rem}
-.hp-row{display:flex;align-items:baseline;gap:.5rem;padding:.2rem 0;border-bottom:1px solid #191d30}
+/* ═══════════════ HPARAMS ═══════════════ */
+.hp-groups{display:grid;grid-template-columns:1fr;gap:.9rem}
+.hp-group{
+  background:var(--ink-2);
+  border:1px solid var(--rule);
+  padding:1.4rem 1.6rem;
+}
+.hp-group h4{
+  font-family:'JetBrains Mono',monospace;
+  font-weight:500;font-size:.78rem;
+  text-transform:uppercase;letter-spacing:.16em;
+  color:var(--azure);
+  margin-bottom:1.1rem;
+  padding-bottom:.65rem;
+  border-bottom:1px solid var(--rule);
+}
+.hp-row{
+  display:flex;align-items:baseline;gap:.75rem;flex-wrap:wrap;
+  padding:.7rem 0;
+  border-bottom:1px dotted var(--rule);
+}
 .hp-row:last-child{border-bottom:none}
-.hp-key{font-size:.8rem;color:#a0aec0;font-family:monospace;min-width:11rem}
-.hp-val{font-size:.83rem;font-weight:600;color:#e8eaf6;margin-left:auto;white-space:nowrap}
-.hp-desc{font-size:.72rem;color:#4a5278;display:block;margin-top:.1rem}
-.hp-score-row{display:flex;gap:.75rem;flex-wrap:wrap;margin-bottom:1rem}
-.hp-score{background:#1a1f35;border:1px solid #2a3050;border-radius:6px;padding:.3rem .7rem}
-.hp-score .sk{font-size:.7rem;color:#6b7494;text-transform:uppercase;letter-spacing:.04em}
-.hp-score .sv{font-size:.9rem;font-weight:700;color:#80deea}
+.hp-key{
+  font-family:'JetBrains Mono',monospace;
+  font-size:.95rem;font-weight:500;color:var(--paper);
+  min-width:16rem;flex:0 0 auto;
+}
+.hp-val{
+  font-family:'JetBrains Mono',monospace;
+  font-size:1rem;font-weight:700;
+  color:var(--azure);
+  margin-left:auto;white-space:nowrap;
+  font-feature-settings:"tnum";
+}
+.hp-desc{
+  font-family:'Figtree',sans-serif;font-weight:400;
+  font-size:.88rem;color:var(--paper-3);
+  display:block;margin-top:.3rem;flex-basis:100%;
+  line-height:1.45;
+}
+.hp-score-row{display:flex;gap:.8rem;flex-wrap:wrap;margin-bottom:1.5rem}
+.hp-score{
+  background:transparent;
+  border:1px solid var(--rule-2);
+  padding:.65rem 1.15rem;
+}
+.hp-score .sk{
+  font-family:'JetBrains Mono',monospace;
+  font-size:.7rem;font-weight:500;
+  color:var(--paper-3);
+  text-transform:uppercase;letter-spacing:.14em;
+  margin-bottom:.15rem;
+}
+.hp-score .sv{
+  font-family:'Figtree',sans-serif;
+  font-size:1.35rem;font-weight:700;
+  color:var(--azure);
+  font-feature-settings:"tnum","lnum";
+}
 
-/* players table */
-details{margin-bottom:1.5rem}
-summary{cursor:pointer;padding:.5rem .75rem;background:#131728;border:1px solid #1e2438;
-  border-radius:8px;color:#c8d0e7;font-size:.9rem;font-weight:600;
-  list-style:none;user-select:none;display:flex;align-items:center;gap:.5rem}
-summary::before{content:"▶";font-size:.7rem;transition:transform .2s;color:#6b7494}
-details[open] summary::before{transform:rotate(90deg)}
-.details-body{padding:1rem 0 0}
+/* ═══════════════ SORTABLE HEADERS ═══════════════ */
+th[data-sort]{cursor:pointer;user-select:none;position:relative;white-space:nowrap}
+th[data-sort]:hover{color:var(--azure)}
+th[data-sort]::after{
+  content:'⇅';margin-left:.35rem;font-size:.65rem;opacity:.35;
+  font-family:'JetBrains Mono',monospace;
+}
+th[data-sort].asc::after{content:'↑';opacity:.85;color:var(--azure)}
+th[data-sort].desc::after{content:'↓';opacity:.85;color:var(--azure)}
+
+/* ═══════════════ DETAILS (COLLAPSIBLE) ═══════════════ */
+details{margin-bottom:3.25rem}
+summary{
+  cursor:pointer;
+  background:transparent;
+  font-family:'Fraunces',serif;
+  font-variation-settings:"opsz" 48,"SOFT" 30;
+  font-weight:500;
+  font-size:1.5rem;
+  letter-spacing:-.012em;
+  color:var(--paper);
+  list-style:none;user-select:none;
+  display:flex;align-items:baseline;gap:.9rem;
+  padding-bottom:.6rem;
+  border-bottom:1px solid var(--rule);
+  transition:color .15s;
+}
+summary:hover{color:var(--azure)}
+summary::-webkit-details-marker{display:none}
+summary::after{
+  content:'▾';
+  margin-left:auto;
+  font-family:'JetBrains Mono',monospace;
+  font-size:.8rem;
+  color:var(--paper-3);
+  transition:transform .25s;
+  position:relative;top:-.15em;
+}
+details[open] summary::after{transform:rotate(180deg)}
+summary .num{
+  font-family:'JetBrains Mono',monospace;
+  font-size:.66rem;font-weight:500;
+  color:var(--azure);letter-spacing:.2em;text-transform:uppercase;
+  padding:.25rem .5rem;border:1px solid var(--azure-3);
+  font-variation-settings:initial;
+  position:relative;top:-.25em;
+  display:inline-block;min-width:1.8em;text-align:center;
+}
+.sec-sub{font-style:italic;color:var(--azure-2);font-weight:400}
+.details-body{padding:1.1rem 0 0}
+.details-body section:last-child{margin-bottom:0}
+
+/* ═══════════════ REVEAL ═══════════════ */
+@keyframes fade-in{
+  from{opacity:0;transform:translateY(10px)}
+  to{opacity:1;transform:none}
+}
+.hdr .top-rule{animation:fade-in .9s .05s both}
+.hdr h1{animation:fade-in 1.1s .2s both}
+.hdr .sub{animation:fade-in 1.1s .35s both}
+.hdr .badges{animation:fade-in 1.1s .5s both}
+.hdr .gh-link{animation:fade-in 1.1s .6s both}
+.tabs-wrap{animation:fade-in 1.1s .7s both}
+
+/* selection */
+::selection{background:rgba(106,166,255,.35);color:var(--paper)}
+
+/* scrollbar */
+html{scrollbar-color:var(--rule-2) var(--ink)}
+::-webkit-scrollbar{width:10px;height:10px}
+::-webkit-scrollbar-track{background:var(--ink)}
+::-webkit-scrollbar-thumb{background:var(--rule-2);border:2px solid var(--ink)}
+::-webkit-scrollbar-thumb:hover{background:var(--azure-3)}
+
+/* ═══════════════ APPENDIX DIVIDER ═══════════════ */
+.appendix-divider{
+  margin:3rem 0 1.5rem;
+  display:flex;align-items:center;gap:1rem;
+}
+.appendix-divider::before,.appendix-divider::after{
+  content:'';flex:1;height:1px;background:var(--rule);
+}
+.appendix-label{
+  font-family:'JetBrains Mono',monospace;
+  font-size:.7rem;letter-spacing:.25em;text-transform:uppercase;
+  color:var(--paper-3);white-space:nowrap;
+}
+
+/* ═══════════════ BACK TO TOP ═══════════════ */
+.back-to-top{
+  display:block;margin:2.5rem auto 1rem;
+  padding:.5rem 1.5rem;
+  font-family:'JetBrains Mono',monospace;
+  font-size:.72rem;letter-spacing:.15em;text-transform:uppercase;
+  color:var(--paper-3);background:transparent;
+  border:1px solid var(--rule);cursor:pointer;
+  transition:color .2s,border-color .2s;
+}
+.back-to-top:hover{color:var(--azure);border-color:var(--azure-3)}
 </style>
 </head>
 <body>
 <div class="page">
 
-<!-- header -->
-<div class="hdr">
-  <h1 id="hdr-title">FIDE Candidates Tournament</h1>
-  <div class="sub" id="hdr-sub">Monte Carlo win probability tracker · 1,000,000 simulations per round</div>
-  <div id="hdr-badges"></div>
-  <div style="margin-top:.75rem">
-    <a href="https://github.com/vltanh/candidates-monte-carlo" target="_blank" rel="noopener"
-       style="display:inline-flex;align-items:center;gap:.4rem;color:#8a93b2;font-size:.83rem;
-              text-decoration:none;border:1px solid #2a3050;border-radius:6px;
-              padding:.25rem .7rem;background:#131728;transition:all .15s"
-       onmouseover="this.style.color='#c8d0e7';this.style.borderColor='#4a5278'"
-       onmouseout="this.style.color='#8a93b2';this.style.borderColor='#2a3050'">
-      <svg height="14" width="14" viewBox="0 0 16 16" fill="currentColor">
-        <path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38
-                 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13
-                 -.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66
-                 .07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15
-                 -.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27
-                 .68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12
-                 .51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48
-                 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/>
-      </svg>
-      vltanh/candidates-monte-carlo
-    </a>
+<!-- header / masthead -->
+<header class="hdr">
+  <div class="top-rule">
+    <span id="hdr-vol">VOL. —</span>
+    <span class="ornament">♜ &nbsp;·&nbsp; ♞ &nbsp;·&nbsp; ♝</span>
+    <span>MONTE CARLO EDITION</span>
   </div>
-</div>
+  <h1 id="hdr-title">FIDE <em>Candidates</em></h1>
+  <div class="sub" id="hdr-sub">A broadsheet of simulated futures — one million tournaments, recomputed at every round.</div>
+  <div class="badges" id="hdr-badges"></div>
+  <a class="gh-link" href="https://github.com/vltanh/candidates-monte-carlo" target="_blank" rel="noopener">
+    <svg height="13" width="13" viewBox="0 0 16 16" fill="currentColor">
+      <path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38
+               0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13
+               -.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66
+               .07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15
+               -.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27
+               .68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12
+               .51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48
+               0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/>
+    </svg>
+    vltanh/candidates-monte-carlo
+  </a>
+</header>
 
 <!-- round tabs -->
 <div class="tabs-wrap"><div class="tabs" id="tabs"></div></div>
 
-<!-- timeline charts -->
-<section>
-  <h2>Win Probability Timeline</h2>
-  <div class="card">
-    <div class="player-toggles" id="playerToggles"></div>
-    <div class="chart-wrap tall"><canvas id="cTimeline"></canvas></div>
-    <p class="note">Click a tab above to see predictions entering that round. Dashed line marks the selected round. Click a player chip to show/hide them.</p>
-  </div>
-</section>
-
-<!-- round-specific panel -->
-<section id="roundPanel">
-  <h2 id="roundTitle">Standings &amp; Win Probability</h2>
-  <div class="two-col">
-    <div class="card"><table id="tStandings"><thead><tr>
-      <th>#</th><th>Player</th><th>Elo</th><th>Score</th><th>Win %</th>
-    </tr></thead><tbody id="tbStandings"></tbody></table></div>
-    <div class="card"><div class="chart-wrap med"><canvas id="cWinPct"></canvas></div></div>
-  </div>
-</section>
-
-<section>
-  <h2 id="gamesTitle">Round Games</h2>
-  <div class="games-grid" id="gamesGrid"></div>
-  <div style="display:flex;gap:.5rem;justify-content:center;margin-top:.75rem">
-    <button class="show-more-btn" id="showPastBtn" onclick="toggleSection('past')">▾ Past rounds</button>
-    <button class="show-more-btn" id="showFutureBtn" onclick="toggleSection('future')">▾ Future rounds</button>
-  </div>
-  <div class="all-games-panel" id="pastGamesPanel" style="display:none"></div>
-  <div class="all-games-panel" id="futureGamesPanel" style="display:none"></div>
-</section>
-
-<section>
-  <h2>Rank Distribution</h2>
-  <div class="card">
-    <table class="hm-table" id="hmTable"></table>
-    <p class="note">Probability of finishing in each rank position. Hover for exact value.</p>
-  </div>
-</section>
-
-<!-- expected score timeline -->
-<section>
-  <h2>Expected Final Score Timeline</h2>
-  <div class="card">
-    <div class="chart-wrap tall"><canvas id="cExpScore"></canvas></div>
-    <p class="note">Expected total points (out of <span id="totalRounds">14</span>) via simulation at each checkpoint.</p>
-  </div>
-</section>
-
-<!-- model section -->
-<details id="modelSection" style="display:none">
-  <summary>Model Details</summary>
+<!-- I: timeline -->
+<details open>
+  <summary><span class="num">I</span> Win Probability <em class="sec-sub">Timeline</em></summary>
   <div class="details-body">
-
-    <section id="paretoSection" style="display:none">
-      <h2>Pareto Front — Hyperparameter Tuning</h2>
-      <div id="paretoMeta" class="pareto-meta"></div>
-      <div class="card">
-        <div class="chart-wrap tall"><canvas id="cPareto"></canvas></div>
-        <p class="note">Multi-objective optimisation over 2022 + 2024 Candidates data.
-          ★ = best trial (utopia distance). Coloured points = Pareto-optimal.</p>
-      </div>
-    </section>
-
-    <section id="hparamsSection" style="display:none">
-      <h2>Best Hyperparameters</h2>
-      <div id="hpScores" class="hp-score-row"></div>
-      <div class="hp-groups" id="hpGroups"></div>
-    </section>
-
+    <div class="card">
+      <div class="player-toggles" id="playerToggles"></div>
+      <div class="chart-wrap tall"><canvas id="cTimeline"></canvas></div>
+      <p class="note">Click a tab above to see predictions entering that round. The dashed rule marks the selected round. Click a player chip to show or hide them.</p>
+    </div>
   </div>
 </details>
 
-<!-- tournament info -->
+<!-- II: standings -->
+<details open id="roundPanel">
+  <summary id="roundTitle"><span class="num">II</span> Standings</summary>
+  <div class="details-body">
+    <div class="card"><table id="tStandings"><thead><tr>
+      <th data-sort="rank">#</th><th data-sort="player">Player</th><th data-sort="elo">Elo</th><th data-sort="score">Score</th><th data-sort="winpct">Win %</th>
+    </tr></thead><tbody id="tbStandings"></tbody></table></div>
+    <div style="display:none"><canvas id="cWinPct"></canvas></div>
+  </div>
+</details>
+
+<!-- III: games -->
+<details open>
+  <summary id="gamesTitle"><span class="num">III</span> Game Predictions <em class="sec-sub">Round</em></summary>
+  <div class="details-body">
+    <div class="all-games-panel" id="pastGamesPanel" style="display:none"></div>
+    <div style="display:flex;justify-content:center;margin-bottom:1rem">
+      <button class="show-more-btn" id="showPastBtn" onclick="toggleSection('past')">▴ Past rounds</button>
+    </div>
+    <div class="games-grid" id="gamesGrid"></div>
+    <div style="display:flex;justify-content:center;margin-top:1rem">
+      <button class="show-more-btn" id="showFutureBtn" onclick="toggleSection('future')">▾ Future rounds</button>
+    </div>
+    <div class="all-games-panel" id="futureGamesPanel" style="display:none"></div>
+  </div>
+</details>
+
+<!-- IV: rank distribution -->
 <details>
-  <summary>Tournament Information</summary>
+  <summary id="rankTitle"><span class="num">IV</span> Rank Distribution</summary>
   <div class="details-body">
     <div class="card">
-      <div id="tournMeta" style="margin-bottom:.9rem;font-size:.85rem;color:#8a93b2"></div>
+      <table class="hm-table" id="hmTable"></table>
+      <p class="note">Probability of finishing in each rank position. Hover a cell for the exact value.</p>
+    </div>
+  </div>
+</details>
+
+<!-- V: expected score -->
+<details>
+  <summary><span class="num">V</span> Expected Final Score <em class="sec-sub">Timeline</em></summary>
+  <div class="details-body">
+    <div class="card">
+      <div class="chart-wrap tall"><canvas id="cExpScore"></canvas></div>
+      <p class="note">Expected total points (out of <span id="totalRounds">14</span>), computed via simulation at each checkpoint.</p>
+    </div>
+  </div>
+</details>
+
+<!-- appendix divider -->
+<div class="appendix-divider">
+  <span class="appendix-label">Appendices</span>
+</div>
+
+<!-- appendix: tournament info -->
+<details class="appendix-section">
+  <summary><span class="num appendix-num"></span> Tournament Information</summary>
+  <div class="details-body">
+    <div class="card">
+      <div id="tournMeta" style="margin-bottom:.9rem;font-size:.85rem;color:var(--paper-3)"></div>
       <table id="tPlayers">
-        <thead><tr><th>Player</th><th>FIDE ID</th><th>Classical</th><th>Rapid</th><th>Blitz</th></tr></thead>
+        <thead><tr><th data-sort="name">Player</th><th data-sort="fide_id">FIDE ID</th><th data-sort="rating">Classical</th><th data-sort="rapid">Rapid</th><th data-sort="blitz">Blitz</th></tr></thead>
         <tbody id="tbPlayers"></tbody>
       </table>
     </div>
   </div>
 </details>
+
+<!-- pareto -->
+<details id="paretoSection" class="appendix-section" style="display:none">
+  <summary><span class="num appendix-num"></span> Pareto Front</summary>
+  <div class="details-body">
+    <div id="paretoMeta" class="pareto-meta"></div>
+    <div class="card">
+      <div class="chart-wrap" style="height:600px"><canvas id="cPareto"></canvas></div>
+      <p class="note">Multi-objective optimisation over 2022 + 2024 Candidates data.
+        ★ marks the best trial by utopia distance. Highlighted points are Pareto-optimal.</p>
+    </div>
+    <button class="show-more-btn" id="showParetoTableBtn" onclick="toggleParetoTable()">▾ Pareto front points</button>
+    <div id="paretoTablePanel" style="display:none;margin-top:.7rem">
+      <div class="card">
+        <table id="tPareto">
+          <thead><tr><th data-sort="idx">#</th><th data-sort="trial">Trial</th><th data-sort="brier">Game Brier</th><th data-sort="rps">Rank RPS</th></tr></thead>
+          <tbody id="tbPareto"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</details>
+
+<!-- hyperparameters -->
+<details id="hparamsSection" class="appendix-section" style="display:none">
+  <summary><span class="num appendix-num"></span> Best Hyperparameters</summary>
+  <div class="details-body">
+    <div id="hpScores" class="hp-score-row"></div>
+    <div class="hp-groups" id="hpGroups"></div>
+  </div>
+</details>
+
+<button class="back-to-top" id="backToTop" onclick="window.scrollTo({top:0,behavior:'smooth'})">↑ Top</button>
 
 </div><!-- /page -->
 <script>
@@ -650,27 +1095,70 @@ let sortedPlayers = [];   // dataset order used by timeline + expScore charts
 let pastVisible = false;
 let futureVisible = false;
 
+let standingsSort = {col:'score', dir:-1};
+let heatmapSort   = {col:0, dir:-1};     // 0 = first rank column
+let playersSort   = {col:'rating', dir:-1};
+let paretoSort    = {col:'brier', dir:1};
+
 // quick lookup
 const P_MAP = Object.fromEntries(DATA.players.map(p => [p.key, p]));
+
+// Integer → Roman numeral (for masthead volume)
+function toRoman(num){
+  if (!num || num < 1) return '—';
+  const map = [[1000,'M'],[900,'CM'],[500,'D'],[400,'CD'],[100,'C'],[90,'XC'],
+               [50,'L'],[40,'XL'],[10,'X'],[9,'IX'],[5,'V'],[4,'IV'],[1,'I']];
+  let r = '';
+  for (const [v,s] of map){ while (num >= v){ r += s; num -= v; } }
+  return r;
+}
 
 // ═══════════════════════════════════════════════
 // HELPERS
 // ═══════════════════════════════════════════════
 function pct(v, d=1){ return (v*100).toFixed(d)+'%'; }
-function fmt(v, d=3){ return typeof v==='number'?v.toFixed(d):v; }
+function fmt(v){
+  if (typeof v !== 'number') return v;
+  if (!isFinite(v)) return String(v);
+  if (Number.isInteger(v)) return v.toLocaleString('en-US');
+  const abs = Math.abs(v);
+  // Very small non-zero values → scientific
+  if (abs > 0 && abs < 1e-3) return v.toExponential(2);
+  // Otherwise up to 6 significant digits, trim trailing zeros
+  let s = v.toPrecision(6);
+  if (s.indexOf('.') !== -1 && s.indexOf('e') === -1){
+    s = s.replace(/0+$/, '').replace(/\.$/, '');
+  }
+  return s;
+}
 
 function hexAlpha(hex, a){ return hex+Math.round(a*255).toString(16).padStart(2,'0'); }
 
+function toggleSort(state, col){
+  if (state.col === col) state.dir *= -1;
+  else { state.col = col; state.dir = -1; }
+}
+
+function markSortHeaders(table, state){
+  table.querySelectorAll('th[data-sort]').forEach(th => {
+    th.classList.remove('asc','desc');
+    if (String(th.dataset.sort) === String(state.col)){
+      th.classList.add(state.dir > 0 ? 'asc' : 'desc');
+    }
+  });
+}
+
 function heatBg(v, playerKey){
-  const hex = (P_MAP[playerKey]?.color ?? '#888').replace('#','');
+  const hex = (P_MAP[playerKey]?.color ?? '#88a').replace('#','');
   const r=parseInt(hex.slice(0,2),16), g=parseInt(hex.slice(2,4),16), b=parseInt(hex.slice(4,6),16);
-  const alpha = Math.min(1, v*2.5+0.05);
+  const alpha = Math.min(.5, v*2.2+0.03);
   return `rgba(${r},${g},${b},${alpha})`;
 }
 
 function trialColor(n, maxN){
   const t = n / maxN;
-  return `rgba(${Math.round(26+t*53)},${Math.round(43+t*152)},${Math.round(94+t*153)},0.35)`;
+  // deep cobalt → soft azure gradient for the trial cloud
+  return `rgba(${Math.round(46+t*60)},${Math.round(82+t*100)},${Math.round(176+t*55)},0.32)`;
 }
 
 function paretoColor(idx, total){
@@ -681,22 +1169,43 @@ function paretoColor(idx, total){
 // ═══════════════════════════════════════════════
 // INIT
 // ═══════════════════════════════════════════════
-Chart.defaults.color = '#8a93b2';
-Chart.defaults.borderColor = '#1e2438';
-Chart.defaults.font.family = "'Segoe UI', system-ui, sans-serif";
+Chart.defaults.color = '#c0cceb';
+Chart.defaults.borderColor = '#263764';
+Chart.defaults.font.family = "'JetBrains Mono', ui-monospace, monospace";
+Chart.defaults.font.size = 13;
+
+function numberAppendices(){
+  const letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+  let i = 0;
+  document.querySelectorAll('.appendix-section').forEach(sec => {
+    if (sec.style.display === 'none') return;
+    sec.querySelector('.appendix-num').textContent = letters[i++];
+  });
+}
 
 document.addEventListener('DOMContentLoaded', () => {
-  // Header
+  // Header / masthead
   document.getElementById('pageTitle').textContent = DATA.meta.title + ' — Monte Carlo';
-  document.getElementById('hdr-title').textContent = DATA.meta.title;
+
+  // Split "2026 FIDE Candidates" into "FIDE Candidates" + italic year
+  const titleEl = document.getElementById('hdr-title');
+  const m = DATA.meta.title.match(/^(\d{4})\s+(.*)$/);
+  titleEl.innerHTML = m
+    ? `${m[2]} <em>${m[1]}</em>`
+    : DATA.meta.title;
+
+  // Volume line: roman numeral year
+  const volEl = document.getElementById('hdr-vol');
+  if (volEl) volEl.textContent = `VOL. ${toRoman(DATA.meta.year)}`;
+
   const badges = document.getElementById('hdr-badges');
   const latest = DATA.rounds[DATA.rounds.length-1];
   const latestNum = latest.round_num;
   const totalR = DATA.meta.total_rounds;
   badges.innerHTML = `
-    <span class="badge">Updated through Round ${latestNum-1} · Round ${latestNum} upcoming</span>
-    <span class="badge">${totalR} rounds total · ${DATA.meta.gpr} games/round</span>
-    <span class="badge">Tiebreak: ${DATA.meta.tiebreak}</span>`;
+    <span class="badge live">Round ${latestNum} · Live</span>
+    <span class="badge">${totalR} Rounds · ${DATA.meta.gpr}/Round</span>
+    <span class="badge">Tiebreak · ${DATA.meta.tiebreak}</span>`;
   document.getElementById('totalRounds').textContent = totalR;
 
   buildTabs();
@@ -706,9 +1215,18 @@ document.addEventListener('DOMContentLoaded', () => {
   buildPlayerToggles();
   buildTournamentPlayers();
 
+  // Wire up sortable headers — standings
+  document.querySelectorAll('#tStandings thead th[data-sort]').forEach(th => {
+    th.onclick = () => { toggleSort(standingsSort, th.dataset.sort); updateStandings(DATA.rounds[currentIdx]); };
+  });
+  // Wire up sortable headers — tournament players
+  document.querySelectorAll('#tPlayers thead th[data-sort]').forEach(th => {
+    th.onclick = () => { toggleSort(playersSort, th.dataset.sort); renderTournamentPlayers(); };
+  });
+
   if (DATA.pareto) buildPareto();
   if (DATA.hparams) buildHparams();
-  if (DATA.pareto || DATA.hparams) document.getElementById('modelSection').style.display='';
+  numberAppendices();
 
   setRound(currentIdx, false);
 });
@@ -814,39 +1332,66 @@ function setRound(idx, animate=true){
   updateGames(round);
   updateHeatmap(round);
 
-  document.getElementById('roundTitle').textContent =
-    `Standings — ${round.label}`;
-  document.getElementById('gamesTitle').textContent =
-    `Round ${round.round_num} — Game Predictions`;
+  document.getElementById('roundTitle').innerHTML =
+    `<span class="num">II</span> Standings <em class="sec-sub">After Round ${round.round_num - 1}</em>`;
+  document.getElementById('gamesTitle').innerHTML =
+    `<span class="num">III</span> Game Predictions <em class="sec-sub">Round ${round.round_num}</em>`;
+  document.getElementById('rankTitle').innerHTML =
+    `<span class="num">IV</span> Rank Distribution <em class="sec-sub">After Round ${round.round_num - 1}</em>`;
 }
 
 // ═══════════════════════════════════════════════
 // STANDINGS
 // ═══════════════════════════════════════════════
 function updateStandings(round){
-  const sorted = [...DATA.players].sort((a,b) => {
+  // Compute true standings rank (score desc, tiebreak by winpct)
+  const byRank = [...DATA.players].sort((a,b) => {
     const sa = round.actual_scores[a.key]??0, sb = round.actual_scores[b.key]??0;
     if (sb!==sa) return sb-sa;
     return (round.winner_probs[b.key]??0)-(round.winner_probs[a.key]??0);
   });
+  const rankMap = {};
+  byRank.forEach((p,i) => rankMap[p.key] = i+1);
 
-  // table
+  // Sort for display based on user-chosen column
+  const valFn = (p) => {
+    switch(standingsSort.col){
+      case 'rank':   return rankMap[p.key];
+      case 'player': return p.short.toLowerCase();
+      case 'elo':    return p.rating ?? 0;
+      case 'score':  return round.actual_scores[p.key] ?? 0;
+      case 'winpct': return round.winner_probs[p.key] ?? 0;
+      default:       return rankMap[p.key];
+    }
+  };
+  const sorted = [...DATA.players].sort((a,b) => {
+    const va = valFn(a), vb = valFn(b);
+    if (typeof va === 'string') return standingsSort.dir * va.localeCompare(vb);
+    return standingsSort.dir * (va - vb);
+  });
+
+  const tbl = document.getElementById('tStandings');
+  markSortHeaders(tbl, standingsSort);
+
   const tb = document.getElementById('tbStandings');
   tb.innerHTML = '';
-  sorted.forEach((p,i) => {
+  sorted.forEach(p => {
+    const rank  = rankMap[p.key];
     const score = round.actual_scores[p.key]??0;
     const wp    = round.winner_probs[p.key]??0;
     const hidden = hiddenPlayers.has(p.key);
     const tr = document.createElement('tr');
     tr.style.opacity = hidden ? '0.35' : '';
     tr.innerHTML = `
-      <td class="rank-num ${i===0?'gold':''}">${i+1}</td>
+      <td class="rank-num ${rank===1?'gold':''}">${rank}</td>
       <td><div class="pcell"><span class="dot" style="background:${p.color}"></span>${p.short}</div></td>
-      <td style="color:#8a93b2;font-size:.83rem">${p.rating??'—'}</td>
+      <td style="color:var(--paper-3);font-size:.83rem">${p.rating??'—'}</td>
       <td class="score">${score}</td>
       <td>
-        <span class="winpct ${wp>.15?'hi':''}">${pct(wp)}</span>
-        <div class="bar-mini"><div class="bar-fill" style="width:${Math.min(100,wp*100)}%;background:${p.color}"></div></div>
+        <div style="display:flex;align-items:center;gap:.6rem">
+          <div class="bar-inline"><div class="bar-fill" style="width:${Math.min(100,wp*100)}%;background:${p.color}"></div></div>
+          <span class="winpct ${wp>.15?'hi':''}" title="${pct(wp,2)}">${pct(wp)}</span>
+        </div>
       </td>`;
     tb.appendChild(tr);
   });
@@ -872,17 +1417,17 @@ function makeGameCard(g, roundNum){
   const bn = P_MAP[g.black]?.short ?? g.black;
 
   // Gold inset shadow on the bar matching the actual result
-  const wShadow = g.result==='1-0'   ? 'box-shadow:inset 0 0 0 2.5px #f5e27a;' : '';
-  const dShadow = g.result==='1/2-1/2'? 'box-shadow:inset 0 0 0 2.5px #f5e27a;' : '';
-  const bShadow = g.result==='0-1'   ? 'box-shadow:inset 0 0 0 2.5px #f5e27a;' : '';
+  const wShadow = g.result==='1-0'   ? 'box-shadow:inset 0 0 0 3px #ffee58;' : '';
+  const dShadow = g.result==='1/2-1/2'? 'box-shadow:inset 0 0 0 3px #ffee58;' : '';
+  const bShadow = g.result==='0-1'   ? 'box-shadow:inset 0 0 0 3px #ffee58;' : '';
 
   let resultBadge = '';
   if (g.result==='1-0')
-    resultBadge = `<span class="result-badge white-win">✓ ${wn} won</span>`;
+    resultBadge = `<div style="text-align:left"><span class="result-badge white-win">✓ ${wn} won</span></div>`;
   else if (g.result==='0-1')
-    resultBadge = `<span class="result-badge black-win">✓ ${bn} won</span>`;
+    resultBadge = `<div style="text-align:right"><span class="result-badge black-win">✓ ${bn} won</span></div>`;
   else if (g.result==='1/2-1/2')
-    resultBadge = `<span class="result-badge draw">½–½ Draw</span>`;
+    resultBadge = `<div style="text-align:center"><span class="result-badge draw">½–½ Draw</span></div>`;
 
   const card = document.createElement('div');
   card.className = 'gcard';
@@ -894,14 +1439,14 @@ function makeGameCard(g, roundNum){
       <span class="dot" style="background:${bc}"></span>${bn}
     </div>
     <div class="prob-bars">
-      <div class="pb white-win" style="flex:${ww};background:${hexAlpha(wc,0.8)};${wShadow}">${wp}%</div>
-      <div class="pb draw" style="flex:${dd};${dShadow}">${dp}%</div>
-      <div class="pb black-win" style="flex:${bw};background:${hexAlpha(bc,0.65)};${bShadow}">${bp}%</div>
+      <div class="pb white-win" style="flex:${ww};background:${hexAlpha(wc,0.8)};${wShadow}" title="${(ww*100).toFixed(2)}%">${wp}%</div>
+      <div class="pb draw" style="flex:${dd};${dShadow}" title="${(dd*100).toFixed(2)}%">${dp}%</div>
+      <div class="pb black-win" style="flex:${bw};background:${hexAlpha(bc,0.65)};${bShadow}" title="${(bw*100).toFixed(2)}%">${bp}%</div>
     </div>
     <div class="prob-foot">
-      <span>${wn} <span style="color:#6b7494">(W)</span></span>
+      <span>${wn} <span style="color:#6a7ca3">(W)</span></span>
       <span>Draw</span>
-      <span>${bn} <span style="color:#6b7494">(B)</span></span>
+      <span>${bn} <span style="color:#6a7ca3">(B)</span></span>
     </div>
     ${resultBadge}`;
   return card;
@@ -914,7 +1459,7 @@ function updateGames(round){
   const grid = document.getElementById('gamesGrid');
   grid.innerHTML = '';
   if (!round.upcoming_games?.length){
-    grid.innerHTML = '<p style="color:#6b7494;font-size:.88rem">No game data for this round.</p>';
+    grid.innerHTML = '<p style="color:#6a7ca3;font-size:.88rem">No game data for this round.</p>';
     return;
   }
   grid.style.gridTemplateColumns = `repeat(${chooseCols(round.upcoming_games.length)}, 1fr)`;
@@ -928,15 +1473,6 @@ function updateGames(round){
 // ═══════════════════════════════════════════════
 function toggleSection(which){
   const isPast = which === 'past';
-  // Close the other panel first
-  const otherVisible = isPast ? futureVisible : pastVisible;
-  if (otherVisible){
-    const otherId  = isPast ? 'futureGamesPanel' : 'pastGamesPanel';
-    const otherBtn = isPast ? 'showFutureBtn'    : 'showPastBtn';
-    document.getElementById(otherId).style.display = 'none';
-    document.getElementById(otherBtn).textContent  = isPast ? '▾ Future rounds' : '▾ Past rounds';
-    if (isPast) futureVisible = false; else pastVisible = false;
-  }
   if (isPast) pastVisible = !pastVisible; else futureVisible = !futureVisible;
   const visible = isPast ? pastVisible : futureVisible;
   const panelId = isPast ? 'pastGamesPanel' : 'futureGamesPanel';
@@ -946,10 +1482,10 @@ function toggleSection(which){
   if (visible){
     buildPanel(which);
     panel.style.display = '';
-    btn.textContent = isPast ? '▴ Hide past' : '▴ Hide future';
+    btn.textContent = isPast ? '▾ Hide past' : '▴ Hide future';
   } else {
     panel.style.display = 'none';
-    btn.textContent = isPast ? '▾ Past rounds' : '▾ Future rounds';
+    btn.textContent = isPast ? '▴ Past rounds' : '▾ Future rounds';
   }
 }
 
@@ -959,7 +1495,7 @@ function buildPanel(which){
   panel.innerHTML = '';
   const curRound = DATA.rounds[currentIdx].round_num;
   const rounds = isPast
-    ? DATA.all_games.filter(ag => ag.round_num < curRound).slice().reverse()
+    ? DATA.all_games.filter(ag => ag.round_num < curRound)
     : DATA.all_games.filter(ag => ag.round_num > curRound);
 
   rounds.forEach(ag => {
@@ -986,16 +1522,37 @@ function updateHeatmap(round){
   const tbl = document.getElementById('hmTable');
   tbl.innerHTML = '';
   const n = DATA.players.length;
-  const thead = document.createElement('thead');
-  thead.innerHTML = '<tr><th>Player</th>' +
-    [...Array(n)].map((_,i) => `<th>${i+1}${['st','nd','rd'][i]??'th'}</th>`).join('') + '</tr>';
-  tbl.appendChild(thead);
 
-  // sort by P(rank 1) desc, exclude hidden players
+  const thead = document.createElement('thead');
+  const hrow = document.createElement('tr');
+  const thP = document.createElement('th');
+  thP.textContent = 'Player';
+  thP.dataset.sort = 'player';
+  thP.onclick = () => { toggleSort(heatmapSort,'player'); updateHeatmap(DATA.rounds[currentIdx]); };
+  hrow.appendChild(thP);
+  for (let i=0;i<n;i++){
+    const th = document.createElement('th');
+    th.textContent = `${i+1}${['st','nd','rd'][i]??'th'}`;
+    th.dataset.sort = String(i);
+    th.onclick = ((idx) => () => { toggleSort(heatmapSort,idx); updateHeatmap(DATA.rounds[currentIdx]); })(i);
+    hrow.appendChild(th);
+  }
+  thead.appendChild(hrow);
+  tbl.appendChild(thead);
+  markSortHeaders(tbl, heatmapSort);
+
+  const valFn = (p) => {
+    if (heatmapSort.col === 'player') return p.short.toLowerCase();
+    const rm = round.rank_matrix[p.key] ?? [];
+    return rm[heatmapSort.col] ?? 0;
+  };
   const sorted = [...DATA.players]
     .filter(p => !hiddenPlayers.has(p.key))
-    .sort((a,b) =>
-      ((round.rank_matrix[b.key]??[0])[0]??0)-((round.rank_matrix[a.key]??[0])[0]??0));
+    .sort((a,b) => {
+      const va = valFn(a), vb = valFn(b);
+      if (typeof va === 'string') return heatmapSort.dir * va.localeCompare(vb);
+      return heatmapSort.dir * (va - vb);
+    });
 
   const tbody = document.createElement('tbody');
   sorted.forEach(p => {
@@ -1003,8 +1560,7 @@ function updateHeatmap(round){
     const tr = document.createElement('tr');
     const cells = rm.map((v,ri) => {
       const bg = heatBg(v, p.key);
-      const textColor = v > 0.35 ? '#0d0f1a' : '#dde3ef';
-      return `<td><span class="hm-cell" style="background:${bg};color:${textColor}" title="${pct(v,1)}">${pct(v,0)}</span></td>`;
+      return `<td><span class="hm-cell" style="background:${bg}" title="${pct(v,2)}">${pct(v,0)}</span></td>`;
     }).join('');
     tr.innerHTML = `<td><div class="pcell"><span class="dot" style="background:${p.color}"></span>${p.short}</div></td>${cells}`;
     tbody.appendChild(tr);
@@ -1049,15 +1605,15 @@ function initTimeline(){
       responsive:true, maintainAspectRatio:false,
       interaction:{mode:'index',intersect:false},
       scales:{
-        x:{grid:{color:'#1a1f35'},ticks:{font:{size:11}}},
-        y:{grid:{color:'#1a1f35'},ticks:{callback:v=>v+'%',font:{size:11}},
-           title:{display:true,text:'Win Probability (%)',color:'#6b7494'}}
+        x:{grid:{color:'rgba(120,180,255,.1)'},ticks:{font:{size:11}}},
+        y:{grid:{color:'rgba(120,180,255,.1)'},ticks:{callback:v=>v+'%',font:{size:11}},
+           title:{display:true,text:'Win Probability (%)',color:'#6a7ca3'}}
       },
       plugins:{
         legend:{position:'bottom',labels:{boxWidth:12,padding:13,font:{size:12}}},
         tooltip:{itemSort:(a,b)=>b.parsed.y-a.parsed.y,callbacks:{label:ctx=>` ${ctx.dataset.label}: ${ctx.parsed.y.toFixed(1)}%`}},
         annotation:{annotations:{vline:{type:'line',xMin:currentIdx,xMax:currentIdx,
-          borderColor:'#f5e27a80',borderWidth:2,borderDash:[6,4]}}}
+          borderColor:'#ffee58cc',borderWidth:2,borderDash:[6,4]}}}
       }
     }
   });
@@ -1097,16 +1653,16 @@ function initExpScore(){
       responsive:true, maintainAspectRatio:false,
       interaction:{mode:'index',intersect:false},
       scales:{
-        x:{grid:{color:'#1a1f35'},ticks:{font:{size:11}}},
-        y:{grid:{color:'#1a1f35'},
+        x:{grid:{color:'rgba(120,180,255,.1)'},ticks:{font:{size:11}}},
+        y:{grid:{color:'rgba(120,180,255,.1)'},
            ticks:{stepSize:1,font:{size:11}},
-           title:{display:true,text:`Expected Final Score (out of ${DATA.meta.total_rounds})`,color:'#6b7494'}}
+           title:{display:true,text:`Expected Final Score (out of ${DATA.meta.total_rounds})`,color:'#6a7ca3'}}
       },
       plugins:{
         legend:{position:'bottom',labels:{boxWidth:12,padding:13,font:{size:12}}},
         tooltip:{itemSort:(a,b)=>b.parsed.y-a.parsed.y,callbacks:{label:ctx=>` ${ctx.dataset.label}: ${ctx.parsed.y.toFixed(2)} pts`}},
         annotation:{annotations:{vline:{type:'line',xMin:currentIdx,xMax:currentIdx,
-          borderColor:'#f5e27a80',borderWidth:2,borderDash:[6,4]}}}
+          borderColor:'#ffee58cc',borderWidth:2,borderDash:[6,4]}}}
       }
     }
   });
@@ -1125,7 +1681,7 @@ function initWinPct(){
       plugins:{legend:{display:false},
         tooltip:{callbacks:{label:ctx=>` ${ctx.parsed.x.toFixed(1)}%`}}},
       scales:{
-        x:{grid:{color:'#1a1f35'},ticks:{callback:v=>v+'%',font:{size:11}},max:100},
+        x:{grid:{color:'rgba(120,180,255,.1)'},ticks:{callback:v=>v+'%',font:{size:11}},max:100},
         y:{grid:{display:false},ticks:{font:{size:12}}}
       }
     }
@@ -1139,27 +1695,34 @@ function buildPareto(){
   const pd = DATA.pareto;
   document.getElementById('paretoSection').style.display='';
 
-  // meta badges
+  // meta badges — show raw (unnormalized) values
   const meta = document.getElementById('paretoMeta');
   meta.innerHTML = `
     <div class="pmeta-item"><div class="pk">Total Trials</div><div class="pv">${pd.total_trials.toLocaleString()}</div></div>
     <div class="pmeta-item"><div class="pk">Pareto-Optimal</div><div class="pv">${pd.pareto_count}</div></div>
     <div class="pmeta-item"><div class="pk">Best Trial</div><div class="pv">#${pd.best.n}</div></div>
-    <div class="pmeta-item"><div class="pk">Game Brier</div><div class="pv">${pd.best.x.toFixed(4)}</div></div>
-    <div class="pmeta-item"><div class="pk">Rank RPS</div><div class="pv">${pd.best.y.toFixed(4)}</div></div>`;
+    <div class="pmeta-item"><div class="pk">Game Brier</div><div class="pv">${pd.best.rx.toFixed(4)}</div></div>
+    <div class="pmeta-item"><div class="pk">Rank RPS</div><div class="pv">${pd.best.ry.toFixed(4)}</div></div>`;
 
+  const xMin = pd.norm_min.x, yMin = pd.norm_min.y;
   const maxN = Math.max(...pd.all_points.map(p=>p.n));
   const nonPareto = pd.all_points.filter(p=>!p.p);
   const paretoOnly = pd.all_points.filter(p=>p.p);
+  const axisMax = Math.max(...pd.all_points.map(p=>p.x), ...pd.all_points.map(p=>p.y));
 
-  // step line dataset
-  const stepLine = pd.pareto_line.map(p => ({x:p.x, y:p.y}));
-  // add "step after" using manual extension
+  // step line
   const stepLineExt = [];
   for (let i=0; i<pd.pareto_line.length; i++){
     stepLineExt.push({x:pd.pareto_line[i].x, y:pd.pareto_line[i].y});
     if (i<pd.pareto_line.length-1)
       stepLineExt.push({x:pd.pareto_line[i+1].x, y:pd.pareto_line[i].y});
+  }
+
+  // Tooltip helper: denormalize for display
+  function rawTip(ctx, prefix){
+    const rx = (ctx.parsed.x * xMin).toFixed(4);
+    const ry = (ctx.parsed.y * yMin).toFixed(4);
+    return ` ${prefix}Brier=${rx}, RPS=${ry}`;
   }
 
   paretoChart = new Chart(document.getElementById('cPareto').getContext('2d'), {
@@ -1177,7 +1740,7 @@ function buildPareto(){
           label:'Pareto front line',
           data: stepLineExt,
           type:'line',
-          borderColor:'#4fc3f760',
+          borderColor:'#78b4ff70',
           borderWidth:1.5,
           borderDash:[4,3],
           pointRadius:0,
@@ -1188,8 +1751,8 @@ function buildPareto(){
         {
           label:'Pareto-optimal',
           data: paretoOnly.map(p=>({x:p.x,y:p.y,n:p.n})),
-          backgroundColor: '#4fc3f7aa',
-          borderColor: '#4fc3f7',
+          backgroundColor: '#40c4ffcc',
+          borderColor: '#40c4ff',
           borderWidth:1,
           pointRadius:6, pointHoverRadius:8,
           order:1,
@@ -1197,11 +1760,11 @@ function buildPareto(){
         {
           label:`★ Best (Trial ${pd.best.n})`,
           data:[{x:pd.best.x,y:pd.best.y}],
-          backgroundColor:'#ffffff',
-          borderColor:'#f5e27a',
-          borderWidth:3,
+          backgroundColor:'#ffee58',
+          borderColor:'#ffee58',
+          borderWidth:2,
           pointStyle:'star',
-          pointRadius:20, pointHoverRadius:22,
+          pointRadius:24, pointHoverRadius:26,
           order:0,
         },
       ]
@@ -1213,21 +1776,68 @@ function buildPareto(){
           filter: item => item.text!=='Pareto front line'}},
         tooltip:{callbacks:{
           label: ctx => {
-            if (ctx.datasetIndex===3) return ` ★ Best: Trial ${pd.best.n} — Brier=${ctx.parsed.x.toFixed(4)}, RPS=${ctx.parsed.y.toFixed(4)}`;
+            if (ctx.datasetIndex===3) return rawTip(ctx, `★ Best #${pd.best.n} — `);
             if (ctx.datasetIndex===2) {
               const pt = paretoOnly[ctx.dataIndex];
-              return ` Pareto Trial ${pt?.n}: Brier=${ctx.parsed.x.toFixed(4)}, RPS=${ctx.parsed.y.toFixed(4)}`;
+              return rawTip(ctx, `Pareto #${pt?.n} — `);
             }
-            return ` Trial: Brier=${ctx.parsed.x.toFixed(4)}, RPS=${ctx.parsed.y.toFixed(4)}`;
+            return rawTip(ctx, '');
           }
         }}
       },
       scales:{
-        x:{grid:{color:'#1a1f35'},title:{display:true,text:'Weighted Game Brier',color:'#6b7494'},ticks:{font:{size:11}}},
-        y:{grid:{color:'#1a1f35'},title:{display:true,text:'Rank RPS',color:'#6b7494'},ticks:{font:{size:11}}}
+        x:{grid:{color:'rgba(120,180,255,.1)'},
+           title:{display:true,text:'Game Brier (normalized, 1.0 = optimal)',color:'#8494be'},
+           ticks:{font:{size:11}, callback:v=>v.toFixed(2)},
+           min:0.98, max:axisMax},
+        y:{grid:{color:'rgba(120,180,255,.1)'},
+           title:{display:true,text:'Rank RPS (normalized, 1.0 = optimal)',color:'#8494be'},
+           ticks:{font:{size:11}, callback:v=>v.toFixed(2)},
+           min:0.98, max:axisMax}
       }
     }
   });
+
+  // Pareto front table
+  window._paretoPoints = paretoOnly;
+  window._paretoBestN = pd.best.n;
+  renderParetoTable();
+
+  // Wire up sortable headers
+  document.querySelectorAll('#tPareto thead th[data-sort]').forEach(th => {
+    th.onclick = () => { toggleSort(paretoSort, th.dataset.sort); renderParetoTable(); };
+  });
+}
+
+function renderParetoTable(){
+  const pts = window._paretoPoints;
+  const bestN = window._paretoBestN;
+  const sorted = [...pts].sort((a,b) => {
+    let va, vb;
+    switch(paretoSort.col){
+      case 'idx':   va = a.rx; vb = b.rx; break;
+      case 'trial': va = a.n;  vb = b.n;  break;
+      case 'brier': va = a.rx; vb = b.rx; break;
+      case 'rps':   va = a.ry; vb = b.ry; break;
+      default:      va = a.rx; vb = b.rx;
+    }
+    return paretoSort.dir * (va - vb);
+  });
+  const tbl = document.getElementById('tPareto');
+  document.getElementById('tbPareto').innerHTML = sorted.map((p,i) => {
+    const star = p.n === bestN ? ' ★' : '';
+    return `<tr${star?' style="color:#ffee58"':''}>` +
+      `<td>${i+1}</td><td>#${p.n}${star}</td>` +
+      `<td>${p.rx.toFixed(6)}</td><td>${p.ry.toFixed(6)}</td></tr>`;
+  }).join('');
+  markSortHeaders(tbl, paretoSort);
+}
+
+let paretoTableVisible = false;
+function toggleParetoTable(){
+  paretoTableVisible = !paretoTableVisible;
+  document.getElementById('paretoTablePanel').style.display = paretoTableVisible ? '' : 'none';
+  document.getElementById('showParetoTableBtn').textContent = paretoTableVisible ? '▴ Pareto front points' : '▾ Pareto front points';
 }
 
 // ═══════════════════════════════════════════════
@@ -1267,9 +1877,32 @@ function buildHparams(){
 function buildTournamentPlayers(){
   const meta = document.getElementById('tournMeta');
   meta.textContent = `${DATA.meta.title} · ${DATA.meta.total_rounds} rounds · ${DATA.meta.gpr} games/round · Tiebreak: ${DATA.meta.tiebreak}`;
+  renderTournamentPlayers();
+}
+
+function renderTournamentPlayers(){
+  const tbl = document.getElementById('tPlayers');
+  markSortHeaders(tbl, playersSort);
+
+  const valFn = (p) => {
+    switch(playersSort.col){
+      case 'name':  return p.name.toLowerCase();
+      case 'fide_id': return p.fide_id ?? 0;
+      case 'rating': return p.rating ?? 0;
+      case 'rapid':  return p.rapid_rating ?? 0;
+      case 'blitz':  return p.blitz_rating ?? 0;
+      default: return p.rating ?? 0;
+    }
+  };
+  const sorted = [...DATA.tournament_players].sort((a,b) => {
+    const va = valFn(a), vb = valFn(b);
+    if (typeof va === 'string') return playersSort.dir * va.localeCompare(vb);
+    return playersSort.dir * (va - vb);
+  });
 
   const tb = document.getElementById('tbPlayers');
-  DATA.tournament_players.forEach(p => {
+  tb.innerHTML = '';
+  sorted.forEach(p => {
     const playerInfo = P_MAP[p.name];
     const tr = document.createElement('tr');
     tr.innerHTML = `
@@ -1277,10 +1910,10 @@ function buildTournamentPlayers(){
         ${playerInfo ? `<span class="dot" style="background:${playerInfo.color}"></span>` : ''}
         ${p.name}
       </div></td>
-      <td style="color:#6b7494;font-size:.83rem">${p.fide_id??'—'}</td>
+      <td style="color:var(--paper-3);font-size:.83rem">${p.fide_id??'—'}</td>
       <td style="font-weight:600">${p.rating??'—'}</td>
-      <td style="color:#a0aec0">${p.rapid_rating??'—'}</td>
-      <td style="color:#a0aec0">${p.blitz_rating??'—'}</td>`;
+      <td style="color:var(--paper-2)">${p.rapid_rating??'—'}</td>
+      <td style="color:var(--paper-2)">${p.blitz_rating??'—'}</td>`;
     tb.appendChild(tr);
   });
 }
