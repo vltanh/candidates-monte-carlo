@@ -662,8 +662,78 @@ section{margin-bottom:3.25rem}
   .games-grid{grid-template-columns:1fr!important}
   .hm-table{font-size:.72rem}
   .hm-table th,.hm-table td{padding:.25rem .15rem}
-  .card{padding:1rem 1.1rem}
+  .card{padding:1rem 1.1rem;overflow-x:auto}
   .page{padding:2rem 1rem 3rem}
+  /* standings table */
+  table{font-size:.82rem}
+  thead th{font-size:.55rem;padding:.4rem .3rem;letter-spacing:.08em}
+  tbody td{padding:.55rem .3rem}
+  .rank-num{font-size:.85rem;width:1.5rem}
+  .rank-num.gold{font-size:1rem}
+  .pcell{font-size:.82rem;gap:.35rem}
+  .dot{width:7px;height:7px}
+  .bar-inline{min-width:40px}
+  .winpct{font-size:.72rem}
+  .score{font-size:.88rem}
+  /* game cards */
+  .gcard{padding:.75rem .85rem .7rem}
+  .gcard .players{font-size:.85rem;gap:.3rem;margin-bottom:.6rem}
+  .prob-bars{height:28px}
+  .pb{font-size:.65rem}
+  .prob-foot{font-size:.52rem}
+  .piece{font-size:.75rem}
+  .result-badge{font-size:.58rem;padding:.2rem .5rem}
+  /* tabs */
+  .tabs{gap:0;justify-content:flex-start;overflow-x:auto;flex-wrap:nowrap;-webkit-overflow-scrolling:touch}
+  .tab{padding:.45rem .55rem;font-size:.6rem;flex-shrink:0}
+  /* header */
+  .hdr h1{font-size:clamp(2rem,5.5vw,3.5rem)}
+  .hdr .sub{font-size:.88rem}
+  .badges{gap:.35rem}
+  .badge{font-size:.58rem;padding:.3rem .55rem}
+  .gh-link{font-size:.65rem;padding:.45rem .9rem}
+  /* heatmap */
+  .hm-table{display:block;overflow-x:auto;-webkit-overflow-scrolling:touch}
+  /* title race detail */
+  #titleRaceDetail{font-size:.78rem}
+  /* scenario explorer */
+  #seSvgWrap{overflow-x:auto}
+  /* sections */
+  summary{font-size:1.2rem;gap:.6rem}
+  summary .num{font-size:.58rem;padding:.2rem .4rem}
+  .note{font-size:.78rem}
+  /* hp */
+  .hp-key{min-width:auto;font-size:.82rem}
+  .hp-val{font-size:.88rem}
+  .hp-desc{font-size:.78rem}
+  .hp-row{gap:.4rem}
+  /* pareto meta */
+  .pareto-meta{gap:.5rem}
+  .pmeta-item{padding:.4rem .7rem}
+  .pmeta-item .pv{font-size:1rem}
+  /* hide Elo column on mobile */
+  .hide-mobile{display:none}
+}
+@media(max-width:420px){
+  .page{padding:1.5rem .65rem 2.5rem}
+  .card{padding:.75rem .8rem}
+  .hdr h1{font-size:clamp(1.6rem,5vw,2.5rem)}
+  .hdr .sub{font-size:.78rem}
+  .hdr .top-rule{font-size:.55rem;gap:.5rem}
+  table{font-size:.75rem}
+  thead th{font-size:.5rem;padding:.3rem .2rem}
+  tbody td{padding:.45rem .2rem}
+  .pcell{font-size:.75rem}
+  .score{font-size:.8rem}
+  .bar-inline{min-width:30px;height:10px}
+  .winpct{font-size:.65rem}
+  .gcard .round-label{font-size:.52rem}
+  .gcard .players{font-size:.78rem}
+  .pb{font-size:.58rem}
+  .prob-foot{font-size:.48rem}
+  summary{font-size:1rem}
+  .badge{font-size:.52rem;padding:.25rem .4rem}
+  .tab{padding:.35rem .4rem;font-size:.52rem}
 }
 
 /* ═══════════════ STANDINGS TABLE ═══════════════ */
@@ -1160,7 +1230,7 @@ html{scrollbar-color:var(--rule-2) var(--ink)}
   <summary id="roundTitle"><span class="num">II</span> Standings</summary>
   <div class="details-body">
     <div class="card"><table id="tStandings"><thead><tr>
-      <th data-sort="rank">#</th><th data-sort="player">Player</th><th data-sort="elo">Elo</th><th data-sort="score">Score</th><th data-sort="winpct">Win %</th>
+      <th data-sort="rank">#</th><th data-sort="player">Player</th><th data-sort="elo" class="hide-mobile">Elo</th><th data-sort="score">Score</th><th data-sort="winpct">Win %</th>
     </tr></thead><tbody id="tbStandings"></tbody></table></div>
     <div style="display:none"><canvas id="cWinPct"></canvas></div>
     <div class="card" id="titleRaceCard" style="margin-top:1.1rem;display:none">
@@ -1575,7 +1645,7 @@ function updateStandings(round){
     tr.innerHTML = `
       <td class="rank-num ${rank===1?'gold':''}">${rank}</td>
       <td><div class="pcell"><span class="dot" style="background:${p.color}"></span>${p.short}</div></td>
-      <td style="color:var(--paper-3);font-size:.83rem">${p.rating??'—'}</td>
+      <td class="hide-mobile" style="color:var(--paper-3);font-size:.83rem">${p.rating??'—'}</td>
       <td class="score">${score}</td>
       <td>
         <div style="display:flex;align-items:center;gap:.6rem">
@@ -2133,6 +2203,7 @@ function initScenarioExplorer(){
   container.innerHTML =
     '<div style="position:relative;height:36px;margin-bottom:1rem">' +
       '<button class="show-more-btn" onclick="_seNav(-1)" style="font-size:.75rem;white-space:nowrap;position:absolute;left:0;top:0">\u21ba Reset</button>' +
+      '<button class="show-more-btn" onclick="_seFollowTruth()" style="font-size:.75rem;white-space:nowrap;position:absolute;left:50%;top:0;transform:translateX(-50%)">\u2713 Follow Truth</button>' +
       '<div style="position:absolute;right:0;top:0;display:inline-flex">' +
         '<button id="seRandomBtn" class="show-more-btn" onclick="_seRandom()" style="font-size:.75rem;border-radius:4px 0 0 4px;border-right:1px solid rgba(120,180,255,.15);white-space:nowrap">\u27f3 Random: Any</button>' +
         '<button class="show-more-btn" onclick="_seToggleRandomMenu()" style="font-size:.75rem;border-radius:0 4px 4px 0;padding:0 6px">\u25be</button>' +
@@ -2225,6 +2296,36 @@ function _seBuildPastChain(){
 }
 function _seNav(d){ _seNavDir = 'backward'; _seDfsWarning = ''; _sePath = d < 0 ? [] : _sePath.slice(0,d); _seRenderAll(); }
 function _seClick(ci){ _seNavDir = 'forward'; _seDfsWarning = ''; _sePath.push(ci); _seRenderAll(); }
+function _seFollowTruth(){
+  _seNavDir = 'forward';
+  _seDfsWarning = '';
+  let n = _seGetFocused();
+  let added = 0;
+  while (!n.leaf){
+    _seGenChildren(n);
+    if (!n.ch || !n.ch.length) break;
+    const gi0 = n.ch[0].gi;
+    const g = _seGames[gi0];
+    if (g.actual === null) break;  // no actual result from here
+    const targetK = ['W','D','L'][g.actual];
+    let found = false;
+    for (let i = 0; i < n.ch.length; i++){
+      if (n.ch[i].gi === gi0 && n.ch[i].k === targetK){
+        _sePath.push(i);
+        n = n.ch[i].child;
+        added++;
+        found = true;
+        break;
+      }
+    }
+    if (!found) break;
+  }
+  if (added === 0){
+    // No actual results to follow from here
+    return;
+  }
+  _seRenderAll();
+}
 function _seSetRandomTarget(key){
   _seRandomTarget = key;
   const btn = document.getElementById('seRandomBtn');
