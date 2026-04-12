@@ -1098,7 +1098,6 @@ details:nth-of-type(4){animation-delay:1.25s}
 details:nth-of-type(5){animation-delay:1.4s}
 details:nth-of-type(n+6){animation-delay:1.6s}
 .appendix-divider{animation:fade-in .8s 1.5s both}
-.back-to-top{animation:fade-in .8s 1.7s both}
 
 /* scenario tree transitions */
 @keyframes se-fwd{
@@ -1164,21 +1163,29 @@ html{scrollbar-color:var(--rule-2) var(--ink)}
   color:var(--paper-3);white-space:nowrap;
 }
 
-/* ═══════════════ BACK TO TOP ═══════════════ */
+/* ═══════════════ BACK TO TOP (floating) ═══════════════ */
 .back-to-top{
-  display:block;margin:2.5rem auto 1rem;
-  padding:.5rem 1.5rem;
+  position:fixed;bottom:1.5rem;right:1.5rem;z-index:90;
+  width:40px;height:40px;
+  display:flex;align-items:center;justify-content:center;
+  padding:0;
   font-family:'JetBrains Mono',monospace;
-  font-size:.72rem;letter-spacing:.15em;text-transform:uppercase;
-  color:var(--paper-3);background:transparent;
-  border:1px solid var(--rule);cursor:pointer;
-  transition:color .2s,border-color .2s,transform .2s,box-shadow .2s;
-  border-radius:3px;
+  font-size:1rem;line-height:1;
+  color:var(--paper-3);
+  background:rgba(18,26,54,.65);
+  backdrop-filter:blur(8px);
+  border:1px solid var(--rule-2);
+  border-radius:50%;
+  cursor:pointer;
+  opacity:0;pointer-events:none;
+  transition:opacity .3s,color .2s,border-color .2s,transform .2s,box-shadow .2s;
 }
+.back-to-top.visible{opacity:1;pointer-events:auto}
 .back-to-top:hover{
   color:var(--azure);border-color:var(--azure-3);
   transform:translateY(-2px);
-  box-shadow:0 2px 8px rgba(106,166,255,.1);
+  box-shadow:0 2px 12px rgba(106,166,255,.15);
+  background:rgba(18,26,54,.85);
 }
 </style>
 </head>
@@ -1334,9 +1341,9 @@ html{scrollbar-color:var(--rule-2) var(--ink)}
   </div>
 </details>
 
-<button class="back-to-top" id="backToTop" onclick="window.scrollTo({top:0,behavior:'smooth'})">↑ Top</button>
 
 </div><!-- /page -->
+<button class="back-to-top" id="backToTop" onclick="window.scrollTo({top:0,behavior:'smooth'})" title="Back to top">↑</button>
 <script>
 // ═══════════════════════════════════════════════
 // DATA (injected by generate_html.py)
@@ -1488,6 +1495,12 @@ document.addEventListener('DOMContentLoaded', () => {
   numberAppendices();
 
   setRound(currentIdx, false);
+
+  // Floating back-to-top visibility
+  const btt = document.getElementById('backToTop');
+  window.addEventListener('scroll', function(){
+    btt.classList.toggle('visible', window.scrollY > 400);
+  }, {passive:true});
 });
 
 // ═══════════════════════════════════════════════
@@ -2118,6 +2131,7 @@ let _sePath = [];
 let _seGames = [];
 let _seContenders = [];
 let _seRandomTarget = null;  // null = any, or player key
+let _seOrphaned = [];  // steps lost after breadcrumb edit: [{round,ws,bs,k,actual}]
 const SE_NS = 'http://www.w3.org/2000/svg';
 
 function toggleScenarios(){
@@ -2294,11 +2308,12 @@ function _seBuildPastChain(){
   }
   return chain;
 }
-function _seNav(d){ _seNavDir = 'backward'; _seDfsWarning = ''; _sePath = d < 0 ? [] : _sePath.slice(0,d); _seRenderAll(); }
-function _seClick(ci){ _seNavDir = 'forward'; _seDfsWarning = ''; _sePath.push(ci); _seRenderAll(); }
+function _seNav(d){ _seNavDir = 'backward'; _seDfsWarning = ''; _seOrphaned = []; _sePath = d < 0 ? [] : _sePath.slice(0,d); _seRenderAll(); }
+function _seClick(ci){ _seNavDir = 'forward'; _seDfsWarning = ''; _seOrphaned = []; _sePath.push(ci); _seRenderAll(); }
 function _seFollowTruth(){
   _seNavDir = 'forward';
   _seDfsWarning = '';
+  _seOrphaned = [];
   let n = _seGetFocused();
   let added = 0;
   while (!n.leaf){
@@ -2344,6 +2359,7 @@ function _seRandom(){
   _seNavDir = 'forward';
   _sePath = [];
   _seDfsWarning = '';
+  _seOrphaned = [];
   let n = _seTree;
   const MAX_TRIES = 1000;
   if (targetKey){
@@ -2423,6 +2439,115 @@ function _seToggleRandomMenu(){
   if (menu) menu.style.display = menu.style.display === 'none' ? '' : 'none';
 }
 
+/* ── breadcrumb inline editing ── */
+let _seCrumbPopover = null;  // active popover element
+function _seDismissPopover(){
+  if (_seCrumbPopover){ _seCrumbPopover.remove(); _seCrumbPopover = null; }
+}
+function _seEditCrumb(depth, evt){
+  evt.stopPropagation();
+  _seDismissPopover();
+  // Walk to the parent node at this depth
+  let n = _seTree;
+  for (let i = 0; i < depth; i++){
+    _seGenChildren(n);
+    n = n.ch[_sePath[i]].child;
+  }
+  _seGenChildren(n);
+  const curEdge = n.ch[_sePath[depth]];
+  const gi = curEdge.gi;
+  const g = _seGames[gi];
+  // Collect all outcomes for this game
+  const outcomes = [];
+  for (let i = 0; i < n.ch.length; i++){
+    if (n.ch[i].gi === gi) outcomes.push({ci:i, k:n.ch[i].k, p:n.ch[i].p});
+  }
+  const oClr = {W:'#00e676', D:'#8494be', L:'#ff5252'};
+  const oLbl = {W:'1\u20130', D:'\u00bd\u2013\u00bd', L:'0\u20131'};
+  // Build popover
+  const pop = document.createElement('div');
+  pop.style.cssText = 'position:absolute;z-index:20;background:rgba(15,22,40,0.97);border:1px solid rgba(120,180,255,.25);border-radius:5px;padding:4px;display:flex;gap:2px;box-shadow:0 4px 16px rgba(0,0,0,.4);backdrop-filter:blur(8px);animation:se-fade .15s ease-out both';
+  outcomes.forEach(function(o){
+    const isCurrent = o.ci === _sePath[depth];
+    const isActual = g.actual !== null && ['W','D','L'][g.actual] === o.k;
+    const GOLD = '#ffd54f';
+    const btnClr = isActual ? GOLD : oClr[o.k];
+    const btnBg = isCurrent ? (isActual ? 'rgba(255,213,79,.15)' : hexAlpha(oClr[o.k],0.15)) : 'transparent';
+    const btnBorder = isCurrent ? (isActual ? GOLD+'80' : oClr[o.k]+'80') : (isActual ? GOLD+'50' : oClr[o.k]+'30');
+    const btn = document.createElement('button');
+    btn.style.cssText = 'border:1px solid '+btnBorder+';background:'+btnBg+';color:'+btnClr+';font-family:"JetBrains Mono",monospace;font-size:.68rem;font-weight:'+((isCurrent||isActual)?'700':'500')+';padding:4px 8px;cursor:pointer;border-radius:3px;white-space:nowrap;transition:background .12s';
+    btn.textContent = (isActual?'\u2713 ':'')+oLbl[o.k]+' '+(o.p*100).toFixed(0)+'%';
+    var hoverBg = isActual ? 'rgba(255,213,79,.2)' : hexAlpha(oClr[o.k],0.2);
+    btn.onmouseenter = function(){ btn.style.background = hoverBg; };
+    btn.onmouseleave = function(){ btn.style.background = btnBg; };
+    btn.onclick = function(e){
+      e.stopPropagation();
+      _seDismissPopover();
+      if (o.ci === _sePath[depth]) return;  // same outcome, no change
+      // Save the intent of remaining path steps (game index + outcome key)
+      // Save the intent of remaining path steps (game index + outcome key + display info)
+      var remaining = [];
+      var rn = n.ch[_sePath[depth]].child;
+      for (var ri = depth+1; ri < _sePath.length; ri++){
+        _seGenChildren(rn);
+        if (!rn.ch || !rn.ch[_sePath[ri]]) break;
+        var re = rn.ch[_sePath[ri]];
+        var rg = _seGames[re.gi];
+        remaining.push({gi:re.gi, k:re.k, round:rg.round, ws:rg.ws, bs:rg.bs, actual:rg.actual});
+        rn = re.child;
+      }
+      // Also include any previously orphaned steps
+      remaining = remaining.concat(_seOrphaned);
+      // Apply the change
+      _sePath[depth] = o.ci;
+      _sePath = _sePath.slice(0, depth+1);
+      // Replay remaining steps where possible
+      _seOrphaned = [];
+      var cur = n.ch[o.ci].child;
+      var replayed = 0;
+      for (var ri2 = 0; ri2 < remaining.length; ri2++){
+        if (cur.leaf) break;
+        _seGenChildren(cur);
+        if (!cur.ch || !cur.ch.length) break;
+        var want = remaining[ri2];
+        var found = false;
+        for (var ci2 = 0; ci2 < cur.ch.length; ci2++){
+          if (cur.ch[ci2].gi === want.gi && cur.ch[ci2].k === want.k){
+            _sePath.push(ci2);
+            cur = cur.ch[ci2].child;
+            found = true;
+            replayed++;
+            break;
+          }
+        }
+        if (!found){
+          // This step and all after become orphaned
+          _seOrphaned = remaining.slice(ri2);
+          break;
+        }
+      }
+      _seNavDir = 'fade';
+      _seDfsWarning = '';
+      _seRenderAll();
+    };
+    pop.appendChild(btn);
+  });
+  // Position relative to the clicked pill
+  const target = evt.currentTarget;
+  const rect = target.getBoundingClientRect();
+  const crumbEl = document.getElementById('seCrumb');
+  const crumbRect = crumbEl.getBoundingClientRect();
+  pop.style.left = (rect.left - crumbRect.left) + 'px';
+  pop.style.top = (rect.bottom - crumbRect.top + 4) + 'px';
+  crumbEl.style.position = 'relative';
+  crumbEl.appendChild(pop);
+  _seCrumbPopover = pop;
+  // Dismiss on outside click
+  setTimeout(function(){
+    document.addEventListener('click', _seDismissPopover, {once:true});
+  }, 0);
+}
+
 function _seRenderAll(){
   _seRenderCrumb(); _seRenderSvg();
   const fn = document.getElementById('seFootnote');
@@ -2430,7 +2555,7 @@ function _seRenderAll(){
   _seNavDir = 'fade';
 }
 
-/* ── breadcrumb (pill-style with gold for actual results) ── */
+/* ── breadcrumb (pill-style with gold for actual results, grouped by round) ── */
 function _seRenderCrumb(){
   const el = document.getElementById('seCrumb');
   if (!el) return;
@@ -2438,38 +2563,105 @@ function _seRenderCrumb(){
   const oLbl = {W:'1\u20130', D:'\u00bd\u2013\u00bd', L:'0\u20131'};
   const GOLD = '#ffd54f';
 
-  let html = '<div style="display:flex;flex-wrap:wrap;align-items:center;gap:3px;font-family:\'JetBrains Mono\',monospace;font-size:.7rem;line-height:1">';
+  if (_sePath.length === 0){
+    el.innerHTML = '<div style="display:flex;align-items:center;gap:3px;font-family:\'JetBrains Mono\',monospace;font-size:.7rem;line-height:1">' +
+      '<span onclick="_seNav(-1)" style="cursor:pointer;padding:4px 8px;border-radius:4px;background:rgba(120,180,255,.1);border:1px solid rgba(120,180,255,.2);color:#78b4ff;font-weight:600;font-size:.65rem;letter-spacing:.05em">START</span></div>';
+    return;
+  }
 
-  // Start pill
-  html += '<span onclick="_seNav(-1)" style="cursor:pointer;padding:4px 8px;border-radius:4px;background:rgba(120,180,255,.1);border:1px solid rgba(120,180,255,.2);color:#78b4ff;font-weight:600;font-size:.65rem;letter-spacing:.05em">START</span>';
-
+  // Collect steps with round info
+  const steps = [];
   let n = _seTree;
   for (let i = 0; i < _sePath.length; i++){
     _seGenChildren(n);
     const e = n.ch[_sePath[i]];
     const g = _seGames[e.gi];
-    const rc = oClr[e.k];
-    const rl = oLbl[e.k];
-    const isActual = g.actual !== null && ['W','D','L'][g.actual] === e.k;
-    const bg = isActual ? 'rgba(255,213,79,.12)' : hexAlpha(rc, 0.08);
-    const border = isActual ? GOLD+'60' : hexAlpha(rc, 0.25);
-    const labelClr = isActual ? GOLD : rc;
-
-    // Arrow
-    html += '<span style="color:#263764;font-size:.55rem">\u25b8</span>';
-
-    // Result pill
-    html += '<span onclick="_seNav('+(i+1)+')" style="cursor:pointer;display:inline-flex;align-items:center;gap:3px;padding:3px 7px;border-radius:4px;background:'+bg+';border:1px solid '+border+';transition:background .15s" '+
-      'onmouseenter="this.style.background=\''+hexAlpha(rc,0.18)+'\'" onmouseleave="this.style.background=\''+bg+'\'">';
-    if (isActual) html += '<span style="color:'+GOLD+';font-size:.55rem">\u2713</span>';
-    html += '<span style="color:'+labelClr+';font-weight:600;font-size:.62rem">R'+g.round+'</span>';
-    html += '<span style="color:var(--paper-2);font-size:.62rem">'+g.ws+'</span>';
-    html += '<span style="color:'+labelClr+';font-weight:700;font-size:.65rem">'+rl+'</span>';
-    html += '<span style="color:var(--paper-2);font-size:.62rem">'+g.bs+'</span>';
-    html += '</span>';
-
+    steps.push({depth:i, edge:e, game:g});
     n = e.child;
   }
+
+  // Group by round
+  const roundGroups = [];
+  steps.forEach(function(s){
+    const rn = s.game.round;
+    if (roundGroups.length === 0 || roundGroups[roundGroups.length-1].round !== rn){
+      roundGroups.push({round:rn, steps:[]});
+    }
+    roundGroups[roundGroups.length-1].steps.push(s);
+  });
+
+  let html = '<div style="display:flex;flex-wrap:wrap;align-items:center;gap:5px;font-family:\'JetBrains Mono\',monospace;font-size:.7rem;line-height:1">';
+
+  // Start pill
+  html += '<span onclick="_seNav(-1)" style="cursor:pointer;padding:4px 8px;border-radius:4px;background:rgba(120,180,255,.1);border:1px solid rgba(120,180,255,.2);color:#78b4ff;font-weight:600;font-size:.65rem;letter-spacing:.05em">START</span>';
+
+  roundGroups.forEach(function(rg){
+    // Arrow between round groups
+    html += '<span style="color:#263764;font-size:.55rem">\u25b8</span>';
+
+    // Round group container
+    html += '<div style="display:inline-flex;align-items:center;gap:2px;padding:2px 4px;border-radius:4px;border:1px solid rgba(120,180,255,.1);background:rgba(120,180,255,.03)">';
+
+    // Round label
+    html += '<span style="color:#4e5f8a;font-size:.55rem;font-weight:600;letter-spacing:.06em;margin-right:2px">R'+rg.round+'</span>';
+
+    rg.steps.forEach(function(s, si){
+      const e = s.edge, g = s.game;
+      const rc = oClr[e.k];
+      const rl = oLbl[e.k];
+      const isActual = g.actual !== null && ['W','D','L'][g.actual] === e.k;
+      const bg = isActual ? 'rgba(255,213,79,.12)' : hexAlpha(rc, 0.08);
+      const border = isActual ? GOLD+'60' : hexAlpha(rc, 0.25);
+      const labelClr = isActual ? GOLD : rc;
+
+      // Result pill — click to edit outcome
+      html += '<span onclick="_seEditCrumb('+s.depth+',event)" style="cursor:pointer;display:inline-flex;align-items:center;gap:2px;padding:2px 5px;border-radius:3px;background:'+bg+';border:1px solid '+border+';transition:background .15s" '+
+        'onmouseenter="this.style.background=\''+hexAlpha(rc,0.18)+'\'" onmouseleave="this.style.background=\''+bg+'\'">';
+      if (isActual) html += '<span style="color:'+GOLD+';font-size:.5rem">\u2713</span>';
+      html += '<span style="color:var(--paper-2);font-size:.58rem">'+g.ws+'</span>';
+      html += '<span style="color:'+labelClr+';font-weight:700;font-size:.6rem">'+rl+'</span>';
+      html += '<span style="color:var(--paper-2);font-size:.58rem">'+g.bs+'</span>';
+      html += '</span>';
+    });
+
+    html += '</div>';
+  });
+
+  // Render orphaned (greyed-out) steps
+  if (_seOrphaned.length > 0){
+    const orphanLbl = {W:'1\u20130', D:'\u00bd\u2013\u00bd', L:'0\u20131'};
+    // Group orphans by round
+    const orphanGroups = [];
+    _seOrphaned.forEach(function(s){
+      if (orphanGroups.length === 0 || orphanGroups[orphanGroups.length-1].round !== s.round){
+        orphanGroups.push({round:s.round, steps:[]});
+      }
+      orphanGroups[orphanGroups.length-1].steps.push(s);
+    });
+
+    // Separator
+    html += '<span style="color:#263764;font-size:.55rem;margin:0 2px">\u00d7</span>';
+
+    orphanGroups.forEach(function(rg, rgi){
+      if (rgi > 0) html += '<span style="color:#1a2448;font-size:.55rem">\u25b8</span>';
+
+      html += '<div style="display:inline-flex;align-items:center;gap:2px;padding:2px 4px;border-radius:4px;border:1px dashed rgba(120,180,255,.08);background:transparent;opacity:.35">';
+      html += '<span style="color:#4e5f8a;font-size:.55rem;font-weight:600;letter-spacing:.06em;margin-right:2px">R'+rg.round+'</span>';
+
+      rg.steps.forEach(function(s){
+        const k = s.k;
+        const rl = orphanLbl[k];
+        html += '<span style="display:inline-flex;align-items:center;gap:2px;padding:2px 5px;border-radius:3px;border:1px solid rgba(120,180,255,.08);background:transparent">';
+        html += '<span style="color:var(--paper-4);font-size:.58rem">'+s.ws+'</span>';
+        html += '<span style="color:var(--paper-4);font-weight:600;font-size:.6rem">'+rl+'</span>';
+        html += '<span style="color:var(--paper-4);font-size:.58rem">'+s.bs+'</span>';
+        html += '</span>';
+      });
+
+      html += '</div>';
+    });
+  }
+
   html += '</div>';
   el.innerHTML = html;
 }
