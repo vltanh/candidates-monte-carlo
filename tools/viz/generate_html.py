@@ -35,11 +35,11 @@ PLAYER_COLORS = [
     "#00e676",  # vivid emerald
     "#ff4081",  # hot pink
     "#b388ff",  # vivid violet
-    "#18ffff",  # cyan neon
-    "#ff5252",  # signal red
+    "#ea80fc",  # bright fuchsia
+    "#18ffff",  # electric cyan
     "#c6ff00",  # acid lime
     "#ff6e40",  # deep orange
-    "#ea80fc",  # bright fuchsia
+    "#76ff03",  # neon green
 ]
 
 # ── hparam metadata ───────────────────────────────────────────────────────────
