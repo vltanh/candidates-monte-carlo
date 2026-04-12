@@ -45,39 +45,42 @@ PLAYER_COLORS = [
 # ── hparam metadata ───────────────────────────────────────────────────────────
 
 HPARAM_GROUPS: dict[str, list[str]] = {
-    "Simulation":        ["runs", "map_iters", "map_tolerance"],
-    "MAP priors":        ["prior_weight_known", "prior_weight_sim"],
-    "Rating model":      ["initial_white_adv", "velocity_time_decay", "lookahead_factor"],
+    "Simulation": ["runs", "map_iters", "map_tolerance"],
+    "MAP priors": ["prior_weight_known", "prior_weight_sim"],
+    "Rating model": ["initial_white_adv", "velocity_time_decay", "lookahead_factor"],
     "Cross-TC blending": ["rapid_form_weight", "blitz_form_weight", "color_bleed"],
-    "Draw model":        ["classical_nu", "rapid_nu", "blitz_nu"],
-    "Aggression":        [
-        "agg_prior_weight", "default_aggression_w",
-        "default_aggression_b", "standings_aggression",
+    "Draw model": ["classical_nu", "rapid_nu", "blitz_nu"],
+    "Aggression": [
+        "agg_prior_weight",
+        "default_aggression_w",
+        "default_aggression_b",
+        "standings_aggression",
     ],
 }
 
 HPARAM_DESC: dict[str, str] = {
-    "runs":                "Monte Carlo simulations per run",
-    "map_iters":           "MAP solver max iterations",
-    "map_tolerance":       "MAP solver convergence tolerance",
-    "prior_weight_known":  "Prior weight for known-opponent ratings",
-    "prior_weight_sim":    "Prior weight for simulated ratings",
-    "initial_white_adv":   "White-piece advantage (Elo)",
+    "runs": "Monte Carlo simulations per run",
+    "map_iters": "MAP solver max iterations",
+    "map_tolerance": "MAP solver convergence tolerance",
+    "prior_weight_known": "Prior weight for known-opponent ratings",
+    "prior_weight_sim": "Prior weight for simulated ratings",
+    "initial_white_adv": "White-piece advantage (Elo)",
     "velocity_time_decay": "Rating velocity time-decay factor",
-    "lookahead_factor":    "Forward-looking rating horizon",
-    "rapid_form_weight":   "Rapid rating blend weight",
-    "blitz_form_weight":   "Blitz rating blend weight",
-    "color_bleed":         "White↔Black rating cross-pollination",
-    "classical_nu":        "Classical draw model parameter ν",
-    "rapid_nu":            "Rapid draw model parameter ν",
-    "blitz_nu":            "Blitz draw model parameter ν",
-    "agg_prior_weight":    "Aggression prior weight",
-    "default_aggression_w":"Default White aggression baseline",
-    "default_aggression_b":"Default Black aggression baseline",
-    "standings_aggression":"Standings-driven aggression factor",
+    "lookahead_factor": "Forward-looking rating horizon",
+    "rapid_form_weight": "Rapid rating blend weight",
+    "blitz_form_weight": "Blitz rating blend weight",
+    "color_bleed": "White↔Black rating cross-pollination",
+    "classical_nu": "Classical draw model parameter ν",
+    "rapid_nu": "Rapid draw model parameter ν",
+    "blitz_nu": "Blitz draw model parameter ν",
+    "agg_prior_weight": "Aggression prior weight",
+    "default_aggression_w": "Default White aggression baseline",
+    "default_aggression_b": "Default Black aggression baseline",
+    "standings_aggression": "Standings-driven aggression factor",
 }
 
 # ── JSONC helpers ─────────────────────────────────────────────────────────────
+
 
 def _extract_meta_comments(text: str) -> dict[str, str]:
     """Pull '// Key: Value' header comments (before any JSON body)."""
@@ -101,7 +104,9 @@ def load_jsonc(path: Path) -> tuple[dict, dict[str, str]]:
     meta = _extract_meta_comments(raw)
     return json.loads(strip_jsonc(raw)), meta
 
+
 # ── player helpers ────────────────────────────────────────────────────────────
+
 
 def _fallback_short(full: str) -> str:
     """Last-resort short name when no alias is available."""
@@ -126,27 +131,29 @@ def build_players(t_data: dict, aliases: dict[str, str]) -> list[dict]:
     raw = sorted(t_data["players"], key=lambda p: p.get("rating", 0), reverse=True)
     return [
         {
-            "key":          p["name"],
-            "short":        aliases.get(p["name"]) or _fallback_short(p["name"]),
-            "color":        PLAYER_COLORS[i % len(PLAYER_COLORS)],
-            "fide_id":      p.get("fide_id"),
-            "rating":       p.get("rating"),
+            "key": p["name"],
+            "short": aliases.get(p["name"]) or _fallback_short(p["name"]),
+            "color": PLAYER_COLORS[i % len(PLAYER_COLORS)],
+            "fide_id": p.get("fide_id"),
+            "rating": p.get("rating"),
             "rapid_rating": p.get("rapid_rating"),
             "blitz_rating": p.get("blitz_rating"),
         }
         for i, p in enumerate(raw)
     ]
 
+
 # ── schedule helpers ──────────────────────────────────────────────────────────
+
 
 def cumulative_scores(t_data: dict) -> dict[str, list[float]]:
     """Index 0 = before R1, index k = after Rk."""
     id2name = {p["fide_id"]: p["name"] for p in t_data["players"]}
-    sched    = t_data["schedule"]
-    max_r    = max((g.get("round", 1) for g in sched), default=0)
+    sched = t_data["schedule"]
+    max_r = max((g.get("round", 1) for g in sched), default=0)
 
     scores: dict[str, float] = {n: 0.0 for n in id2name.values()}
-    cum:    dict[str, list[float]] = {n: [0.0] for n in id2name.values()}
+    cum: dict[str, list[float]] = {n: [0.0] for n in id2name.values()}
 
     for r in range(1, max_r + 1):
         for g in (g for g in sched if g.get("round") == r):
@@ -173,11 +180,17 @@ def schedule_by_round(t_data: dict) -> dict[int, list[dict]]:
     for g in t_data["schedule"]:
         r = g.get("round", 1)
         idx.setdefault(r, []).append(
-            {"white": id2name[g["white"]], "black": id2name[g["black"]], "result": g.get("result")}
+            {
+                "white": id2name[g["white"]],
+                "black": id2name[g["black"]],
+                "result": g.get("result"),
+            }
         )
     return idx
 
+
 # ── round data ────────────────────────────────────────────────────────────────
+
 
 def load_rounds(rounds_dir: Path) -> list[tuple[int, dict]]:
     files = sorted(
@@ -193,8 +206,8 @@ def load_rounds(rounds_dir: Path) -> list[tuple[int, dict]]:
 
 
 def build_rounds(
-    rounds:    list[tuple[int, dict]],
-    cum:       dict[str, list[float]],
+    rounds: list[tuple[int, dict]],
+    cum: dict[str, list[float]],
     sched_idx: dict[int, list[dict]],
 ) -> list[dict]:
     result = []
@@ -210,98 +223,137 @@ def build_rounds(
         upcoming = []
         for g in sched_idx.get(rn, []):
             key = f"{g['white']}|{g['black']}"
-            upcoming.append({
-                "white":  g["white"],
-                "black":  g["black"],
-                "probs":  round_probs.get(key, [1/3, 1/3, 1/3]),
-                "result": g["result"],
-            })
+            upcoming.append(
+                {
+                    "white": g["white"],
+                    "black": g["black"],
+                    "probs": round_probs.get(key, [1 / 3, 1 / 3, 1 / 3]),
+                    "result": g["result"],
+                }
+            )
 
-        result.append({
-            "label":           "Before R1" if rn == 1 else f"After R{rn - 1}",
-            "round_num":       rn,
-            "winner_probs":    data.get("winner_probs",    {}),
-            "expected_points": data.get("expected_points", {}),
-            "rank_matrix":     data.get("rank_matrix",     {}),
-            "actual_scores":   actual,
-            "upcoming_games":  upcoming,
-        })
+        result.append(
+            {
+                "label": "Before R1" if rn == 1 else f"After R{rn - 1}",
+                "round_num": rn,
+                "winner_probs": data.get("winner_probs", {}),
+                "expected_points": data.get("expected_points", {}),
+                "rank_matrix": data.get("rank_matrix", {}),
+                "actual_scores": actual,
+                "upcoming_games": upcoming,
+            }
+        )
     return result
+
 
 # ── all-rounds game predictions ──────────────────────────────────────────────
 
+
 def build_all_games(
-    rounds:    list[tuple[int, dict]],
+    rounds: list[tuple[int, dict]],
     sched_idx: dict[int, list[dict]],
 ) -> list[dict]:
     """For each tournament round: use that round's own JSON if available,
     otherwise fall back to the latest JSON (for future rounds)."""
-    round_map      = {rn: d for rn, d in rounds}
+    round_map = {rn: d for rn, d in rounds}
     _, latest_data = rounds[-1]
     result = []
     for rn in sorted(sched_idx.keys()):
         src = round_map.get(rn, latest_data)
-        rp  = src.get("game_probs", {}).get(str(rn), {})
-        result.append({
-            "round_num": rn,
-            "games": [
-                {
-                    "white":  g["white"],
-                    "black":  g["black"],
-                    "probs":  rp.get(f"{g['white']}|{g['black']}", [1/3, 1/3, 1/3]),
-                    "result": g["result"],
-                }
-                for g in sched_idx.get(rn, [])
-            ],
-        })
+        rp = src.get("game_probs", {}).get(str(rn), {})
+        result.append(
+            {
+                "round_num": rn,
+                "games": [
+                    {
+                        "white": g["white"],
+                        "black": g["black"],
+                        "probs": rp.get(
+                            f"{g['white']}|{g['black']}", [1 / 3, 1 / 3, 1 / 3]
+                        ),
+                        "result": g["result"],
+                    }
+                    for g in sched_idx.get(rn, [])
+                ],
+            }
+        )
     return result
 
+
 # ── Pareto ────────────────────────────────────────────────────────────────────
+
 
 def load_pareto(db_path: Path, study_name: str, max_scatter: int = 600) -> dict | None:
     try:
         import optuna
         from optuna.trial import TrialState
         import numpy as np
+
         optuna.logging.set_verbosity(optuna.logging.WARNING)
 
         study = optuna.load_study(
             study_name=study_name,
             storage=f"sqlite:///{db_path.resolve()}",
         )
-        all_c  = [t for t in study.trials if t.state == TrialState.COMPLETE]
+        all_c = [t for t in study.trials if t.state == TrialState.COMPLETE]
         pareto = study.best_trials
         p_nums = {t.number for t in pareto}
 
         non_p = [t for t in all_c if t.number not in p_nums]
-        step  = max(1, len(non_p) // max_scatter)
+        step = max(1, len(non_p) // max_scatter)
 
-        vals   = np.array([t.values for t in pareto])
-        mins   = vals.min(axis=0)
+        vals = np.array([t.values for t in pareto])
+        mins = vals.min(axis=0)
         ranges = np.where(mins == 0, 1.0, mins)
-        norm   = (vals - mins) / ranges
-        best   = pareto[int(np.sqrt((norm**2).sum(axis=1)).argmin())]
+        norm = (vals - mins) / ranges
+        best = pareto[int(np.sqrt((norm**2).sum(axis=1)).argmin())]
 
         # Normalize all points by Pareto-front minimum (1.0 = optimal)
         x_min, y_min = float(mins[0]), float(mins[1])
 
-        all_pts = (
-            [{"x": t.values[0]/x_min, "y": t.values[1]/y_min,
-              "rx": t.values[0], "ry": t.values[1], "n": t.number, "p": False}
-             for t in non_p[::step]]
-            + [{"x": t.values[0]/x_min, "y": t.values[1]/y_min,
-                "rx": t.values[0], "ry": t.values[1], "n": t.number, "p": True}
-               for t in pareto]
-        )
+        all_pts = [
+            {
+                "x": t.values[0] / x_min,
+                "y": t.values[1] / y_min,
+                "rx": t.values[0],
+                "ry": t.values[1],
+                "n": t.number,
+                "p": False,
+            }
+            for t in non_p[::step]
+        ] + [
+            {
+                "x": t.values[0] / x_min,
+                "y": t.values[1] / y_min,
+                "rx": t.values[0],
+                "ry": t.values[1],
+                "n": t.number,
+                "p": True,
+            }
+            for t in pareto
+        ]
 
         p_sorted = sorted(pareto, key=lambda t: t.values[0])
         return {
-            "all_points":   all_pts,
-            "pareto_line":  [{"x": t.values[0]/x_min, "y": t.values[1]/y_min, "n": t.number,
-                              "rx": t.values[0], "ry": t.values[1]} for t in p_sorted],
-            "best":         {"x": best.values[0]/x_min, "y": best.values[1]/y_min, "n": best.number,
-                             "rx": best.values[0], "ry": best.values[1]},
-            "norm_min":     {"x": x_min, "y": y_min},
+            "all_points": all_pts,
+            "pareto_line": [
+                {
+                    "x": t.values[0] / x_min,
+                    "y": t.values[1] / y_min,
+                    "n": t.number,
+                    "rx": t.values[0],
+                    "ry": t.values[1],
+                }
+                for t in p_sorted
+            ],
+            "best": {
+                "x": best.values[0] / x_min,
+                "y": best.values[1] / y_min,
+                "n": best.number,
+                "rx": best.values[0],
+                "ry": best.values[1],
+            },
+            "norm_min": {"x": x_min, "y": y_min},
             "total_trials": len(all_c),
             "pareto_count": len(pareto),
         }
@@ -309,14 +361,17 @@ def load_pareto(db_path: Path, study_name: str, max_scatter: int = 600) -> dict 
         print(f"Warning: Pareto load failed — {e}", file=sys.stderr)
         return None
 
+
 # ── hparams ───────────────────────────────────────────────────────────────────
+
 
 def build_hparams(hp: dict, meta: dict[str, str]) -> dict:
     groups = {}
     for grp, keys in HPARAM_GROUPS.items():
         entries = [
             {"key": k, "value": hp[k], "desc": HPARAM_DESC.get(k, "")}
-            for k in keys if k in hp
+            for k in keys
+            if k in hp
         ]
         if entries:
             groups[grp] = entries
@@ -329,21 +384,23 @@ def build_hparams(hp: dict, meta: dict[str, str]) -> dict:
 
     return {"groups": groups, "meta": score_meta}
 
+
 # ── main data assembly ────────────────────────────────────────────────────────
 
+
 def assemble(
-    t_path:  Path,
-    t_data:  dict,
-    rounds:  list[tuple[int, dict]],
-    hp:      dict | None,
+    t_path: Path,
+    t_data: dict,
+    rounds: list[tuple[int, dict]],
+    hp: dict | None,
     hp_meta: dict[str, str],
-    pareto:  dict | None,
+    pareto: dict | None,
     aliases: dict[str, str] | None = None,
 ) -> dict:
-    players   = build_players(t_data, aliases or {})
-    cum       = cumulative_scores(t_data)
+    players = build_players(t_data, aliases or {})
+    cum = cumulative_scores(t_data)
     sched_idx = schedule_by_round(t_data)
-    rds       = build_rounds(rounds, cum, sched_idx)
+    rds = build_rounds(rounds, cum, sched_idx)
 
     year = None
     if m := re.search(r"\d{4}", t_path.stem):
@@ -351,35 +408,43 @@ def assemble(
 
     total_r = max((g.get("round", 0) for g in t_data["schedule"]), default=14)
     tiebreak_labels = {
-        "fide2026": "FIDE 2026", "fide2024": "FIDE 2024", "shared": "Shared title",
+        "fide2026": "FIDE 2026",
+        "fide2024": "FIDE 2024",
+        "shared": "Shared title",
     }
 
     return {
         "meta": {
-            "title":        f"{year} FIDE Candidates" if year else "FIDE Candidates",
-            "year":         year,
-            "gpr":          t_data.get("gpr", 4),
-            "tiebreak":     tiebreak_labels.get(t_data.get("tiebreak", ""), t_data.get("tiebreak", "")),
+            "title": f"{year} FIDE Candidates" if year else "FIDE Candidates",
+            "year": year,
+            "gpr": t_data.get("gpr", 4),
+            "tiebreak": tiebreak_labels.get(
+                t_data.get("tiebreak", ""), t_data.get("tiebreak", "")
+            ),
             "total_rounds": total_r,
         },
-        "players":   players,
-        "rounds":    rds,
+        "players": players,
+        "rounds": rds,
         "all_games": build_all_games(rounds, sched_idx),
         "hparams": build_hparams(hp, hp_meta) if hp else None,
-        "pareto":  pareto,
+        "pareto": pareto,
         "tournament_players": [
             {
-                "name":         p["name"],
-                "fide_id":      p.get("fide_id"),
-                "rating":       p.get("rating"),
+                "name": p["name"],
+                "fide_id": p.get("fide_id"),
+                "rating": p.get("rating"),
                 "rapid_rating": p.get("rapid_rating"),
                 "blitz_rating": p.get("blitz_rating"),
             }
-            for p in sorted(t_data["players"], key=lambda x: x.get("rating", 0), reverse=True)
+            for p in sorted(
+                t_data["players"], key=lambda x: x.get("rating", 0), reverse=True
+            )
         ],
     }
 
+
 # ── HTML template ─────────────────────────────────────────────────────────────
+
 
 def html_template() -> str:
     return r"""<!DOCTYPE html>
@@ -1122,7 +1187,7 @@ let pastVisible = false;
 let futureVisible = false;
 
 let standingsSort = {col:'score', dir:-1};
-let heatmapSort   = {col:0, dir:-1};     // 0 = first rank column
+let heatmapSort   = {col:'cascade', dir:-1};
 let playersSort   = {col:'rating', dir:-1};
 let paretoSort    = {col:'brier', dir:1};
 
@@ -1569,17 +1634,24 @@ function updateHeatmap(round){
   tbl.appendChild(thead);
   markSortHeaders(tbl, heatmapSort);
 
-  const valFn = (p) => {
-    if (heatmapSort.col === 'player') return p.short.toLowerCase();
-    const rm = round.rank_matrix[p.key] ?? [];
-    return rm[heatmapSort.col] ?? 0;
-  };
   const sorted = [...DATA.players]
     .filter(p => !hiddenPlayers.has(p.key))
     .sort((a,b) => {
-      const va = valFn(a), vb = valFn(b);
-      if (typeof va === 'string') return heatmapSort.dir * va.localeCompare(vb);
-      return heatmapSort.dir * (va - vb);
+      if (heatmapSort.col === 'player'){
+        return heatmapSort.dir * a.short.toLowerCase().localeCompare(b.short.toLowerCase());
+      }
+      if (heatmapSort.col === 'cascade'){
+        const rmA = round.rank_matrix[a.key] ?? [];
+        const rmB = round.rank_matrix[b.key] ?? [];
+        for (let i=0;i<n;i++){
+          const d = (rmA[i]??0) - (rmB[i]??0);
+          if (d !== 0) return heatmapSort.dir * d;
+        }
+        return 0;
+      }
+      const rmA = round.rank_matrix[a.key] ?? [];
+      const rmB = round.rank_matrix[b.key] ?? [];
+      return heatmapSort.dir * ((rmB[heatmapSort.col]??0) - (rmA[heatmapSort.col]??0));
     });
 
   const tbody = document.createElement('tbody');
@@ -1878,6 +1950,7 @@ let _seTree = null;
 let _sePath = [];
 let _seGames = [];
 let _seContenders = [];
+let _seRandomTarget = null;  // null = any, or player key
 const SE_NS = 'http://www.w3.org/2000/svg';
 
 function toggleScenarios(){
@@ -1961,14 +2034,26 @@ function initScenarioExplorer(){
   _sePath = [];
 
   container.innerHTML =
-    '<div style="font-family:\'JetBrains Mono\',monospace;font-size:.62rem;color:var(--paper-3);text-transform:uppercase;letter-spacing:.14em;margin-bottom:.6rem">' +
-    'Scenario Tree \u2014 click branches to explore, gold = actual result</div>' +
+    '<div style="position:relative;height:36px;margin-bottom:1rem">' +
+      '<button class="show-more-btn" onclick="_seNav(-1)" style="font-size:.75rem;white-space:nowrap;position:absolute;left:0;top:0">\u21ba Reset</button>' +
+      '<div style="position:absolute;right:0;top:0;display:inline-flex">' +
+        '<button id="seRandomBtn" class="show-more-btn" onclick="_seRandom()" style="font-size:.75rem;border-radius:4px 0 0 4px;border-right:1px solid rgba(120,180,255,.15);white-space:nowrap">\u27f3 Random: Any</button>' +
+        '<button class="show-more-btn" onclick="_seToggleRandomMenu()" style="font-size:.75rem;border-radius:0 4px 4px 0;padding:0 6px">\u25be</button>' +
+        '<div id="seRandomMenu" style="display:none;position:absolute;top:100%;right:0;margin-top:4px;background:rgba(15,22,40,0.97);border:1px solid rgba(120,180,255,.2);border-radius:4px;z-index:10;min-width:140px;padding:4px 0">' +
+          '<div onclick="_seSetRandomTarget(null)" style="padding:5px 12px;cursor:pointer;font-family:\'JetBrains Mono\',monospace;font-size:.72rem;color:#78b4ff;white-space:nowrap" '+
+            'onmouseenter="this.style.background=\'rgba(120,180,255,.1)\'" onmouseleave="this.style.background=\'none\'">' +
+            'Any</div>' +
+          _seContenders.map(function(p){
+            return '<div onclick="_seSetRandomTarget(\''+p.key+'\')" style="padding:5px 12px;cursor:pointer;font-family:\'JetBrains Mono\',monospace;font-size:.72rem;color:'+p.color+';white-space:nowrap" '+
+              'onmouseenter="this.style.background=\'rgba(120,180,255,.1)\'" onmouseleave="this.style.background=\'none\'">' +
+              p.short+'</div>';
+          }).join('') +
+        '</div>' +
+      '</div>' +
+    '</div>' +
     '<div id="seCrumb" style="margin-bottom:.75rem"></div>' +
-    '<div id="seSvgWrap" style="overflow-x:hidden;margin-bottom:.8rem"></div>' +
-    '<div style="display:flex;gap:.5rem;flex-wrap:wrap">' +
-    '<button class="show-more-btn" onclick="_seNav(-1)" style="font-size:.75rem">\u21ba Reset</button>' +
-    '<button class="show-more-btn" onclick="_seFollowActual()" style="font-size:.75rem">\u25b6 Follow actual</button>' +
-    '<button class="show-more-btn" onclick="_seRandom()" style="font-size:.75rem">\u2684 Random path</button></div>';
+    '<div id="seSvgWrap" style="overflow-x:hidden"></div>' +
+    '<div id="seFootnote" style="display:none;margin-top:.5rem;padding:6px 10px;font-size:.7rem;font-family:\'JetBrains Mono\',monospace;color:#ffb74d;background:rgba(255,183,77,.08);border:1px solid rgba(255,183,77,.2);border-radius:4px"></div>';
 
   _seRenderAll();
 }
@@ -2024,6 +2109,7 @@ function _seGenChildren(node){
 
 /* ── navigation ── */
 let _seNavDir = 'fade';  // 'forward','backward','fade'
+let _seDfsWarning = '';  // non-empty when DFS fallback was used
 function _seGetFocused(){
   let n = _seTree;
   for (const i of _sePath){ _seGenChildren(n); if (n.ch && n.ch[i]) n = n.ch[i].child; else break; }
@@ -2040,12 +2126,89 @@ function _seBuildPastChain(){
   }
   return chain;
 }
-function _seNav(d){ _seNavDir = 'backward'; _sePath = d < 0 ? [] : _sePath.slice(0,d); _seRenderAll(); }
-function _seClick(ci){ _seNavDir = 'forward'; _sePath.push(ci); _seRenderAll(); }
+function _seNav(d){ _seNavDir = 'backward'; _seDfsWarning = ''; _sePath = d < 0 ? [] : _sePath.slice(0,d); _seRenderAll(); }
+function _seClick(ci){ _seNavDir = 'forward'; _seDfsWarning = ''; _sePath.push(ci); _seRenderAll(); }
+function _seSetRandomTarget(key){
+  _seRandomTarget = key;
+  const btn = document.getElementById('seRandomBtn');
+  if (btn){
+    if (key){
+      const p = _seContenders.find(function(c){return c.key===key;});
+      btn.innerHTML = '\u27f3 Random: <span style="color:'+p.color+';font-weight:700">'+p.short+'</span>';
+    } else {
+      btn.textContent = '\u27f3 Random: Any';
+    }
+  }
+  _seToggleRandomMenu();
+}
 function _seRandom(){
+  const targetKey = _seRandomTarget;
   _seNavDir = 'forward';
   _sePath = [];
+  _seDfsWarning = '';
   let n = _seTree;
+  const MAX_TRIES = 1000;
+  if (targetKey){
+    for (let t = 0; t < MAX_TRIES; t++){
+      const path = []; let nd = _seTree;
+      while (!nd.leaf){
+        _seGenChildren(nd);
+        if (!nd.ch || !nd.ch.length) break;
+        const gi0 = nd.ch[0].gi;
+        const outs = []; nd.ch.forEach((c,i) => { if (c.gi === gi0) outs.push({c,i}); });
+        const r = Math.random(); let cum = 0, ch = outs[outs.length-1];
+        for (const o of outs){ cum += o.c.p; if (r < cum){ ch = o; break; } }
+        path.push(ch.i); nd = ch.c.child;
+      }
+      if (nd.winner && nd.winner.key === targetKey){ _sePath = path; _seRenderAll(); return; }
+      if (nd.tied && nd.tied.some(function(p){return p.key===targetKey;})){ _sePath = path; _seRenderAll(); return; }
+    }
+    // Uniform random fallback (1/3 each outcome)
+    const pName = _seContenders.find(function(p){return p.key===targetKey;})?.short||targetKey;
+    for (let t = 0; t < MAX_TRIES; t++){
+      const path = []; let nd = _seTree;
+      while (!nd.leaf){
+        _seGenChildren(nd);
+        if (!nd.ch || !nd.ch.length) break;
+        const gi0 = nd.ch[0].gi;
+        const outs = []; nd.ch.forEach((c,i) => { if (c.gi === gi0) outs.push({c,i}); });
+        const ch = outs[Math.floor(Math.random() * outs.length)];
+        path.push(ch.i); nd = ch.c.child;
+      }
+      if (nd.winner && nd.winner.key === targetKey){
+        _seDfsWarning = 'Win probability for '+pName+' is very low. No path found in '+MAX_TRIES.toLocaleString()+' weighted samples; found via uniform random sampling after '+(t+1).toLocaleString()+' tries.';
+        _sePath = path; _seRenderAll(); return;
+      }
+      if (nd.tied && nd.tied.some(function(p){return p.key===targetKey;})){
+        _seDfsWarning = 'Win probability for '+pName+' is very low. No path found in '+MAX_TRIES.toLocaleString()+' weighted samples; found via uniform random sampling after '+(t+1).toLocaleString()+' tries.';
+        _sePath = path; _seRenderAll(); return;
+      }
+    }
+    // Deterministic DFS fallback
+    function dfsFindWin(nd){
+      if (nd.leaf){
+        if (nd.winner && nd.winner.key === targetKey) return [];
+        if (nd.tied && nd.tied.some(function(p){return p.key===targetKey;})) return [];
+        return null;
+      }
+      _seGenChildren(nd);
+      if (!nd.ch || !nd.ch.length) return null;
+      const gi0 = nd.ch[0].gi;
+      const outs = []; nd.ch.forEach(function(c,i){ if (c.gi === gi0) outs.push({c:c,i:i}); });
+      for (let j = 0; j < outs.length; j++){
+        const sub = dfsFindWin(outs[j].c.child);
+        if (sub !== null) return [outs[j].i].concat(sub);
+      }
+      return null;
+    }
+    const dfsPath = dfsFindWin(_seTree);
+    if (dfsPath){
+      _seDfsWarning = 'Win probability for '+pName+' is extremely low. No path found in '+MAX_TRIES.toLocaleString()+' weighted + '+MAX_TRIES.toLocaleString()+' uniform samples; resolved via deterministic search.';
+      _sePath = dfsPath; _seRenderAll(); return;
+    }
+    alert('No possible winning path exists for '+pName+' (searched '+MAX_TRIES.toLocaleString()+' weighted + '+MAX_TRIES.toLocaleString()+' uniform samples + full DFS).');
+    return;
+  }
   while (!n.leaf){
     _seGenChildren(n);
     if (!n.ch || !n.ch.length) break;
@@ -2057,27 +2220,17 @@ function _seRandom(){
   }
   _seRenderAll();
 }
-function _seFollowActual(){
-  _seNavDir = 'forward';
-  _sePath = [];
-  let n = _seTree;
-  while (!n.leaf){
-    _seGenChildren(n);
-    if (!n.ch || !n.ch.length) break;
-    // Find the first game with an actual result
-    const gi0 = n.ch[0].gi;
-    const g = _seGames[gi0];
-    if (g.actual === null) break;  // no more actual results
-    const outcomeKeys = ['W','D','L'];
-    const targetK = outcomeKeys[g.actual];
-    const match = n.ch.findIndex(c => c.gi === gi0 && c.k === targetK);
-    if (match < 0) break;
-    _sePath.push(match);
-    n = n.ch[match].child;
-  }
-  _seRenderAll();
+function _seToggleRandomMenu(){
+  const menu = document.getElementById('seRandomMenu');
+  if (menu) menu.style.display = menu.style.display === 'none' ? '' : 'none';
 }
-function _seRenderAll(){ _seRenderCrumb(); _seRenderSvg(); _seNavDir = 'fade'; }
+
+function _seRenderAll(){
+  _seRenderCrumb(); _seRenderSvg();
+  const fn = document.getElementById('seFootnote');
+  if (fn){ if (_seDfsWarning){ fn.textContent = '\u26a0 '+_seDfsWarning; fn.style.display = ''; } else { fn.style.display = 'none'; } }
+  _seNavDir = 'fade';
+}
 
 /* ── breadcrumb (pill-style with gold for actual results) ── */
 function _seRenderCrumb(){
@@ -2139,7 +2292,7 @@ function _seRenderSvg(){
     if (focus.winner){
       html += '<div style="text-align:center;padding:1.5rem;background:rgba(0,230,118,.06);border:1px solid rgba(0,230,118,.25);border-radius:8px">' +
         '<div style="font-size:.65rem;color:var(--paper-3);text-transform:uppercase;letter-spacing:.14em;margin-bottom:.4rem">All contender games decided</div>' +
-        '<div style="font-size:1.3rem;font-weight:700;color:'+focus.winner.color+'">\u2605 '+focus.winner.short+' wins</div>' +
+        '<div style="font-size:1.3rem;font-weight:700;color:'+focus.winner.color+'">\u2605 '+focus.winner.short+'</div>' +
         '<div style="font-family:\'JetBrains Mono\',monospace;font-size:.85rem;color:var(--paper-2);margin-top:.3rem">'+focus.scores[focus.winner.key]+' points</div></div>';
     } else {
       html += '<div style="text-align:center;padding:1.5rem;background:rgba(255,238,88,.06);border:1px solid rgba(255,238,88,.25);border-radius:8px">' +
@@ -2583,7 +2736,7 @@ function _seRenderSvg(){
         vt.setAttribute('text-anchor','middle'); vt.setAttribute('fill',vc);
         vt.setAttribute('font-family',"'JetBrains Mono',monospace");
         vt.setAttribute('font-size','10'); vt.setAttribute('font-weight','700');
-        vt.textContent = wn ? '\u2605 '+wn.short+' wins' : 'TIE';
+        vt.textContent = wn ? '\u2605 '+wn.short : 'TIE';
         svg.appendChild(vt);
         return;
       }
@@ -2626,7 +2779,7 @@ function _seRenderSvg(){
           const pct2 = (gc.p*100).toFixed(0)+'%';
           let lbl, lblDisplay;
           if (gc.child.leaf){
-            if (gc.child.winner) lbl = rl2+' '+pct2+' \u2605'+gc.child.winner.short;
+            if (gc.child.winner) lbl = rl2+' '+pct2+' \u2605 '+gc.child.winner.short;
             else lbl = rl2+' '+pct2+' TIE';
             lblDisplay = lbl;
           } else {
@@ -2678,7 +2831,7 @@ function _seRenderSvg(){
   }
 
   // Scroll the explorer into view so the focus node stays visible
-  wrap.scrollIntoView({behavior:'smooth', block:'center'});
+  wrap.scrollIntoView({behavior:'smooth', block:'nearest'});
 }
 
 // ═══════════════════════════════════════════════
@@ -2915,7 +3068,9 @@ function renderTournamentPlayers(){
 </html>
 """
 
+
 # ── CLI ───────────────────────────────────────────────────────────────────────
+
 
 def main() -> None:
     ap = argparse.ArgumentParser(
@@ -2923,20 +3078,49 @@ def main() -> None:
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog=__doc__,
     )
-    ap.add_argument("--tournament", "-t", required=True, type=Path,
-                    help="Tournament JSONC file (e.g. data/candidates2026.jsonc)")
-    ap.add_argument("--rounds",     "-r", required=True, type=Path,
-                    help="Directory of roundN.json files")
-    ap.add_argument("--hparams",    "-p", default=None, type=Path,
-                    help="Hyperparameters JSONC file (optional)")
-    ap.add_argument("--db",         "-d", default=None, type=Path,
-                    help="Optuna SQLite database for Pareto front (optional)")
-    ap.add_argument("--study",      "-s", default="chess_montecarlo",
-                    help="Optuna study name (default: chess_montecarlo)")
-    ap.add_argument("--output",     "-o", required=True, type=Path,
-                    help="Output HTML file path")
-    ap.add_argument("--players-file", default="data/players.jsonc", type=Path,
-                    help="Player name/alias mapping (default: data/players.jsonc)")
+    ap.add_argument(
+        "--tournament",
+        "-t",
+        required=True,
+        type=Path,
+        help="Tournament JSONC file (e.g. data/candidates2026.jsonc)",
+    )
+    ap.add_argument(
+        "--rounds",
+        "-r",
+        required=True,
+        type=Path,
+        help="Directory of roundN.json files",
+    )
+    ap.add_argument(
+        "--hparams",
+        "-p",
+        default=None,
+        type=Path,
+        help="Hyperparameters JSONC file (optional)",
+    )
+    ap.add_argument(
+        "--db",
+        "-d",
+        default=None,
+        type=Path,
+        help="Optuna SQLite database for Pareto front (optional)",
+    )
+    ap.add_argument(
+        "--study",
+        "-s",
+        default="chess_montecarlo",
+        help="Optuna study name (default: chess_montecarlo)",
+    )
+    ap.add_argument(
+        "--output", "-o", required=True, type=Path, help="Output HTML file path"
+    )
+    ap.add_argument(
+        "--players-file",
+        default="data/players.jsonc",
+        type=Path,
+        help="Player name/alias mapping (default: data/players.jsonc)",
+    )
 
     args = ap.parse_args()
 
@@ -2968,7 +3152,9 @@ def main() -> None:
             print(f"Loading Pareto data from: {args.db}")
             pareto = load_pareto(args.db, args.study)
             if pareto:
-                print(f"  {pareto['total_trials']} trials, {pareto['pareto_count']} Pareto-optimal")
+                print(
+                    f"  {pareto['total_trials']} trials, {pareto['pareto_count']} Pareto-optimal"
+                )
 
     aliases = load_aliases(args.players_file)
     if aliases:
@@ -2977,9 +3163,9 @@ def main() -> None:
     data = assemble(args.tournament, t_data, rounds, hp, hp_meta, pareto, aliases)
 
     template = html_template()
-    marker   = "/*__INJECT_DATA__*/"
-    data_js  = f"const DATA = {json.dumps(data, separators=(',', ':'))};"
-    html     = template.replace(marker, data_js, 1)
+    marker = "/*__INJECT_DATA__*/"
+    data_js = f"const DATA = {json.dumps(data, separators=(',', ':'))};"
+    html = template.replace(marker, data_js, 1)
 
     args.output.parent.mkdir(parents=True, exist_ok=True)
     args.output.write_text(html, encoding="utf-8")
