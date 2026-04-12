@@ -897,6 +897,22 @@ summary .num{
 .hdr .gh-link{animation:fade-in 1.1s .6s both}
 .tabs-wrap{animation:fade-in 1.1s .7s both}
 
+/* scenario tree transitions */
+@keyframes se-fwd{
+  from{opacity:0;transform:translateX(60px)}
+  to{opacity:1;transform:none}
+}
+@keyframes se-bwd{
+  from{opacity:0;transform:translateX(-60px)}
+  to{opacity:1;transform:none}
+}
+@keyframes se-fade{
+  from{opacity:0;transform:scale(0.97)}
+  to{opacity:1;transform:none}
+}
+#seSvgWrap{scroll-behavior:smooth}
+#seSvgWrap>svg{will-change:transform,opacity}
+
 /* selection */
 ::selection{background:rgba(106,166,255,.35);color:var(--paper)}
 
@@ -985,6 +1001,16 @@ html{scrollbar-color:var(--rule-2) var(--ink)}
       <th data-sort="rank">#</th><th data-sort="player">Player</th><th data-sort="elo">Elo</th><th data-sort="score">Score</th><th data-sort="winpct">Win %</th>
     </tr></thead><tbody id="tbStandings"></tbody></table></div>
     <div style="display:none"><canvas id="cWinPct"></canvas></div>
+    <div class="card" id="titleRaceCard" style="margin-top:1.1rem;display:none">
+      <div style="font-family:'JetBrains Mono',monospace;font-size:.66rem;font-weight:500;color:var(--paper-3);text-transform:uppercase;letter-spacing:.16em;margin-bottom:.85rem" id="titleRaceLabel">Title Race</div>
+      <div class="chart-wrap med"><canvas id="cTitleRace"></canvas></div>
+      <div id="titleRaceDetail" style="margin-top:1rem"></div>
+      <p class="note" id="titleRaceNote"></p>
+      <div style="display:flex;justify-content:center;margin-top:1rem">
+        <button class="show-more-btn" id="showScenariosBtn" onclick="toggleScenarios()">▾ Scenario explorer</button>
+      </div>
+      <div id="scenarioContainer" style="display:none;margin-top:1.5rem"></div>
+    </div>
   </div>
 </details>
 
@@ -1089,7 +1115,7 @@ html{scrollbar-color:var(--rule-2) var(--ink)}
 // GLOBALS
 // ═══════════════════════════════════════════════
 let currentIdx = DATA.rounds.length - 1;
-let winPctChart, timelineChart, expScoreChart, paretoChart;
+let winPctChart, timelineChart, expScoreChart, paretoChart, titleRaceChart;
 let hiddenPlayers = new Set();
 let sortedPlayers = [];   // dataset order used by timeline + expScore charts
 let pastVisible = false;
@@ -1212,6 +1238,7 @@ document.addEventListener('DOMContentLoaded', () => {
   initTimeline();
   initExpScore();
   initWinPct();
+  initTitleRace();
   buildPlayerToggles();
   buildTournamentPlayers();
 
@@ -1329,6 +1356,7 @@ function setRound(idx, animate=true){
   });
 
   updateStandings(round);
+  updateTitleRace(round);
   updateGames(round);
   updateHeatmap(round);
 
@@ -1686,6 +1714,934 @@ function initWinPct(){
       }
     }
   });
+}
+
+// ═══════════════════════════════════════════════
+// TITLE RACE
+// ═══════════════════════════════════════════════
+let titleRaceData = [];
+
+function initTitleRace(){
+  titleRaceChart = new Chart(document.getElementById('cTitleRace').getContext('2d'), {
+    type:'bar',
+    data:{labels:[], datasets:[
+      {label:'Current', data:[], backgroundColor:[], borderColor:[], borderWidth:1},
+      {label:'Remaining', data:[], backgroundColor:[], borderColor:[], borderWidth:1}
+    ]},
+    options:{
+      indexAxis:'y',
+      responsive:true, maintainAspectRatio:false,
+      scales:{
+        x:{stacked:true, grid:{color:'rgba(120,180,255,.1)'},
+           ticks:{font:{size:11}, stepSize:1},
+           title:{display:true, text:'Points', color:'#6a7ca3'}, min:0},
+        y:{stacked:true, grid:{display:false}, ticks:{font:{size:12}}}
+      },
+      plugins:{
+        legend:{display:false},
+        tooltip:{callbacks:{
+          label: ctx => {
+            const d = titleRaceData[ctx.dataIndex];
+            if (!d) return '';
+            if (ctx.datasetIndex===0) return ` Current: ${d.score} pts \u00b7 Win: ${pct(d.wp)}`;
+            return ` Max: ${d.score+d.maxAdd} pts (+${d.maxAdd} remaining)`;
+          }
+        }},
+        annotation:{annotations:{}}
+      }
+    }
+  });
+}
+
+function updateTitleRace(round){
+  const totalR = DATA.meta.total_rounds;
+  const lastPlayed = round.round_num - 1;
+  const remaining = totalR - lastPlayed;
+  const card = document.getElementById('titleRaceCard');
+
+  if (remaining <= 0){ card.style.display = 'none'; return; }
+  card.style.display = '';
+
+  const sorted = [...DATA.players].sort((a,b) => {
+    const sa = round.actual_scores[a.key]??0, sb = round.actual_scores[b.key]??0;
+    if (sb !== sa) return sb - sa;
+    return (round.winner_probs[b.key]??0) - (round.winner_probs[a.key]??0);
+  });
+
+  const leaderScore = round.actual_scores[sorted[0].key] ?? 0;
+
+  titleRaceData = sorted.map(p => {
+    const score = round.actual_scores[p.key] ?? 0;
+    const wp = round.winner_probs[p.key] ?? 0;
+    return {
+      key:p.key, short:p.short, color:p.color,
+      score, maxAdd:remaining, wp,
+      eliminated: score + remaining < leaderScore
+    };
+  });
+
+  const ds0 = titleRaceChart.data.datasets[0];
+  const ds1 = titleRaceChart.data.datasets[1];
+  titleRaceChart.data.labels = titleRaceData.map(d => d.short);
+  ds0.data = titleRaceData.map(d => d.score);
+  ds0.backgroundColor = titleRaceData.map(d => d.eliminated ? hexAlpha(d.color,0.2) : hexAlpha(d.color,0.8));
+  ds0.borderColor     = titleRaceData.map(d => d.eliminated ? hexAlpha(d.color,0.25) : d.color);
+  ds1.data = titleRaceData.map(d => d.maxAdd);
+  ds1.backgroundColor = titleRaceData.map(d => d.eliminated ? 'rgba(255,255,255,0.02)' : hexAlpha(d.color,0.15));
+  ds1.borderColor     = titleRaceData.map(d => d.eliminated ? 'rgba(255,255,255,0.04)' : hexAlpha(d.color,0.25));
+
+  titleRaceChart.options.plugins.annotation.annotations = {
+    leaderLine:{
+      type:'line', xMin:leaderScore, xMax:leaderScore,
+      borderColor:'#ffee58cc', borderWidth:2, borderDash:[6,4],
+      label:{
+        display:true,
+        content:`Leader: ${leaderScore} pts`,
+        position:'start', color:'#ffee58',
+        font:{size:10, family:"'JetBrains Mono', monospace"},
+        backgroundColor:'rgba(11,17,32,0.75)', padding:4
+      }
+    }
+  };
+  titleRaceChart.options.scales.x.max = totalR + 0.5;
+  titleRaceChart.update();
+
+  // Contender detail: remaining games for alive players
+  const detail = document.getElementById('titleRaceDetail');
+  const contenders = titleRaceData.filter(d => !d.eliminated);
+  const elim = titleRaceData.length - contenders.length;
+
+  if (contenders.length > 0 && contenders.length < titleRaceData.length && remaining > 0){
+    const lines = contenders.map(d => {
+      const games = [];
+      DATA.all_games.forEach(ag => {
+        if (ag.round_num <= lastPlayed) return;
+        ag.games.forEach(g => {
+          if (g.result) return;
+          let opp = null, clr = '';
+          if (g.white === d.key){ opp = g.black; clr = 'W'; }
+          else if (g.black === d.key){ opp = g.white; clr = 'B'; }
+          if (opp){
+            const os = P_MAP[opp]?.short ?? opp;
+            // Highlight if opponent is also a contender
+            const isRival = contenders.some(c => c.key === opp);
+            const tag = isRival
+              ? `<strong style="color:${P_MAP[opp]?.color??'var(--paper)'}">${os}</strong>`
+              : os;
+            games.push(`R${ag.round_num} vs ${tag} (${clr})`);
+          }
+        });
+      });
+      return `<div style="margin-bottom:.4rem">`+
+        `<span style="color:${d.color};font-weight:600">${d.short}</span>`+
+        `<span style="color:var(--paper-3);margin:0 .4rem">\u00b7</span>`+
+        `<span style="font-family:'JetBrains Mono',monospace;font-size:.82rem">${d.score} pts</span>`+
+        `<span style="color:var(--paper-3);margin:0 .4rem">\u00b7</span>`+
+        `<span class="winpct ${d.wp>.15?'hi':''}">${pct(d.wp)}</span>`+
+        `<span style="color:var(--paper-3);margin:0 .4rem">\u2192</span>`+
+        `<span style="color:var(--paper-2);font-size:.82rem">${games.join(' \u00b7 ')}</span>`+
+        `</div>`;
+    });
+    detail.innerHTML =
+      `<div style="font-family:'JetBrains Mono',monospace;font-size:.62rem;color:var(--paper-3);text-transform:uppercase;letter-spacing:.14em;margin-bottom:.55rem">Contenders\u2019 Remaining Games</div>`+
+      lines.join('');
+  } else {
+    detail.innerHTML = '';
+  }
+
+  document.getElementById('titleRaceNote').textContent =
+    `${remaining} round${remaining!==1?'s':''} remaining. `+
+    `${contenders.length} player${contenders.length!==1?'s':''} mathematically alive`+
+    (elim > 0 ? `, ${elim} eliminated` : '')+
+    `. Dashed line = leader\u2019s current score \u2014 players whose maximum cannot reach it are eliminated.`;
+
+  // Show/hide scenario button
+  const sBtn = document.getElementById('showScenariosBtn');
+  if (remaining > 0){
+    sBtn.style.display = '';
+    if (scenariosVisible) initScenarioExplorer();
+  } else {
+    sBtn.style.display = 'none';
+    document.getElementById('scenarioContainer').style.display = 'none';
+    scenariosVisible = false;
+  }
+
+  document.getElementById('titleRaceLabel').textContent =
+    `Title Race \u2014 ${remaining} Round${remaining!==1?'s':''} Remaining`;
+}
+
+// ═══════════════════════════════════════════════
+// SCENARIO TREE (interactive, navigable SVG tree)
+// ═══════════════════════════════════════════════
+let scenariosVisible = false;
+let _seTree = null;
+let _sePath = [];
+let _seGames = [];
+let _seContenders = [];
+const SE_NS = 'http://www.w3.org/2000/svg';
+
+function toggleScenarios(){
+  scenariosVisible = !scenariosVisible;
+  document.getElementById('scenarioContainer').style.display = scenariosVisible ? '' : 'none';
+  document.getElementById('showScenariosBtn').textContent = scenariosVisible ? '\u25b4 Hide scenario explorer' : '\u25be Scenario explorer';
+  if (scenariosVisible) initScenarioExplorer();
+}
+
+function _seResultToOutcome(r){
+  // Map result string to outcome index: 0=W, 1=D, 2=L (from white's perspective)
+  if (r === '1-0') return 0;
+  if (r === '1/2-1/2') return 1;
+  if (r === '0-1') return 2;
+  return null;
+}
+
+function initScenarioExplorer(){
+  const container = document.getElementById('scenarioContainer');
+  const round = DATA.rounds[currentIdx];
+  const totalR = DATA.meta.total_rounds;
+  const lastPlayed = round.round_num - 1;
+  const remaining = totalR - lastPlayed;
+
+  if (remaining <= 0){
+    container.innerHTML = '<p style="color:#6a7ca3;font-size:.88rem">Tournament complete.</p>';
+    return;
+  }
+
+  // Determine contenders: mathematically alive players
+  const scores = {};
+  DATA.players.forEach(p => { scores[p.key] = round.actual_scores[p.key] ?? 0; });
+  const leaderScore = Math.max(...DATA.players.map(p => scores[p.key]));
+
+  // Count ALL remaining games per player (played + unplayed from this viewpoint)
+  const gamesLeft = {};
+  DATA.players.forEach(p => { gamesLeft[p.key] = 0; });
+  DATA.all_games.forEach(ag => {
+    if (ag.round_num <= lastPlayed) return;
+    ag.games.forEach(g => {
+      if (gamesLeft[g.white] !== undefined) gamesLeft[g.white]++;
+      if (gamesLeft[g.black] !== undefined) gamesLeft[g.black]++;
+    });
+  });
+
+  _seContenders = DATA.players
+    .filter(p => scores[p.key] + gamesLeft[p.key] >= leaderScore)
+    .sort((a,b) => scores[b.key] - scores[a.key]);
+
+  if (_seContenders.length <= 1){
+    container.innerHTML = '<p style="color:#6a7ca3;font-size:.88rem">Tournament already decided.</p>';
+    return;
+  }
+
+  // Limit: too many contender games makes the tree unwieldy
+  const cKeys = new Set(_seContenders.map(p => p.key));
+  let contenderGameCount = 0;
+  DATA.all_games.forEach(ag => {
+    if (ag.round_num <= lastPlayed) return;
+    ag.games.forEach(g => {
+      if (cKeys.has(g.white) || cKeys.has(g.black)) contenderGameCount++;
+    });
+  });
+  if (contenderGameCount > 15){
+    container.innerHTML = '<p style="color:#6a7ca3;font-size:.88rem">Scenario explorer available when fewer contender games remain (' + contenderGameCount + ' currently).</p>';
+    return;
+  }
+
+  // Collect games — include played games with their actual result
+  _seGames = [];
+  DATA.all_games.forEach(ag => {
+    if (ag.round_num <= lastPlayed) return;
+    ag.games.forEach(g => {
+      if (cKeys.has(g.white) || cKeys.has(g.black)){
+        _seGames.push({
+          round: ag.round_num,
+          white: g.white, black: g.black,
+          ws: P_MAP[g.white]?.short ?? g.white,
+          bs: P_MAP[g.black]?.short ?? g.black,
+          wc: P_MAP[g.white]?.color ?? '#8494be',
+          bc: P_MAP[g.black]?.color ?? '#8494be',
+          probs: g.probs,
+          actual: _seResultToOutcome(g.result)  // null if unplayed, 0/1/2 if played
+        });
+      }
+    });
+  });
+  _seGames.sort((a,b) => a.round - b.round);
+
+  const initScores = {};
+  DATA.players.forEach(p => { initScores[p.key] = round.actual_scores[p.key] ?? 0; });
+
+  _seTree = _seMakeNode(initScores, _seGames.map((_,i) => i));
+  _sePath = [];
+
+  container.innerHTML =
+    '<div style="font-family:\'JetBrains Mono\',monospace;font-size:.62rem;color:var(--paper-3);text-transform:uppercase;letter-spacing:.14em;margin-bottom:.6rem">' +
+    'Scenario Tree \u2014 click branches to explore, gold = actual result</div>' +
+    '<div id="seCrumb" style="margin-bottom:.75rem"></div>' +
+    '<div id="seSvgWrap" style="overflow-x:auto;margin-bottom:.8rem"></div>' +
+    '<div style="display:flex;gap:.5rem;flex-wrap:wrap">' +
+    '<button class="show-more-btn" onclick="_seNav(-1)" style="font-size:.75rem">\u21ba Reset</button>' +
+    '<button class="show-more-btn" onclick="_seFollowActual()" style="font-size:.75rem">\u25b6 Follow actual</button>' +
+    '<button class="show-more-btn" onclick="_seRandom()" style="font-size:.75rem">\u2684 Random path</button></div>';
+
+  _seRenderAll();
+}
+
+/* ── node factory with elimination pruning ── */
+function _seMakeNode(scores, pendingGIs){
+  const node = {scores: {...scores}};
+  const sorted = [..._seContenders].sort((a,b) => scores[b.key] - scores[a.key]);
+  const leaderScore = scores[sorted[0].key];
+  const alive = [];
+  sorted.forEach(p => {
+    const gl = pendingGIs.filter(gi => {
+      const g = _seGames[gi]; return g.white === p.key || g.black === p.key;
+    }).length;
+    if (scores[p.key] + gl >= leaderScore) alive.push(p.key);
+  });
+  node.alive = new Set(alive);
+  // Remove games not involving any alive contender
+  node.pending = pendingGIs.filter(gi => {
+    const g = _seGames[gi]; return node.alive.has(g.white) || node.alive.has(g.black);
+  });
+  // Leaf: no pending games OR only 1 player alive (clinched)
+  if (node.pending.length === 0 || alive.length <= 1){
+    node.leaf = true;
+    if (alive.length === 1){
+      // Clinched: one player can't be caught
+      node.tied = [sorted.find(p => p.key === alive[0])];
+      node.winner = node.tied[0];
+    } else {
+      const top = scores[sorted[0].key];
+      node.tied = sorted.filter(p => scores[p.key] === top);
+      node.winner = node.tied.length === 1 ? node.tied[0] : null;
+    }
+  }
+  return node;
+}
+
+/* ── lazy child generation: branches for current round only ── */
+function _seGenChildren(node){
+  if (node.leaf || node.ch) return;
+  const curRound = Math.min(...node.pending.map(gi => _seGames[gi].round));
+  const curGIs = node.pending.filter(gi => _seGames[gi].round === curRound);
+  node.ch = [];
+  curGIs.forEach(gi => {
+    const g = _seGames[gi];
+    [{k:'W',wp:1,bp:0,p:g.probs[0]},{k:'D',wp:.5,bp:.5,p:g.probs[1]},{k:'L',wp:0,bp:1,p:g.probs[2]}]
+      .forEach(({k,wp,bp,p}) => {
+        const ns = {...node.scores}; ns[g.white] += wp; ns[g.black] += bp;
+        node.ch.push({k, p, gi, child: _seMakeNode(ns, node.pending.filter(i => i !== gi))});
+      });
+  });
+}
+
+/* ── navigation ── */
+let _seNavDir = 'fade';  // 'forward','backward','fade'
+function _seGetFocused(){
+  let n = _seTree;
+  for (const i of _sePath){ _seGenChildren(n); if (n.ch && n.ch[i]) n = n.ch[i].child; else break; }
+  return n;
+}
+function _seBuildPastChain(){
+  const chain = [];
+  let n = _seTree;
+  for (let i = 0; i < _sePath.length; i++){
+    _seGenChildren(n);
+    const e = n.ch[_sePath[i]];
+    chain.push({node:n, edge:e, game:_seGames[e.gi]});
+    n = e.child;
+  }
+  return chain;
+}
+function _seNav(d){ _seNavDir = 'backward'; _sePath = d < 0 ? [] : _sePath.slice(0,d); _seRenderAll(); }
+function _seClick(ci){ _seNavDir = 'forward'; _sePath.push(ci); _seRenderAll(); }
+function _seRandom(){
+  _seNavDir = 'forward';
+  _sePath = [];
+  let n = _seTree;
+  while (!n.leaf){
+    _seGenChildren(n);
+    if (!n.ch || !n.ch.length) break;
+    const gi0 = n.ch[0].gi;
+    const outs = []; n.ch.forEach((c,i) => { if (c.gi === gi0) outs.push({c,i}); });
+    const r = Math.random(); let cum = 0, ch = outs[outs.length-1];
+    for (const o of outs){ cum += o.c.p; if (r < cum){ ch = o; break; } }
+    _sePath.push(ch.i); n = ch.c.child;
+  }
+  _seRenderAll();
+}
+function _seFollowActual(){
+  _seNavDir = 'forward';
+  _sePath = [];
+  let n = _seTree;
+  while (!n.leaf){
+    _seGenChildren(n);
+    if (!n.ch || !n.ch.length) break;
+    // Find the first game with an actual result
+    const gi0 = n.ch[0].gi;
+    const g = _seGames[gi0];
+    if (g.actual === null) break;  // no more actual results
+    const outcomeKeys = ['W','D','L'];
+    const targetK = outcomeKeys[g.actual];
+    const match = n.ch.findIndex(c => c.gi === gi0 && c.k === targetK);
+    if (match < 0) break;
+    _sePath.push(match);
+    n = n.ch[match].child;
+  }
+  _seRenderAll();
+}
+function _seRenderAll(){ _seRenderCrumb(); _seRenderSvg(); _seNavDir = 'fade'; }
+
+/* ── breadcrumb (pill-style with gold for actual results) ── */
+function _seRenderCrumb(){
+  const el = document.getElementById('seCrumb');
+  if (!el) return;
+  const oClr = {W:'#00e676', D:'#8494be', L:'#ff5252'};
+  const oLbl = {W:'1\u20130', D:'\u00bd\u2013\u00bd', L:'0\u20131'};
+  const GOLD = '#ffd54f';
+
+  let html = '<div style="display:flex;flex-wrap:wrap;align-items:center;gap:3px;font-family:\'JetBrains Mono\',monospace;font-size:.7rem;line-height:1">';
+
+  // Start pill
+  html += '<span onclick="_seNav(-1)" style="cursor:pointer;padding:4px 8px;border-radius:4px;background:rgba(120,180,255,.1);border:1px solid rgba(120,180,255,.2);color:#78b4ff;font-weight:600;font-size:.65rem;letter-spacing:.05em">START</span>';
+
+  let n = _seTree;
+  for (let i = 0; i < _sePath.length; i++){
+    _seGenChildren(n);
+    const e = n.ch[_sePath[i]];
+    const g = _seGames[e.gi];
+    const rc = oClr[e.k];
+    const rl = oLbl[e.k];
+    const isActual = g.actual !== null && ['W','D','L'][g.actual] === e.k;
+    const bg = isActual ? 'rgba(255,213,79,.12)' : hexAlpha(rc, 0.08);
+    const border = isActual ? GOLD+'60' : hexAlpha(rc, 0.25);
+    const labelClr = isActual ? GOLD : rc;
+
+    // Arrow
+    html += '<span style="color:#263764;font-size:.55rem">\u25b8</span>';
+
+    // Result pill
+    html += '<span onclick="_seNav('+(i+1)+')" style="cursor:pointer;display:inline-flex;align-items:center;gap:3px;padding:3px 7px;border-radius:4px;background:'+bg+';border:1px solid '+border+';transition:background .15s" '+
+      'onmouseenter="this.style.background=\''+hexAlpha(rc,0.18)+'\'" onmouseleave="this.style.background=\''+bg+'\'">';
+    if (isActual) html += '<span style="color:'+GOLD+';font-size:.55rem">\u2713</span>';
+    html += '<span style="color:'+labelClr+';font-weight:600;font-size:.62rem">R'+g.round+'</span>';
+    html += '<span style="color:var(--paper-2);font-size:.62rem">'+g.ws+'</span>';
+    html += '<span style="color:'+labelClr+';font-weight:700;font-size:.65rem">'+rl+'</span>';
+    html += '<span style="color:var(--paper-2);font-size:.62rem">'+g.bs+'</span>';
+    html += '</span>';
+
+    n = e.child;
+  }
+  html += '</div>';
+  el.innerHTML = html;
+}
+
+/* ── SVG rendering (past trail + 2 levels deep + transitions) ── */
+function _seRenderSvg(){
+  const wrap = document.getElementById('seSvgWrap');
+  const focus = _seGetFocused();
+  const pastChain = _seBuildPastChain();
+
+  // Animation name based on navigation direction
+  const animName = _seNavDir === 'forward' ? 'se-fwd' : _seNavDir === 'backward' ? 'se-bwd' : 'se-fade';
+
+  // Leaf: verdict
+  if (focus.leaf){
+    const sorted = [..._seContenders].sort((a,b) => focus.scores[b.key] - focus.scores[a.key]);
+    let html = '<div style="animation:'+animName+' .3s ease-out both">';
+    if (focus.winner){
+      html += '<div style="text-align:center;padding:1.5rem;background:rgba(0,230,118,.06);border:1px solid rgba(0,230,118,.25);border-radius:8px">' +
+        '<div style="font-size:.65rem;color:var(--paper-3);text-transform:uppercase;letter-spacing:.14em;margin-bottom:.4rem">All contender games decided</div>' +
+        '<div style="font-size:1.3rem;font-weight:700;color:'+focus.winner.color+'">\u2605 '+focus.winner.short+' wins</div>' +
+        '<div style="font-family:\'JetBrains Mono\',monospace;font-size:.85rem;color:var(--paper-2);margin-top:.3rem">'+focus.scores[focus.winner.key]+' points</div></div>';
+    } else {
+      html += '<div style="text-align:center;padding:1.5rem;background:rgba(255,238,88,.06);border:1px solid rgba(255,238,88,.25);border-radius:8px">' +
+        '<div style="font-size:.65rem;color:var(--paper-3);text-transform:uppercase;letter-spacing:.14em;margin-bottom:.4rem">Tiebreak Required</div>' +
+        '<div style="font-size:1.1rem;font-weight:700">'+focus.tied.map(function(p){return '<span style="color:'+p.color+'">'+p.short+'</span>';}).join(' \u00b7 ')+'</div>' +
+        '<div style="font-family:\'JetBrains Mono\',monospace;font-size:.85rem;color:var(--paper-2);margin-top:.3rem">Tied at '+focus.scores[focus.tied[0].key]+' points</div></div>';
+    }
+    html += '<div style="margin-top:.8rem">' + sorted.map(function(p){
+      return '<div style="display:flex;align-items:center;gap:.5rem;margin-bottom:.25rem;font-family:\'JetBrains Mono\',monospace;font-size:.8rem">' +
+        '<span style="color:'+p.color+';font-weight:600;width:80px;text-align:right">'+p.short+'</span>' +
+        '<span style="color:var(--paper-2)">'+focus.scores[p.key]+' pts</span></div>';
+    }).join('') + '</div></div>';
+    wrap.innerHTML = html;
+    return;
+  }
+
+  _seGenChildren(focus);
+  const ch = focus.ch;
+  if (!ch || !ch.length){ wrap.innerHTML = ''; return; }
+
+  // Group level-1 children by game
+  const groups = [];
+  let lastGi = -1;
+  ch.forEach(function(c,ci){
+    if (c.gi !== lastGi){ groups.push({gi:c.gi, items:[]}); lastGi = c.gi; }
+    groups[groups.length-1].items.push({k:c.k, p:c.p, gi:c.gi, child:c.child, ci:ci});
+  });
+
+  // Generate level-2 grandchildren
+  const GC_H = 13, GC_VS = 1, GC_GRP_LBL = 10, GC_GRP_VS = 4;
+  const VERDICT_H = 26;  // height for leaf verdict nodes in GC column
+  let hasAnyGC = false;
+  groups.forEach(function(grp){
+    grp.items.forEach(function(c){
+      c.gcGroups = []; c.gcFanH = 0; c.isLeaf = c.child.leaf;
+      if (c.child.leaf){
+        // Leaf children get a verdict node in the GC column
+        hasAnyGC = true;
+        c.gcFanH = VERDICT_H;
+      } else {
+        _seGenChildren(c.child);
+        if (c.child.ch && c.child.ch.length){
+          hasAnyGC = true;
+          let lg = -1;
+          c.child.ch.forEach(function(gc, gci){
+            if (gc.gi !== lg){ c.gcGroups.push({gi:gc.gi, items:[]}); lg = gc.gi; }
+            c.gcGroups[c.gcGroups.length-1].items.push({k:gc.k, p:gc.p, gi:gc.gi, child:gc.child, gci:gci});
+          });
+          let h = 0;
+          c.gcGroups.forEach(function(gg,i){
+            h += GC_GRP_LBL + gg.items.length * GC_H + (gg.items.length - 1) * GC_VS;
+            if (i < c.gcGroups.length - 1) h += GC_GRP_VS;
+          });
+          c.gcFanH = h;
+        }
+      }
+    });
+  });
+
+  // Past trail: show up to 3 ancestors
+  const MAX_PAST = 3;
+  const visPast = pastChain.slice(-MAX_PAST);
+  const hasTrunc = pastChain.length > MAX_PAST;
+  const PAST_W = 100, PAST_H = 38, PAST_HS = 30;
+  const TRUNC_W = 18;
+  const pastAreaW = visPast.length > 0
+    ? (hasTrunc ? TRUNC_W + 10 : 0) + visPast.length * PAST_W + visPast.length * PAST_HS
+    : 0;
+
+  // Layout dimensions
+  const FOCUS_W = 155, FOCUS_H = 72;
+  const CH_W = 155;
+  const GC_W = 100;
+  const defaultCH_H = ch.length <= 9 ? 52 : ch.length <= 15 ? 44 : 36;
+  const VS_IN = 4, VS_OUT = 16, GRP_LBL = 15;
+  const HS = 60, HS2 = 35, PAD = 25;
+
+  groups.forEach(function(grp){
+    grp.items.forEach(function(c){
+      c.slotH = Math.max(defaultCH_H, c.gcFanH);
+    });
+  });
+
+  let totalChildH = 0;
+  groups.forEach(function(grp,gi){
+    totalChildH += GRP_LBL;
+    grp.items.forEach(function(c,i){
+      totalChildH += c.slotH;
+      if (i < grp.items.length - 1) totalChildH += VS_IN;
+    });
+    if (gi < groups.length - 1) totalChildH += VS_OUT;
+  });
+
+  const svgH = Math.max(totalChildH, FOCUS_H) + PAD*2;
+  const svgW = PAD + pastAreaW + FOCUS_W + HS + CH_W + (hasAnyGC ? HS2 + GC_W : 0) + PAD;
+
+  const svg = document.createElementNS(SE_NS,'svg');
+  svg.setAttribute('viewBox','0 0 '+svgW+' '+svgH);
+  svg.setAttribute('width','100%');
+  svg.style.maxWidth = svgW+'px';
+  svg.style.minWidth = Math.min(svgW,400)+'px';
+  svg.style.animation = animName+' .3s ease-out both';
+
+  const fx = PAD + pastAreaW, fy = svgH/2;
+  const childX = fx + FOCUS_W + HS;
+  const gcX = childX + CH_W + HS2;
+
+  // ── Past trail nodes ──
+  if (visPast.length > 0){
+    const eClr2 = {W:'#00e676', D:'#8494be', L:'#ff5252'};
+    let px = PAD + (hasTrunc ? TRUNC_W + 10 : 0);
+
+    // Truncation indicator
+    if (hasTrunc){
+      const dt = document.createElementNS(SE_NS,'text');
+      dt.setAttribute('x',PAD+TRUNC_W/2); dt.setAttribute('y',fy+4);
+      dt.setAttribute('text-anchor','middle'); dt.setAttribute('fill','#4e5f8a');
+      dt.setAttribute('font-family',"'JetBrains Mono',monospace");
+      dt.setAttribute('font-size','11'); dt.setAttribute('font-weight','600');
+      dt.textContent = '\u00b7\u00b7\u00b7';
+      svg.appendChild(dt);
+    }
+
+    const GOLD_PAST = '#ffd54f';
+    visPast.forEach(function(step, si){
+      const depth = pastChain.length - visPast.length + si;
+      const op = 0.35 + si * (0.35 / Math.max(1, visPast.length - 1));
+      const rc = eClr2[step.edge.k];
+      const rl = step.edge.k==='W'?'1\u20130':step.edge.k==='D'?'\u00bd\u2013\u00bd':'0\u20131';
+      const isActual = step.game.actual !== null && ['W','D','L'][step.game.actual] === step.edge.k;
+      const nodeClr = isActual ? GOLD_PAST : rc;
+
+      // Past node rectangle
+      const rect = document.createElementNS(SE_NS,'rect');
+      rect.setAttribute('x',px); rect.setAttribute('y',fy-PAST_H/2);
+      rect.setAttribute('width',PAST_W); rect.setAttribute('height',PAST_H);
+      rect.setAttribute('fill', isActual ? 'rgba(255,213,79,0.06)' : 'rgba(11,17,32,0.6)');
+      rect.setAttribute('stroke', isActual ? GOLD_PAST+'70' : rc+'50');
+      rect.setAttribute('stroke-width', isActual ? '1.5' : '1');
+      rect.setAttribute('rx','4'); rect.setAttribute('opacity',op.toFixed(2));
+      svg.appendChild(rect);
+
+      // Result text inside
+      const rt = document.createElementNS(SE_NS,'text');
+      rt.setAttribute('x',px+PAST_W/2); rt.setAttribute('y',fy-3);
+      rt.setAttribute('text-anchor','middle'); rt.setAttribute('fill',nodeClr);
+      rt.setAttribute('font-family',"'JetBrains Mono',monospace");
+      rt.setAttribute('font-size','7.5'); rt.setAttribute('font-weight','600');
+      rt.setAttribute('opacity',op.toFixed(2));
+      rt.textContent = (isActual?'\u2713 ':'')+step.game.ws+' '+rl+' '+step.game.bs;
+      svg.appendChild(rt);
+
+      // Round label below
+      const rnl = document.createElementNS(SE_NS,'text');
+      rnl.setAttribute('x',px+PAST_W/2); rnl.setAttribute('y',fy+10);
+      rnl.setAttribute('text-anchor','middle'); rnl.setAttribute('fill', isActual ? GOLD_PAST+'90' : '#4e5f8a');
+      rnl.setAttribute('font-family',"'JetBrains Mono',monospace");
+      rnl.setAttribute('font-size','6'); rnl.setAttribute('opacity',op.toFixed(2));
+      rnl.textContent = 'R'+step.game.round+' \u00b7 '+(step.edge.p*100).toFixed(0)+'%';
+      svg.appendChild(rnl);
+
+      // Click overlay to navigate back
+      const click = document.createElementNS(SE_NS,'rect');
+      click.setAttribute('x',px); click.setAttribute('y',fy-PAST_H/2);
+      click.setAttribute('width',PAST_W); click.setAttribute('height',PAST_H);
+      click.setAttribute('fill','transparent'); click.setAttribute('cursor','pointer');
+      const navDepth = depth;
+      click.addEventListener('click', function(){ _seNav(navDepth); });
+      click.addEventListener('mouseenter', function(){ rect.setAttribute('stroke',rc); rect.setAttribute('opacity','0.9'); });
+      click.addEventListener('mouseleave', function(){ rect.setAttribute('stroke',rc+'50'); rect.setAttribute('opacity',op.toFixed(2)); });
+      svg.appendChild(click);
+
+      // Edge to next node
+      const nextX = px + PAST_W;
+      const toX = si < visPast.length - 1 ? px + PAST_W + PAST_HS : fx;
+      const mx = (nextX + toX) / 2;
+      const edge = document.createElementNS(SE_NS,'path');
+      edge.setAttribute('d','M'+nextX+','+fy+' C'+mx+','+fy+' '+mx+','+fy+' '+toX+','+fy);
+      edge.setAttribute('fill','none');
+      edge.setAttribute('stroke','#263764');
+      edge.setAttribute('stroke-width','1');
+      edge.setAttribute('stroke-dasharray','3,3');
+      edge.setAttribute('opacity',((op+0.15)).toFixed(2));
+      svg.appendChild(edge);
+
+      px += PAST_W + PAST_HS;
+    });
+  }
+
+  // ── Position level-1 children and level-2 fans ──
+  let cy2 = PAD + Math.max(0, svgH - PAD*2 - totalChildH) / 2;
+  groups.forEach(function(grp){
+    grp._ly = cy2 + GRP_LBL*0.75;
+    cy2 += GRP_LBL;
+    grp.items.forEach(function(c,i){
+      c._x = childX; c._y = cy2 + c.slotH/2;
+      if (c.isLeaf){
+        // Position verdict node in GC column, centered on child
+        c._verdictX = gcX; c._verdictY = c._y;
+      } else if (c.gcGroups.length > 0){
+        let gy = c._y - c.gcFanH/2;
+        c.gcGroups.forEach(function(gg,gi2){
+          gg._ly = gy + GC_GRP_LBL*0.75;
+          gy += GC_GRP_LBL;
+          gg.items.forEach(function(gc,j){
+            gc._x = gcX; gc._y = gy + GC_H/2;
+            gy += GC_H + (j < gg.items.length-1 ? GC_VS : 0);
+          });
+          if (gi2 < c.gcGroups.length-1) gy += GC_GRP_VS;
+        });
+      }
+      cy2 += c.slotH + (i < grp.items.length-1 ? VS_IN : 0);
+    });
+    cy2 += VS_OUT;
+  });
+
+  const eClr = {W:'#00e676', D:'#8494be', L:'#ff5252'};
+
+  const GOLD = '#ffd54f';
+
+  // ── Draw level-0 → level-1 edges ──
+  groups.forEach(function(grp){
+    grp.items.forEach(function(c){
+      const gg = _seGames[c.gi];
+      const isActual = gg.actual !== null && ['W','D','L'][gg.actual] === c.k;
+      const x1 = fx+FOCUS_W, y1 = fy, x2 = c._x, y2 = c._y, mx = (x1+x2)/2;
+      const p = document.createElementNS(SE_NS,'path');
+      p.setAttribute('d','M'+x1+','+y1+' C'+mx+','+y1+' '+mx+','+y2+' '+x2+','+y2);
+      p.setAttribute('fill','none');
+      p.setAttribute('stroke',isActual ? GOLD : eClr[c.k]);
+      p.setAttribute('stroke-width',isActual ? '2.5' : Math.max(0.8,c.p*3.5).toFixed(1));
+      p.setAttribute('opacity',isActual ? '0.9' : (0.25+c.p*0.65).toFixed(2));
+      svg.appendChild(p);
+    });
+  });
+
+  // ── Draw level-1 → level-2 edges ──
+  groups.forEach(function(grp){
+    grp.items.forEach(function(c){
+      if (c.isLeaf){
+        // Edge from leaf child to verdict node
+        const x1 = c._x+CH_W, y1 = c._y, x2 = c._verdictX, y2 = c._verdictY, mx = (x1+x2)/2;
+        const p = document.createElementNS(SE_NS,'path');
+        p.setAttribute('d','M'+x1+','+y1+' C'+mx+','+y1+' '+mx+','+y2+' '+x2+','+y2);
+        p.setAttribute('fill','none');
+        p.setAttribute('stroke', c.child.winner ? c.child.winner.color : '#ffee58');
+        p.setAttribute('stroke-width','1.5');
+        p.setAttribute('opacity','0.7');
+        svg.appendChild(p);
+      } else if (c.gcGroups.length > 0){
+        c.gcGroups.forEach(function(gg){
+          gg.items.forEach(function(gc){
+            const x1 = c._x+CH_W, y1 = c._y, x2 = gc._x, y2 = gc._y, mx = (x1+x2)/2;
+            const p = document.createElementNS(SE_NS,'path');
+            p.setAttribute('d','M'+x1+','+y1+' C'+mx+','+y1+' '+mx+','+y2+' '+x2+','+y2);
+            p.setAttribute('fill','none');
+            p.setAttribute('stroke',eClr[gc.k]);
+            p.setAttribute('stroke-width',Math.max(0.5,gc.p*2.5).toFixed(1));
+            p.setAttribute('opacity',(0.15+gc.p*0.45).toFixed(2));
+            svg.appendChild(p);
+          });
+        });
+      }
+    });
+  });
+
+  // ── Focus node (level 0) ──
+  (function(){
+    const sorted = [..._seContenders].sort((a,b) => focus.scores[b.key] - focus.scores[a.key]);
+    const lc = sorted[0].color;
+    const rect = document.createElementNS(SE_NS,'rect');
+    rect.setAttribute('x',fx); rect.setAttribute('y',fy-FOCUS_H/2);
+    rect.setAttribute('width',FOCUS_W); rect.setAttribute('height',FOCUS_H);
+    rect.setAttribute('fill','rgba(15,22,40,0.95)');
+    rect.setAttribute('stroke',lc); rect.setAttribute('stroke-width','2');
+    rect.setAttribute('rx','6');
+    svg.appendChild(rect);
+
+    const np = focus.pending.length;
+    const hl = document.createElementNS(SE_NS,'text');
+    hl.setAttribute('x',fx+FOCUS_W/2); hl.setAttribute('y',fy-FOCUS_H/2+12);
+    hl.setAttribute('text-anchor','middle'); hl.setAttribute('fill','#6a7ca3');
+    hl.setAttribute('font-family',"'JetBrains Mono',monospace");
+    hl.setAttribute('font-size','7.5');
+    hl.textContent = np+' game'+(np!==1?'s':'')+' remaining';
+    svg.appendChild(hl);
+
+    const sy = fy - FOCUS_H/2 + 22, lh = 15;
+    _seContenders.forEach(function(p,i){
+      const sc = focus.scores[p.key], ty = sy + i*lh;
+      const al = focus.alive.has(p.key), ld = p.key === sorted[0].key;
+      const bw = (sc / DATA.meta.total_rounds) * (FOCUS_W-8);
+      const bar = document.createElementNS(SE_NS,'rect');
+      bar.setAttribute('x',fx+4); bar.setAttribute('y',ty);
+      bar.setAttribute('width',Math.max(0,bw)); bar.setAttribute('height',lh-4);
+      bar.setAttribute('fill',hexAlpha(p.color,al?0.2:0.06)); bar.setAttribute('rx','2');
+      svg.appendChild(bar);
+      const st = document.createElementNS(SE_NS,'text');
+      st.setAttribute('x',fx+FOCUS_W-5); st.setAttribute('y',ty+lh*0.65);
+      st.setAttribute('text-anchor','end');
+      st.setAttribute('fill',al?p.color:hexAlpha(p.color,0.3));
+      st.setAttribute('font-family',"'JetBrains Mono',monospace");
+      st.setAttribute('font-size','9'); st.setAttribute('font-weight',ld?'700':'400');
+      st.textContent = p.short+' '+sc+(al?'':' \u2717');
+      svg.appendChild(st);
+    });
+  })();
+
+  // ── Level-1 group labels + child nodes ──
+  groups.forEach(function(grp){
+    const g = _seGames[grp.gi];
+    const gl = document.createElementNS(SE_NS,'text');
+    gl.setAttribute('x',childX); gl.setAttribute('y',grp._ly);
+    gl.setAttribute('fill','#6a7ca3');
+    gl.setAttribute('font-family',"'JetBrains Mono',monospace");
+    gl.setAttribute('font-size','7.5');
+    gl.textContent = 'R'+g.round+': '+g.ws+' vs '+g.bs;
+    svg.appendChild(gl);
+
+    grp.items.forEach(function(c){
+      const x = c._x, y = c._y;
+      const gg = _seGames[c.gi];
+      const rc = eClr[c.k];
+      const isActual = gg.actual !== null && ['W','D','L'][gg.actual] === c.k;
+      const sorted = [..._seContenders].sort((a,b) => c.child.scores[b.key] - c.child.scores[a.key]);
+      const lc = sorted[0].color;
+
+      const grpEl = document.createElementNS(SE_NS,'g');
+      const rect = document.createElementNS(SE_NS,'rect');
+      rect.setAttribute('x',x); rect.setAttribute('y',y-defaultCH_H/2);
+      rect.setAttribute('width',CH_W); rect.setAttribute('height',defaultCH_H);
+      rect.setAttribute('fill', isActual ? 'rgba(255,213,79,0.06)' : 'rgba(11,17,32,0.85)');
+      rect.setAttribute('stroke', isActual ? GOLD+'80' : rc+'40');
+      rect.setAttribute('stroke-width', isActual ? '1.5' : '1');
+      rect.setAttribute('rx','4');
+      grpEl.appendChild(rect);
+
+      const rl = c.k==='W'?'1\u20130':c.k==='D'?'\u00bd\u2013\u00bd':'0\u20131';
+      const rt = document.createElementNS(SE_NS,'text');
+      rt.setAttribute('x', isActual ? x+14 : x+5); rt.setAttribute('y',y-defaultCH_H/2+12);
+      rt.setAttribute('fill', isActual ? GOLD : rc);
+      rt.setAttribute('font-family',"'JetBrains Mono',monospace");
+      rt.setAttribute('font-size','8.5'); rt.setAttribute('font-weight','600');
+      rt.textContent = gg.ws+' '+rl+' '+gg.bs;
+      grpEl.appendChild(rt);
+      // Checkmark for actual result
+      if (isActual){
+        const chk = document.createElementNS(SE_NS,'text');
+        chk.setAttribute('x',x+5); chk.setAttribute('y',y-defaultCH_H/2+12);
+        chk.setAttribute('fill',GOLD); chk.setAttribute('font-size','8');
+        chk.textContent = '\u2713';
+        grpEl.appendChild(chk);
+      }
+      const pt = document.createElementNS(SE_NS,'text');
+      pt.setAttribute('x',x+CH_W-5); pt.setAttribute('y',y-defaultCH_H/2+12);
+      pt.setAttribute('text-anchor','end'); pt.setAttribute('fill', isActual ? GOLD : rc);
+      pt.setAttribute('font-family',"'JetBrains Mono',monospace");
+      pt.setAttribute('font-size','7.5'); pt.setAttribute('opacity','0.7');
+      pt.textContent = (c.p*100).toFixed(0)+'%';
+      grpEl.appendChild(pt);
+
+      const sy = y - defaultCH_H/2 + 19;
+      const lh = Math.min(12, (defaultCH_H-22)/_seContenders.length);
+      _seContenders.forEach(function(p,i){
+        const sc = c.child.scores[p.key], ty = sy + i*lh;
+        const al = c.child.alive.has(p.key), ld = p.key === sorted[0].key;
+        const changed = sc !== focus.scores[p.key];
+        const st = document.createElementNS(SE_NS,'text');
+        st.setAttribute('x',x+5); st.setAttribute('y',ty+lh*0.8);
+        st.setAttribute('fill',al ? (changed ? '#fff' : p.color) : hexAlpha(p.color,0.3));
+        st.setAttribute('font-family',"'JetBrains Mono',monospace");
+        st.setAttribute('font-size','8');
+        st.setAttribute('font-weight',(ld||changed)?'700':'400');
+        st.textContent = p.short+' '+sc+(al?'':' \u2717');
+        grpEl.appendChild(st);
+      });
+
+      svg.appendChild(grpEl);
+
+      const click = document.createElementNS(SE_NS,'rect');
+      click.setAttribute('x',x); click.setAttribute('y',y-defaultCH_H/2);
+      click.setAttribute('width',CH_W); click.setAttribute('height',defaultCH_H);
+      click.setAttribute('fill','transparent'); click.setAttribute('cursor','pointer');
+      click.addEventListener('click', function(){ _seClick(c.ci); });
+      click.addEventListener('mouseenter', function(){ rect.setAttribute('stroke',lc); rect.setAttribute('stroke-width','1.5'); });
+      click.addEventListener('mouseleave', function(){ rect.setAttribute('stroke',rc+'40'); rect.setAttribute('stroke-width','1'); });
+      svg.appendChild(click);
+    });
+  });
+
+  // ── Level-2 grandchild pills ──
+  groups.forEach(function(grp){
+    grp.items.forEach(function(c){
+      // Render verdict node for leaf children
+      if (c.isLeaf){
+        const vx = c._verdictX, vy = c._verdictY;
+        const vw = GC_W, vh = VERDICT_H;
+        const wn = c.child.winner;
+        const vc = wn ? wn.color : '#ffee58';
+        const vr = document.createElementNS(SE_NS,'rect');
+        vr.setAttribute('x',vx); vr.setAttribute('y',vy-vh/2);
+        vr.setAttribute('width',vw); vr.setAttribute('height',vh);
+        vr.setAttribute('fill','rgba(11,17,32,0.85)');
+        vr.setAttribute('stroke',vc+'60'); vr.setAttribute('stroke-width','1.5');
+        vr.setAttribute('rx','4');
+        svg.appendChild(vr);
+        // Accent bar
+        const va = document.createElementNS(SE_NS,'rect');
+        va.setAttribute('x',vx); va.setAttribute('y',vy-vh/2);
+        va.setAttribute('width','3'); va.setAttribute('height',vh);
+        va.setAttribute('fill',vc); va.setAttribute('opacity','0.8');
+        va.setAttribute('rx','1.5');
+        svg.appendChild(va);
+        // Verdict text
+        const vt = document.createElementNS(SE_NS,'text');
+        vt.setAttribute('x',vx+vw/2); vt.setAttribute('y',vy+4);
+        vt.setAttribute('text-anchor','middle'); vt.setAttribute('fill',vc);
+        vt.setAttribute('font-family',"'JetBrains Mono',monospace");
+        vt.setAttribute('font-size','9'); vt.setAttribute('font-weight','700');
+        vt.textContent = wn ? '\u2605 '+wn.short+' wins' : 'TIE';
+        svg.appendChild(vt);
+        return;
+      }
+      if (c.gcGroups.length === 0) return;
+      c.gcGroups.forEach(function(gg){
+        const g2 = _seGames[gg.gi];
+        const gl2 = document.createElementNS(SE_NS,'text');
+        gl2.setAttribute('x',gcX); gl2.setAttribute('y',gg._ly);
+        gl2.setAttribute('fill','#4e5f8a');
+        gl2.setAttribute('font-family',"'JetBrains Mono',monospace");
+        gl2.setAttribute('font-size','6.5');
+        gl2.textContent = g2.ws+' v '+g2.bs;
+        svg.appendChild(gl2);
+
+        gg.items.forEach(function(gc){
+          const gx = gc._x, gy = gc._y;
+          const rc2 = eClr[gc.k];
+          const gsorted = [..._seContenders].sort((a,b) => gc.child.scores[b.key] - gc.child.scores[a.key]);
+          const glc = gsorted[0].color;
+
+          const pill = document.createElementNS(SE_NS,'rect');
+          pill.setAttribute('x',gx); pill.setAttribute('y',gy-GC_H/2);
+          pill.setAttribute('width',GC_W); pill.setAttribute('height',GC_H);
+          pill.setAttribute('fill','rgba(11,17,32,0.7)');
+          pill.setAttribute('stroke',rc2+'30'); pill.setAttribute('stroke-width','0.5');
+          pill.setAttribute('rx','3');
+          svg.appendChild(pill);
+
+          const accent = document.createElementNS(SE_NS,'rect');
+          accent.setAttribute('x',gx); accent.setAttribute('y',gy-GC_H/2);
+          accent.setAttribute('width','3'); accent.setAttribute('height',GC_H);
+          accent.setAttribute('fill',rc2); accent.setAttribute('opacity','0.7');
+          accent.setAttribute('rx','1.5');
+          svg.appendChild(accent);
+
+          const rl2 = gc.k==='W'?'W':gc.k==='D'?'D':'L';
+          const pct2 = (gc.p*100).toFixed(0)+'%';
+          const leaderSc = gc.child.scores[gsorted[0].key];
+          let lbl = rl2+' '+pct2;
+          if (gc.child.leaf){
+            if (gc.child.winner) lbl += ' \u2605'+gc.child.winner.short;
+            else lbl += ' TIE';
+          } else {
+            lbl += ' '+gsorted[0].short+' '+leaderSc;
+          }
+
+          const gt = document.createElementNS(SE_NS,'text');
+          gt.setAttribute('x',gx+6); gt.setAttribute('y',gy+GC_H*0.25);
+          gt.setAttribute('fill',gc.child.leaf ? (gc.child.winner ? gc.child.winner.color : '#ffee58') : glc);
+          gt.setAttribute('font-family',"'JetBrains Mono',monospace");
+          gt.setAttribute('font-size','7');
+          gt.setAttribute('font-weight',gc.child.leaf ? '700' : '400');
+          gt.setAttribute('opacity','0.85');
+          gt.textContent = lbl;
+          svg.appendChild(gt);
+        });
+      });
+    });
+  });
+
+  wrap.innerHTML = '';
+  wrap.appendChild(svg);
+
+  // Auto-scroll to show focus node
+  if (_seNavDir === 'forward'){
+    wrap.scrollLeft = Math.max(0, fx - 20);
+  } else if (_seNavDir === 'backward'){
+    wrap.scrollLeft = 0;
+  }
 }
 
 // ═══════════════════════════════════════════════
