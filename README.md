@@ -8,7 +8,47 @@ A multi-threaded Monte Carlo simulator for chess tournaments with a fixed schedu
 
 **[https://vltanh.github.io/assets/chess/candidates2026.html](https://vltanh.github.io/assets/chess/candidates2026.html)**
 
-### Round 11
+### Round 12
+
+![Round 12](results/candidates2026/r12.png)
+
+*Round 11 results: Anish–Esipenko drew, Hikaru–Wei Yi drew, Fabi–Sindarov drew, Pragg–Bluebaum drew*
+
+- ✓ **Anish–Esipenko drew**: draw predicted at 50.8%; correct prediction
+- ✓ **Hikaru–Wei Yi drew**: draw predicted at 48.2%; correct prediction
+- ✓ **Fabi–Sindarov drew**: draw predicted at 41.5%; correct prediction
+- ✓ **Pragg–Bluebaum drew**: draw predicted at 51.8%; correct prediction
+- **Perfect 4/4 round** — all four draws called correctly
+- Win probs: Sindarov rose to **98.2%** (from 95.8%); Anish slipped to **1.8%** (from 3.9%); Fabi at **0.01%** (from 0.3%) — a rounding error away from elimination
+
+*Standings after R11 (3 rounds remaining):*
+
+| Player | Pts | Max | Status |
+|---|---|---|---|
+| Sindarov | 8.5 | 11.5 | Near-certain winner |
+| Anish | 6.5 | 9.5 | Only realistic challenger (1.8%) |
+| Fabi | 5.5 | 8.5 | Mathematically alive but needs a miracle (0.01%) |
+| Hikaru | 5 | 8 | **Eliminated** — cannot reach Sindarov's floor of 8.5 |
+| Wei Yi | 5 | 8 | **Eliminated** |
+| Bluebaum | 5 | 8 | **Eliminated** |
+| Pragg | 4.5 | 7.5 | **Eliminated** |
+| Esipenko | 4 | 7 | **Eliminated** |
+
+*What would it take?*
+- **Sindarov (98.2%)**: needs just 1.5/3 to clinch outright at 10 points — unreachable by anyone else. A single win in R12 (vs Hikaru) eliminates Fabi and leaves only a perfect 3/3 finish for Anish as a path to even tie. Even drawing all three remaining games reaches 10 and seals the title. The only scenarios where Sindarov loses require scoring ≤1/3 while Anish runs the table.
+- **Anish (1.8%)**: 2 points behind with 3 to play. The lifeline is R13 (Anish vs Sindarov) — a win there swings 2 points in the head-to-head gap. Anish likely needs to win that game, plus win at least one of his other two (Wei Yi in R12, Bluebaum in R14), while Sindarov drops additional points. Even then, Anish may need to win a FIDE tiebreak. A plausible but narrow path.
+- **Fabi (0.01%)**: must win all three remaining games (Bluebaum R12, Pragg R13, Esipenko R14) to reach 8.5, AND Sindarov must lose all three to drop to 8.5. But there's a catch: one of Sindarov's three losses is to Anish in R13, so Anish automatically rises to at least 7.5. If Anish draws his other two games, it becomes a three-way tie at 8.5 between Sindarov, Anish, and Fabi — decided by FIDE tiebreak. If Anish wins another game, Anish finishes ahead of both. So Fabi needs a six-game parlay to go perfectly AND then likely needs to survive a three-way tiebreak; the model prices this at roughly 1-in-10,000.
+
+*Round 12 predictions:*
+- Esipenko–Pragg: 25.7% / **50.2%** / 24.1%, draw most likely; essentially even; a dead rubber for both eliminated players
+- Bluebaum–Fabi: 22.1% / **54.1%** / 23.8%, draw most likely; Fabi must win to keep any hope alive
+- Sindarov–Hikaru: 31.3% / **47.8%** / 20.9%, draw most likely; Sindarov with higher winning chances; a win clinches the tournament outright
+- Wei Yi–Anish: 24.1% / **49.1%** / 26.9%, draw most likely; Anish with higher winning chances; must win to have any chance in R13
+
+### Previous rounds
+
+<details>
+<summary>Round 11</summary>
 
 ![Round 11](results/candidates2026/r11.png)
 
@@ -26,7 +66,7 @@ A multi-threaded Monte Carlo simulator for chess tournaments with a fixed schedu
 - Fabi–Sindarov: 30.6% / **41.5%** / 28.0%, draw most likely; essentially even; Fabi needs a win to have any hope of catching Sindarov
 - Pragg–Bluebaum: 24.1% / **51.8%** / 24.0%, draw most likely; essentially even
 
-### Previous rounds
+</details>
 
 <details>
 <summary>Round 10</summary>
