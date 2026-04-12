@@ -164,10 +164,10 @@
     { "white": 2020009, "black": 14205483, "round": 11, "result": "1/2-1/2" }, // Fabi vs Sindarov
     { "white": 25059530, "black": 24651516, "round": 11, "result": "1/2-1/2" }, // Pragg vs Bluebaum
     // Round 12
-    { "white": 24175439, "black": 25059530, "round": 12 }, // Esipenko vs Pragg
-    { "white": 24651516, "black": 2020009, "round": 12 }, // Bluebaum vs Fabi
-    { "white": 14205483, "black": 2016192, "round": 12 }, // Sindarov vs Hikaru
-    { "white": 8603405, "black": 24116068, "round": 12 }, // Wei Yi vs Anish
+    { "white": 24175439, "black": 25059530, "round": 12, "result": "1/2-1/2" }, // Esipenko vs Pragg
+    { "white": 24651516, "black": 2020009, "round": 12, "result": "1/2-1/2" }, // Bluebaum vs Fabi
+    { "white": 14205483, "black": 2016192, "round": 12, "result": "1/2-1/2" }, // Sindarov vs Hikaru
+    { "white": 8603405, "black": 24116068, "round": 12, "result": "1/2-1/2" }, // Wei Yi vs Anish
     // Round 13
     { "white": 8603405, "black": 24175439, "round": 13 }, // Wei Yi vs Esipenko
     { "white": 24116068, "black": 14205483, "round": 13 }, // Anish vs Sindarov
