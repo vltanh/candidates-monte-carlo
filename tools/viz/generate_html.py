@@ -557,7 +557,7 @@ section{margin-bottom:3.25rem}
 .tab.active{color:var(--azure)}
 .tab.active::after{
   content:'';position:absolute;left:50%;transform:translateX(-50%);
-  bottom:-.95rem;width:28px;height:2px;background:var(--azure);
+  bottom:0;width:28px;height:2px;background:var(--azure);
 }
 .tab:disabled{color:var(--paper-4);cursor:not-allowed}
 .tab:disabled::after{content:'';display:none}
@@ -1932,21 +1932,8 @@ function initScenarioExplorer(){
     return;
   }
 
-  // Limit: too many contender games makes the tree unwieldy
-  const cKeys = new Set(_seContenders.map(p => p.key));
-  let contenderGameCount = 0;
-  DATA.all_games.forEach(ag => {
-    if (ag.round_num <= lastPlayed) return;
-    ag.games.forEach(g => {
-      if (cKeys.has(g.white) || cKeys.has(g.black)) contenderGameCount++;
-    });
-  });
-  if (contenderGameCount > 15){
-    container.innerHTML = '<p style="color:#6a7ca3;font-size:.88rem">Scenario explorer available when fewer contender games remain (' + contenderGameCount + ' currently).</p>';
-    return;
-  }
-
   // Collect games — include played games with their actual result
+  const cKeys = new Set(_seContenders.map(p => p.key));
   _seGames = [];
   DATA.all_games.forEach(ag => {
     if (ag.round_num <= lastPlayed) return;
@@ -1977,7 +1964,7 @@ function initScenarioExplorer(){
     '<div style="font-family:\'JetBrains Mono\',monospace;font-size:.62rem;color:var(--paper-3);text-transform:uppercase;letter-spacing:.14em;margin-bottom:.6rem">' +
     'Scenario Tree \u2014 click branches to explore, gold = actual result</div>' +
     '<div id="seCrumb" style="margin-bottom:.75rem"></div>' +
-    '<div id="seSvgWrap" style="overflow-x:auto;margin-bottom:.8rem"></div>' +
+    '<div id="seSvgWrap" style="overflow-x:hidden;margin-bottom:.8rem"></div>' +
     '<div style="display:flex;gap:.5rem;flex-wrap:wrap">' +
     '<button class="show-more-btn" onclick="_seNav(-1)" style="font-size:.75rem">\u21ba Reset</button>' +
     '<button class="show-more-btn" onclick="_seFollowActual()" style="font-size:.75rem">\u25b6 Follow actual</button>' +
@@ -2182,8 +2169,8 @@ function _seRenderSvg(){
   });
 
   // Generate level-2 grandchildren
-  const GC_H = 13, GC_VS = 1, GC_GRP_LBL = 10, GC_GRP_VS = 4;
-  const VERDICT_H = 26;  // height for leaf verdict nodes in GC column
+  const GC_H = 18, GC_VS = 3, GC_GRP_LBL = 14, GC_GRP_VS = 6;
+  const VERDICT_H = 30;  // height for leaf verdict nodes in GC column
   let hasAnyGC = false;
   groups.forEach(function(grp){
     grp.items.forEach(function(c){
@@ -2213,22 +2200,25 @@ function _seRenderSvg(){
   });
 
   // Past trail: show up to 3 ancestors
-  const MAX_PAST = 3;
+  const MAX_PAST = 2;
   const visPast = pastChain.slice(-MAX_PAST);
   const hasTrunc = pastChain.length > MAX_PAST;
-  const PAST_W = 100, PAST_H = 38, PAST_HS = 30;
+  const PAST_W = 115, PAST_H = 44, PAST_HS = 35;
   const TRUNC_W = 18;
   const pastAreaW = visPast.length > 0
     ? (hasTrunc ? TRUNC_W + 10 : 0) + visPast.length * PAST_W + visPast.length * PAST_HS
     : 0;
 
-  // Layout dimensions
-  const FOCUS_W = 155, FOCUS_H = 72;
-  const CH_W = 155;
-  const GC_W = 100;
-  const defaultCH_H = ch.length <= 9 ? 52 : ch.length <= 15 ? 44 : 36;
-  const VS_IN = 4, VS_OUT = 16, GRP_LBL = 15;
-  const HS = 60, HS2 = 35, PAD = 25;
+  // Layout dimensions — adapt to number of contenders
+  const nC = _seContenders.length;
+  const FOCUS_LH = 18;
+  const FOCUS_W = 170, FOCUS_H = 26 + nC * FOCUS_LH + 6;
+  const CH_W = 170;
+  const GC_W = 120;
+  const CH_LH = Math.min(15, Math.max(10, (60 - 26) / nC));
+  const defaultCH_H = Math.max(42, 26 + nC * CH_LH);
+  const VS_IN = 6, VS_OUT = 20, GRP_LBL = 18;
+  const HS = 70, HS2 = 45, PAD = 30;
 
   groups.forEach(function(grp){
     grp.items.forEach(function(c){
@@ -2300,17 +2290,17 @@ function _seRenderSvg(){
       rt.setAttribute('x',px+PAST_W/2); rt.setAttribute('y',fy-3);
       rt.setAttribute('text-anchor','middle'); rt.setAttribute('fill',nodeClr);
       rt.setAttribute('font-family',"'JetBrains Mono',monospace");
-      rt.setAttribute('font-size','7.5'); rt.setAttribute('font-weight','600');
+      rt.setAttribute('font-size','9'); rt.setAttribute('font-weight','600');
       rt.setAttribute('opacity',op.toFixed(2));
       rt.textContent = (isActual?'\u2713 ':'')+step.game.ws+' '+rl+' '+step.game.bs;
       svg.appendChild(rt);
 
       // Round label below
       const rnl = document.createElementNS(SE_NS,'text');
-      rnl.setAttribute('x',px+PAST_W/2); rnl.setAttribute('y',fy+10);
+      rnl.setAttribute('x',px+PAST_W/2); rnl.setAttribute('y',fy+12);
       rnl.setAttribute('text-anchor','middle'); rnl.setAttribute('fill', isActual ? GOLD_PAST+'90' : '#4e5f8a');
       rnl.setAttribute('font-family',"'JetBrains Mono',monospace");
-      rnl.setAttribute('font-size','6'); rnl.setAttribute('opacity',op.toFixed(2));
+      rnl.setAttribute('font-size','7.5'); rnl.setAttribute('opacity',op.toFixed(2));
       rnl.textContent = 'R'+step.game.round+' \u00b7 '+(step.edge.p*100).toFixed(0)+'%';
       svg.appendChild(rnl);
 
@@ -2433,14 +2423,14 @@ function _seRenderSvg(){
 
     const np = focus.pending.length;
     const hl = document.createElementNS(SE_NS,'text');
-    hl.setAttribute('x',fx+FOCUS_W/2); hl.setAttribute('y',fy-FOCUS_H/2+12);
+    hl.setAttribute('x',fx+FOCUS_W/2); hl.setAttribute('y',fy-FOCUS_H/2+15);
     hl.setAttribute('text-anchor','middle'); hl.setAttribute('fill','#6a7ca3');
     hl.setAttribute('font-family',"'JetBrains Mono',monospace");
-    hl.setAttribute('font-size','7.5');
+    hl.setAttribute('font-size','9');
     hl.textContent = np+' game'+(np!==1?'s':'')+' remaining';
     svg.appendChild(hl);
 
-    const sy = fy - FOCUS_H/2 + 22, lh = 15;
+    const sy = fy - FOCUS_H/2 + 26, lh = FOCUS_LH;
     _seContenders.forEach(function(p,i){
       const sc = focus.scores[p.key], ty = sy + i*lh;
       const al = focus.alive.has(p.key), ld = p.key === sorted[0].key;
@@ -2455,7 +2445,7 @@ function _seRenderSvg(){
       st.setAttribute('text-anchor','end');
       st.setAttribute('fill',al?p.color:hexAlpha(p.color,0.3));
       st.setAttribute('font-family',"'JetBrains Mono',monospace");
-      st.setAttribute('font-size','9'); st.setAttribute('font-weight',ld?'700':'400');
+      st.setAttribute('font-size','10'); st.setAttribute('font-weight',ld?'700':'400');
       st.textContent = p.short+' '+sc+(al?'':' \u2717');
       svg.appendChild(st);
     });
@@ -2468,7 +2458,7 @@ function _seRenderSvg(){
     gl.setAttribute('x',childX); gl.setAttribute('y',grp._ly);
     gl.setAttribute('fill','#6a7ca3');
     gl.setAttribute('font-family',"'JetBrains Mono',monospace");
-    gl.setAttribute('font-size','7.5');
+    gl.setAttribute('font-size','9');
     gl.textContent = 'R'+g.round+': '+g.ws+' vs '+g.bs;
     svg.appendChild(gl);
 
@@ -2492,39 +2482,39 @@ function _seRenderSvg(){
 
       const rl = c.k==='W'?'1\u20130':c.k==='D'?'\u00bd\u2013\u00bd':'0\u20131';
       const rt = document.createElementNS(SE_NS,'text');
-      rt.setAttribute('x', isActual ? x+14 : x+5); rt.setAttribute('y',y-defaultCH_H/2+12);
+      rt.setAttribute('x', isActual ? x+16 : x+6); rt.setAttribute('y',y-defaultCH_H/2+14);
       rt.setAttribute('fill', isActual ? GOLD : rc);
       rt.setAttribute('font-family',"'JetBrains Mono',monospace");
-      rt.setAttribute('font-size','8.5'); rt.setAttribute('font-weight','600');
+      rt.setAttribute('font-size','10'); rt.setAttribute('font-weight','600');
       rt.textContent = gg.ws+' '+rl+' '+gg.bs;
       grpEl.appendChild(rt);
       // Checkmark for actual result
       if (isActual){
         const chk = document.createElementNS(SE_NS,'text');
-        chk.setAttribute('x',x+5); chk.setAttribute('y',y-defaultCH_H/2+12);
-        chk.setAttribute('fill',GOLD); chk.setAttribute('font-size','8');
+        chk.setAttribute('x',x+6); chk.setAttribute('y',y-defaultCH_H/2+14);
+        chk.setAttribute('fill',GOLD); chk.setAttribute('font-size','9.5');
         chk.textContent = '\u2713';
         grpEl.appendChild(chk);
       }
       const pt = document.createElementNS(SE_NS,'text');
-      pt.setAttribute('x',x+CH_W-5); pt.setAttribute('y',y-defaultCH_H/2+12);
+      pt.setAttribute('x',x+CH_W-6); pt.setAttribute('y',y-defaultCH_H/2+14);
       pt.setAttribute('text-anchor','end'); pt.setAttribute('fill', isActual ? GOLD : rc);
       pt.setAttribute('font-family',"'JetBrains Mono',monospace");
-      pt.setAttribute('font-size','7.5'); pt.setAttribute('opacity','0.7');
+      pt.setAttribute('font-size','9'); pt.setAttribute('opacity','0.7');
       pt.textContent = (c.p*100).toFixed(0)+'%';
       grpEl.appendChild(pt);
 
-      const sy = y - defaultCH_H/2 + 19;
-      const lh = Math.min(12, (defaultCH_H-22)/_seContenders.length);
+      const sy = y - defaultCH_H/2 + 24;
+      const lh = CH_LH;
       _seContenders.forEach(function(p,i){
         const sc = c.child.scores[p.key], ty = sy + i*lh;
         const al = c.child.alive.has(p.key), ld = p.key === sorted[0].key;
         const changed = sc !== focus.scores[p.key];
         const st = document.createElementNS(SE_NS,'text');
-        st.setAttribute('x',x+5); st.setAttribute('y',ty+lh*0.8);
+        st.setAttribute('x',x+6); st.setAttribute('y',ty+lh*0.8);
         st.setAttribute('fill',al ? (changed ? '#fff' : p.color) : hexAlpha(p.color,0.3));
         st.setAttribute('font-family',"'JetBrains Mono',monospace");
-        st.setAttribute('font-size','8');
+        st.setAttribute('font-size','9.5');
         st.setAttribute('font-weight',(ld||changed)?'700':'400');
         st.textContent = p.short+' '+sc+(al?'':' \u2717');
         grpEl.appendChild(st);
@@ -2571,7 +2561,7 @@ function _seRenderSvg(){
         vt.setAttribute('x',vx+vw/2); vt.setAttribute('y',vy+4);
         vt.setAttribute('text-anchor','middle'); vt.setAttribute('fill',vc);
         vt.setAttribute('font-family',"'JetBrains Mono',monospace");
-        vt.setAttribute('font-size','9'); vt.setAttribute('font-weight','700');
+        vt.setAttribute('font-size','10'); vt.setAttribute('font-weight','700');
         vt.textContent = wn ? '\u2605 '+wn.short+' wins' : 'TIE';
         svg.appendChild(vt);
         return;
@@ -2583,7 +2573,7 @@ function _seRenderSvg(){
         gl2.setAttribute('x',gcX); gl2.setAttribute('y',gg._ly);
         gl2.setAttribute('fill','#4e5f8a');
         gl2.setAttribute('font-family',"'JetBrains Mono',monospace");
-        gl2.setAttribute('font-size','6.5');
+        gl2.setAttribute('font-size','8');
         gl2.textContent = g2.ws+' v '+g2.bs;
         svg.appendChild(gl2);
 
@@ -2620,10 +2610,10 @@ function _seRenderSvg(){
           }
 
           const gt = document.createElementNS(SE_NS,'text');
-          gt.setAttribute('x',gx+6); gt.setAttribute('y',gy+GC_H*0.25);
+          gt.setAttribute('x',gx+7); gt.setAttribute('y',gy+GC_H*0.3);
           gt.setAttribute('fill',gc.child.leaf ? (gc.child.winner ? gc.child.winner.color : '#ffee58') : glc);
           gt.setAttribute('font-family',"'JetBrains Mono',monospace");
-          gt.setAttribute('font-size','7');
+          gt.setAttribute('font-size','8.5');
           gt.setAttribute('font-weight',gc.child.leaf ? '700' : '400');
           gt.setAttribute('opacity','0.85');
           gt.textContent = lbl;
@@ -2636,12 +2626,15 @@ function _seRenderSvg(){
   wrap.innerHTML = '';
   wrap.appendChild(svg);
 
-  // Auto-scroll to show focus node
+  // Horizontal scroll to keep focus node visible
   if (_seNavDir === 'forward'){
     wrap.scrollLeft = Math.max(0, fx - 20);
   } else if (_seNavDir === 'backward'){
     wrap.scrollLeft = 0;
   }
+
+  // Scroll the explorer into view so the focus node stays visible
+  wrap.scrollIntoView({behavior:'smooth', block:'center'});
 }
 
 // ═══════════════════════════════════════════════
