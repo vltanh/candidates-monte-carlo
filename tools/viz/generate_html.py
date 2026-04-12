@@ -2199,14 +2199,24 @@ function _seRenderSvg(){
     });
   });
 
-  // Past trail: show up to 3 ancestors
-  const MAX_PAST = 2;
-  const visPast = pastChain.slice(-MAX_PAST);
-  const hasTrunc = pastChain.length > MAX_PAST;
-  const PAST_W = 115, PAST_H = 44, PAST_HS = 35;
+  // Past trail: group by round, show last 2 rounds
+  const MAX_PAST_ROUNDS = 2;
+  const PAST_W = 115, PAST_ITEM_H = 28, PAST_ITEM_VS = 4, PAST_HS = 35;
   const TRUNC_W = 18;
-  const pastAreaW = visPast.length > 0
-    ? (hasTrunc ? TRUNC_W + 10 : 0) + visPast.length * PAST_W + visPast.length * PAST_HS
+
+  // Group past steps by round
+  const pastRoundGroups = [];
+  pastChain.forEach(function(step, si){
+    const rn = step.game.round;
+    if (pastRoundGroups.length === 0 || pastRoundGroups[pastRoundGroups.length-1].round !== rn){
+      pastRoundGroups.push({round: rn, steps: []});
+    }
+    pastRoundGroups[pastRoundGroups.length-1].steps.push({step:step, depth:si});
+  });
+  const visRoundGroups = pastRoundGroups.slice(-MAX_PAST_ROUNDS);
+  const hasTrunc = pastRoundGroups.length > MAX_PAST_ROUNDS;
+  const pastAreaW = visRoundGroups.length > 0
+    ? (hasTrunc ? TRUNC_W + 10 : 0) + visRoundGroups.length * PAST_W + visRoundGroups.length * PAST_HS
     : 0;
 
   // Layout dimensions — adapt to number of contenders
@@ -2236,22 +2246,27 @@ function _seRenderSvg(){
     if (gi < groups.length - 1) totalChildH += VS_OUT;
   });
 
-  const svgH = Math.max(totalChildH, FOCUS_H) + PAD*2;
+  let maxPastColH = 0;
+  visRoundGroups.forEach(function(rg){
+    const h = rg.steps.length * PAST_ITEM_H + (rg.steps.length - 1) * PAST_ITEM_VS + 15;
+    if (h > maxPastColH) maxPastColH = h;
+  });
+  const svgH = Math.max(totalChildH, FOCUS_H, maxPastColH) + PAD*2;
   const svgW = PAD + pastAreaW + FOCUS_W + HS + CH_W + (hasAnyGC ? HS2 + GC_W : 0) + PAD;
 
   const svg = document.createElementNS(SE_NS,'svg');
   svg.setAttribute('viewBox','0 0 '+svgW+' '+svgH);
   svg.setAttribute('width','100%');
   svg.style.maxWidth = svgW+'px';
-  svg.style.minWidth = Math.min(svgW,400)+'px';
+  svg.style.overflow = 'hidden';
   svg.style.animation = animName+' .3s ease-out both';
 
   const fx = PAD + pastAreaW, fy = svgH/2;
   const childX = fx + FOCUS_W + HS;
   const gcX = childX + CH_W + HS2;
 
-  // ── Past trail nodes ──
-  if (visPast.length > 0){
+  // ── Past trail nodes (grouped by round) ──
+  if (visRoundGroups.length > 0){
     const eClr2 = {W:'#00e676', D:'#8494be', L:'#ff5252'};
     let px = PAD + (hasTrunc ? TRUNC_W + 10 : 0);
 
@@ -2267,57 +2282,63 @@ function _seRenderSvg(){
     }
 
     const GOLD_PAST = '#ffd54f';
-    visPast.forEach(function(step, si){
-      const depth = pastChain.length - visPast.length + si;
-      const op = 0.35 + si * (0.35 / Math.max(1, visPast.length - 1));
-      const rc = eClr2[step.edge.k];
-      const rl = step.edge.k==='W'?'1\u20130':step.edge.k==='D'?'\u00bd\u2013\u00bd':'0\u20131';
-      const isActual = step.game.actual !== null && ['W','D','L'][step.game.actual] === step.edge.k;
-      const nodeClr = isActual ? GOLD_PAST : rc;
+    visRoundGroups.forEach(function(rg, rgi){
+      const nItems = rg.steps.length;
+      const colH = nItems * PAST_ITEM_H + (nItems - 1) * PAST_ITEM_VS;
+      const colTop = fy - colH / 2;
+      const baseOp = 0.35 + rgi * (0.35 / Math.max(1, visRoundGroups.length - 1));
 
-      // Past node rectangle
-      const rect = document.createElementNS(SE_NS,'rect');
-      rect.setAttribute('x',px); rect.setAttribute('y',fy-PAST_H/2);
-      rect.setAttribute('width',PAST_W); rect.setAttribute('height',PAST_H);
-      rect.setAttribute('fill', isActual ? 'rgba(255,213,79,0.06)' : 'rgba(11,17,32,0.6)');
-      rect.setAttribute('stroke', isActual ? GOLD_PAST+'70' : rc+'50');
-      rect.setAttribute('stroke-width', isActual ? '1.5' : '1');
-      rect.setAttribute('rx','4'); rect.setAttribute('opacity',op.toFixed(2));
-      svg.appendChild(rect);
+      // Round label above the column
+      const rl2 = document.createElementNS(SE_NS,'text');
+      rl2.setAttribute('x',px+PAST_W/2); rl2.setAttribute('y',colTop-5);
+      rl2.setAttribute('text-anchor','middle'); rl2.setAttribute('fill','#4e5f8a');
+      rl2.setAttribute('font-family',"'JetBrains Mono',monospace");
+      rl2.setAttribute('font-size','7.5'); rl2.setAttribute('opacity',baseOp.toFixed(2));
+      rl2.textContent = 'Round '+rg.round;
+      svg.appendChild(rl2);
 
-      // Result text inside
-      const rt = document.createElementNS(SE_NS,'text');
-      rt.setAttribute('x',px+PAST_W/2); rt.setAttribute('y',fy-3);
-      rt.setAttribute('text-anchor','middle'); rt.setAttribute('fill',nodeClr);
-      rt.setAttribute('font-family',"'JetBrains Mono',monospace");
-      rt.setAttribute('font-size','9'); rt.setAttribute('font-weight','600');
-      rt.setAttribute('opacity',op.toFixed(2));
-      rt.textContent = (isActual?'\u2713 ':'')+step.game.ws+' '+rl+' '+step.game.bs;
-      svg.appendChild(rt);
+      rg.steps.forEach(function(s, si){
+        const step = s.step, depth = s.depth;
+        const iy = colTop + si * (PAST_ITEM_H + PAST_ITEM_VS);
+        const rc = eClr2[step.edge.k];
+        const rl = step.edge.k==='W'?'1\u20130':step.edge.k==='D'?'\u00bd\u2013\u00bd':'0\u20131';
+        const isActual = step.game.actual !== null && ['W','D','L'][step.game.actual] === step.edge.k;
+        const nodeClr = isActual ? GOLD_PAST : rc;
 
-      // Round label below
-      const rnl = document.createElementNS(SE_NS,'text');
-      rnl.setAttribute('x',px+PAST_W/2); rnl.setAttribute('y',fy+12);
-      rnl.setAttribute('text-anchor','middle'); rnl.setAttribute('fill', isActual ? GOLD_PAST+'90' : '#4e5f8a');
-      rnl.setAttribute('font-family',"'JetBrains Mono',monospace");
-      rnl.setAttribute('font-size','7.5'); rnl.setAttribute('opacity',op.toFixed(2));
-      rnl.textContent = 'R'+step.game.round+' \u00b7 '+(step.edge.p*100).toFixed(0)+'%';
-      svg.appendChild(rnl);
+        const rect = document.createElementNS(SE_NS,'rect');
+        rect.setAttribute('x',px); rect.setAttribute('y',iy);
+        rect.setAttribute('width',PAST_W); rect.setAttribute('height',PAST_ITEM_H);
+        rect.setAttribute('fill', isActual ? 'rgba(255,213,79,0.06)' : 'rgba(11,17,32,0.6)');
+        rect.setAttribute('stroke', isActual ? GOLD_PAST+'70' : rc+'50');
+        rect.setAttribute('stroke-width', isActual ? '1.5' : '1');
+        rect.setAttribute('rx','4'); rect.setAttribute('opacity',baseOp.toFixed(2));
+        svg.appendChild(rect);
 
-      // Click overlay to navigate back
-      const click = document.createElementNS(SE_NS,'rect');
-      click.setAttribute('x',px); click.setAttribute('y',fy-PAST_H/2);
-      click.setAttribute('width',PAST_W); click.setAttribute('height',PAST_H);
-      click.setAttribute('fill','transparent'); click.setAttribute('cursor','pointer');
-      const navDepth = depth;
-      click.addEventListener('click', function(){ _seNav(navDepth); });
-      click.addEventListener('mouseenter', function(){ rect.setAttribute('stroke',rc); rect.setAttribute('opacity','0.9'); });
-      click.addEventListener('mouseleave', function(){ rect.setAttribute('stroke',rc+'50'); rect.setAttribute('opacity',op.toFixed(2)); });
-      svg.appendChild(click);
+        // Result text
+        const rt = document.createElementNS(SE_NS,'text');
+        rt.setAttribute('x',px+PAST_W/2); rt.setAttribute('y',iy+PAST_ITEM_H/2+3);
+        rt.setAttribute('text-anchor','middle'); rt.setAttribute('fill',nodeClr);
+        rt.setAttribute('font-family',"'JetBrains Mono',monospace");
+        rt.setAttribute('font-size','8'); rt.setAttribute('font-weight','600');
+        rt.setAttribute('opacity',baseOp.toFixed(2));
+        rt.textContent = (isActual?'\u2713 ':'')+step.game.ws+' '+rl+' '+step.game.bs;
+        svg.appendChild(rt);
 
-      // Edge to next node
+        // Click overlay
+        const click = document.createElementNS(SE_NS,'rect');
+        click.setAttribute('x',px); click.setAttribute('y',iy);
+        click.setAttribute('width',PAST_W); click.setAttribute('height',PAST_ITEM_H);
+        click.setAttribute('fill','transparent'); click.setAttribute('cursor','pointer');
+        const navDepth = depth;
+        click.addEventListener('click', function(){ _seNav(navDepth); });
+        click.addEventListener('mouseenter', function(){ rect.setAttribute('stroke',rc); rect.setAttribute('opacity','0.9'); });
+        click.addEventListener('mouseleave', function(){ rect.setAttribute('stroke',isActual?GOLD_PAST+'70':rc+'50'); rect.setAttribute('opacity',baseOp.toFixed(2)); });
+        svg.appendChild(click);
+      });
+
+      // Edge from this round column to next column or focus
       const nextX = px + PAST_W;
-      const toX = si < visPast.length - 1 ? px + PAST_W + PAST_HS : fx;
+      const toX = rgi < visRoundGroups.length - 1 ? px + PAST_W + PAST_HS : fx;
       const mx = (nextX + toX) / 2;
       const edge = document.createElementNS(SE_NS,'path');
       edge.setAttribute('d','M'+nextX+','+fy+' C'+mx+','+fy+' '+mx+','+fy+' '+toX+','+fy);
@@ -2325,7 +2346,7 @@ function _seRenderSvg(){
       edge.setAttribute('stroke','#263764');
       edge.setAttribute('stroke-width','1');
       edge.setAttribute('stroke-dasharray','3,3');
-      edge.setAttribute('opacity',((op+0.15)).toFixed(2));
+      edge.setAttribute('opacity',(baseOp+0.15).toFixed(2));
       svg.appendChild(edge);
 
       px += PAST_W + PAST_HS;
@@ -2599,25 +2620,48 @@ function _seRenderSvg(){
           svg.appendChild(accent);
 
           const rl2 = gc.k==='W'?'W':gc.k==='D'?'D':'L';
-          const pct2 = (gc.p*100).toFixed(0)+'%';
           const leaderSc = gc.child.scores[gsorted[0].key];
-          let lbl = rl2+' '+pct2;
+          const leaders = gsorted.filter(function(p){ return gc.child.scores[p.key] === leaderSc; });
+          // Build label: truncate names part, always show score suffix
+          const pct2 = (gc.p*100).toFixed(0)+'%';
+          let lbl, lblDisplay;
           if (gc.child.leaf){
-            if (gc.child.winner) lbl += ' \u2605'+gc.child.winner.short;
-            else lbl += ' TIE';
+            if (gc.child.winner) lbl = rl2+' '+pct2+' \u2605'+gc.child.winner.short;
+            else lbl = rl2+' '+pct2+' TIE';
+            lblDisplay = lbl;
           } else {
-            lbl += ' '+gsorted[0].short+' '+leaderSc;
+            const names = leaders.map(function(p){ return p.short; }).join(', ');
+            const suffix = ' '+leaderSc;
+            lbl = rl2+' '+pct2+' '+names+suffix;
+            // Truncate names if full label is too long (~18 chars at font-size 8.5)
+            const maxChars = 18;
+            const prefixLen = rl2.length + 1 + pct2.length + 1; // "W 31% "
+            const suffixLen = suffix.length;
+            const namesBudget = maxChars - prefixLen - suffixLen;
+            if (names.length > namesBudget && namesBudget > 2){
+              lblDisplay = rl2+' '+pct2+' '+names.slice(0, namesBudget-1)+'\u2026'+suffix;
+            } else {
+              lblDisplay = lbl;
+            }
           }
 
+          const gcGrp = document.createElementNS(SE_NS,'g');
           const gt = document.createElementNS(SE_NS,'text');
           gt.setAttribute('x',gx+7); gt.setAttribute('y',gy+GC_H*0.3);
-          gt.setAttribute('fill',gc.child.leaf ? (gc.child.winner ? gc.child.winner.color : '#ffee58') : glc);
+          gt.setAttribute('fill',gc.child.leaf ? (gc.child.winner ? gc.child.winner.color : '#ffee58') : (leaders.length > 1 ? '#ffee58' : glc));
           gt.setAttribute('font-family',"'JetBrains Mono',monospace");
           gt.setAttribute('font-size','8.5');
           gt.setAttribute('font-weight',gc.child.leaf ? '700' : '400');
           gt.setAttribute('opacity','0.85');
-          gt.textContent = lbl;
-          svg.appendChild(gt);
+          gt.textContent = lblDisplay;
+          gcGrp.appendChild(gt);
+          // SVG tooltip via <title> child element
+          if (lblDisplay !== lbl){
+            const tt = document.createElementNS(SE_NS,'title');
+            tt.textContent = lbl;
+            gcGrp.appendChild(tt);
+          }
+          svg.appendChild(gcGrp);
         });
       });
     });
