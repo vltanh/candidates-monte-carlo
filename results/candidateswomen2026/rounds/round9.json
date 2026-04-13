@@ -1,0 +1,241 @@
+{
+    "metadata": {
+        "time_seconds": 8.796034322
+    },
+    "winner_probs": {
+        "Zhu, Jiner": 0.13929,
+        "Tan, Zhongyi": 0.00182,
+        "Goryachkina, Aleksandra": 0.032821,
+        "Muzychuk, Anna": 0.227039,
+        "Assaubayeva, Bibisara": 0.029055,
+        "Divya Deshmukh": 0.275689,
+        "Lagno, Kateryna": 0.173338,
+        "Vaishali, Rameshbabu": 0.120948
+    },
+    "expected_points": {
+        "Zhu, Jiner": 7.280071,
+        "Tan, Zhongyi": 5.379992,
+        "Goryachkina, Aleksandra": 6.5302915,
+        "Muzychuk, Anna": 7.7185675,
+        "Assaubayeva, Bibisara": 6.477864,
+        "Divya Deshmukh": 7.86052,
+        "Lagno, Kateryna": 7.4601295,
+        "Vaishali, Rameshbabu": 7.2925645
+    },
+    "rank_matrix": {
+        "Zhu, Jiner": [
+            0.13929,
+            0.144554,
+            0.155444,
+            0.153456,
+            0.148468,
+            0.129285,
+            0.097378,
+            0.032125
+        ],
+        "Tan, Zhongyi": [
+            0.00182,
+            0.005311,
+            0.013145,
+            0.026233,
+            0.049666,
+            0.09544,
+            0.198225,
+            0.61016
+        ],
+        "Goryachkina, Aleksandra": [
+            0.032821,
+            0.053399,
+            0.086855,
+            0.12136,
+            0.158616,
+            0.199298,
+            0.223013,
+            0.124638
+        ],
+        "Muzychuk, Anna": [
+            0.227039,
+            0.228013,
+            0.17903,
+            0.138378,
+            0.103691,
+            0.071288,
+            0.040903,
+            0.011658
+        ],
+        "Assaubayeva, Bibisara": [
+            0.029055,
+            0.050682,
+            0.080628,
+            0.113849,
+            0.150528,
+            0.194348,
+            0.235106,
+            0.145804
+        ],
+        "Divya Deshmukh": [
+            0.275689,
+            0.246791,
+            0.166787,
+            0.121853,
+            0.087632,
+            0.058811,
+            0.033303,
+            0.009134
+        ],
+        "Lagno, Kateryna": [
+            0.173338,
+            0.12816,
+            0.156434,
+            0.15858,
+            0.14635,
+            0.121211,
+            0.08301,
+            0.032917
+        ],
+        "Vaishali, Rameshbabu": [
+            0.120948,
+            0.14309,
+            0.161677,
+            0.166291,
+            0.155049,
+            0.130319,
+            0.089062,
+            0.033564
+        ]
+    },
+    "game_probs": {
+        "9": {
+            "Tan, Zhongyi|Muzychuk, Anna": [
+                0.228496,
+                0.462505,
+                0.308999
+            ],
+            "Zhu, Jiner|Lagno, Kateryna": [
+                0.254012,
+                0.432479,
+                0.313509
+            ],
+            "Goryachkina, Aleksandra|Assaubayeva, Bibisara": [
+                0.276715,
+                0.474613,
+                0.248672
+            ],
+            "Vaishali, Rameshbabu|Divya Deshmukh": [
+                0.197958,
+                0.457472,
+                0.34457
+            ]
+        },
+        "10": {
+            "Muzychuk, Anna|Vaishali, Rameshbabu": [
+                0.34087,
+                0.444935,
+                0.214195
+            ],
+            "Divya Deshmukh|Goryachkina, Aleksandra": [
+                0.308476,
+                0.476648,
+                0.214876
+            ],
+            "Assaubayeva, Bibisara|Zhu, Jiner": [
+                0.286599,
+                0.458072,
+                0.255329
+            ],
+            "Lagno, Kateryna|Tan, Zhongyi": [
+                0.298798,
+                0.44544,
+                0.255762
+            ]
+        },
+        "11": {
+            "Lagno, Kateryna|Muzychuk, Anna": [
+                0.264975,
+                0.433708,
+                0.301317
+            ],
+            "Tan, Zhongyi|Assaubayeva, Bibisara": [
+                0.266051,
+                0.441453,
+                0.292496
+            ],
+            "Zhu, Jiner|Divya Deshmukh": [
+                0.194952,
+                0.396471,
+                0.408577
+            ],
+            "Goryachkina, Aleksandra|Vaishali, Rameshbabu": [
+                0.317313,
+                0.464685,
+                0.218002
+            ]
+        },
+        "12": {
+            "Muzychuk, Anna|Goryachkina, Aleksandra": [
+                0.310218,
+                0.454614,
+                0.235168
+            ],
+            "Vaishali, Rameshbabu|Zhu, Jiner": [
+                0.275995,
+                0.451581,
+                0.272424
+            ],
+            "Divya Deshmukh|Tan, Zhongyi": [
+                0.301759,
+                0.488138,
+                0.210103
+            ],
+            "Assaubayeva, Bibisara|Lagno, Kateryna": [
+                0.283842,
+                0.462579,
+                0.253579
+            ]
+        },
+        "13": {
+            "Assaubayeva, Bibisara|Muzychuk, Anna": [
+                0.242531,
+                0.47362,
+                0.283849
+            ],
+            "Lagno, Kateryna|Divya Deshmukh": [
+                0.237435,
+                0.412472,
+                0.350093
+            ],
+            "Tan, Zhongyi|Vaishali, Rameshbabu": [
+                0.29634,
+                0.456175,
+                0.247485
+            ],
+            "Zhu, Jiner|Goryachkina, Aleksandra": [
+                0.24696,
+                0.451432,
+                0.301608
+            ]
+        },
+        "14": {
+            "Muzychuk, Anna|Zhu, Jiner": [
+                0.313991,
+                0.449265,
+                0.236744
+            ],
+            "Goryachkina, Aleksandra|Tan, Zhongyi": [
+                0.262532,
+                0.522167,
+                0.215301
+            ],
+            "Vaishali, Rameshbabu|Lagno, Kateryna": [
+                0.26412,
+                0.474771,
+                0.261109
+            ],
+            "Divya Deshmukh|Assaubayeva, Bibisara": [
+                0.292999,
+                0.476891,
+                0.23011
+            ]
+        }
+    }
+}

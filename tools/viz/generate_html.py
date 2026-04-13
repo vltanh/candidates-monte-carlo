@@ -210,6 +210,9 @@ def build_rounds(
     cum: dict[str, list[float]],
     sched_idx: dict[int, list[dict]],
 ) -> list[dict]:
+    players = list(cum.keys())
+    total_r = max(sched_idx.keys())
+
     result = []
     for rn, data in rounds:
         # Scores entering this round = after round (rn-1)
@@ -232,15 +235,25 @@ def build_rounds(
                 }
             )
 
+        # Compute elimination status
+        last_played = rn - 1
+        rem_games = []
+        for r in range(last_played + 1, total_r + 1):
+            for g in sched_idx.get(r, []):
+                rem_games.append((g["white"], g["black"]))
+        round_label = "Before R1" if rn == 1 else f"After R{rn - 1}"
+        eliminated = compute_eliminated(players, actual, rem_games, label=round_label)
+
         result.append(
             {
-                "label": "Before R1" if rn == 1 else f"After R{rn - 1}",
+                "label": round_label,
                 "round_num": rn,
                 "winner_probs": data.get("winner_probs", {}),
                 "expected_points": data.get("expected_points", {}),
                 "rank_matrix": data.get("rank_matrix", {}),
                 "actual_scores": actual,
                 "upcoming_games": upcoming,
+                "eliminated": eliminated,
             }
         )
     return result
@@ -385,6 +398,124 @@ def build_hparams(hp: dict, meta: dict[str, str]) -> dict:
     return {"groups": groups, "meta": score_meta}
 
 
+# ── elimination (3-tier: point check → sampling → DFS) ───────────────────────
+
+
+def compute_eliminated(
+    players: list[str],
+    scores: dict[str, float],
+    remaining_games: list[tuple[str, str]],
+    max_samples: int = 1_000_000,
+    label: str = "",
+) -> dict[str, bool]:
+    """Return {player_name: True/False} — True means eliminated.
+
+    Three-tier approach:
+      Phase 1 – simple point check (can definitively eliminate)
+      Phase 2 – uniform random sampling (can definitively prove alive)
+      Phase 3 – exhaustive DFS (can definitively prove both)
+    """
+    import random
+    import time
+
+    n = len(remaining_games)
+    print(f"  [{label}] {n} remaining games")
+
+    # Phase 1: simple point check
+    leader = max(scores.values())
+    games_left: dict[str, int] = {p: 0 for p in players}
+    for w, b in remaining_games:
+        games_left[w] += 1
+        games_left[b] += 1
+
+    can_win: dict[str, bool | None] = {}
+    uncertain: list[str] = []
+    for p in players:
+        if scores[p] + games_left[p] < leader:
+            can_win[p] = False
+        else:
+            can_win[p] = None
+            uncertain.append(p)
+
+    phase1_elim = [p for p in players if can_win[p] is False]
+    print(f"    Phase 1 (points): {len(phase1_elim)} eliminated"
+          + (f" — {', '.join(phase1_elim)}" if phase1_elim else "")
+          + f", {len(uncertain)} uncertain")
+
+    if not uncertain:
+        return {p: True for p in players}
+
+    deltas = [(1.0, 0.0), (0.5, 0.5), (0.0, 1.0)]
+
+    def check_winners(sc: dict[str, float]) -> list[str]:
+        mx = max(sc.values())
+        return [p for p in players if sc[p] == mx]
+
+    # Phase 2: uniform random sampling
+    t0 = time.time()
+    sc = dict(scores)
+    samples_used = 0
+    for samples_used in range(1, max_samples + 1):
+        for w, b in remaining_games:
+            dw, db = random.choice(deltas)
+            sc[w] += dw
+            sc[b] += db
+        for k in check_winners(sc):
+            can_win[k] = True
+        for p in players:
+            sc[p] = scores[p]
+        if all(can_win[k] is True for k in uncertain):
+            break
+    t1 = time.time()
+
+    phase2_alive = [p for p in uncertain if can_win[p] is True]
+    phase2_still = [p for p in uncertain if can_win[p] is not True]
+    print(f"    Phase 2 (sampling): {samples_used:,} samples, {t1-t0:.3f}s → "
+          f"{len(phase2_alive)} proven alive"
+          + (f", {len(phase2_still)} still uncertain — {', '.join(phase2_still)}"
+             if phase2_still else ", all resolved"))
+
+    # Phase 3: exhaustive DFS for still-uncertain players
+    still_uncertain = [k for k in uncertain if can_win[k] is not True]
+    if still_uncertain:
+        t2 = time.time()
+        dfs_leaves = 0
+
+        def dfs(idx: int) -> None:
+            nonlocal dfs_leaves
+            if idx == n:
+                dfs_leaves += 1
+                for k in check_winners(sc):
+                    if can_win[k] is not True:
+                        can_win[k] = True
+                return
+            if all(can_win[k] is True for k in still_uncertain):
+                return
+            w, b = remaining_games[idx]
+            for dw, db in deltas:
+                sc[w] += dw
+                sc[b] += db
+                dfs(idx + 1)
+                sc[w] -= dw
+                sc[b] -= db
+
+        for p in players:
+            sc[p] = scores[p]
+        dfs(0)
+        t3 = time.time()
+
+        phase3_alive = [p for p in still_uncertain if can_win[p] is True]
+        phase3_elim = [p for p in still_uncertain if can_win[p] is not True]
+        print(f"    Phase 3 (DFS): {dfs_leaves:,} leaves, {t3-t2:.3f}s → "
+              f"{len(phase3_alive)} proven alive, {len(phase3_elim)} eliminated"
+              + (f" — {', '.join(phase3_elim)}" if phase3_elim else ""))
+
+    result = {p: can_win[p] is not True for p in players}
+    total_elim = [p for p in players if result[p]]
+    print(f"    Result: {len(total_elim)} eliminated, {len(players)-len(total_elim)} alive")
+    return result
+
+
 # ── main data assembly ────────────────────────────────────────────────────────
 
 
@@ -415,7 +546,8 @@ def assemble(
 
     return {
         "meta": {
-            "title": f"{year} FIDE Candidates" if year else "FIDE Candidates",
+            "name": "FIDE Candidates",
+            "section": "Women" if "women" in t_path.stem.lower() else "Open",
             "year": year,
             "gpr": t_data.get("gpr", 4),
             "tiebreak": tiebreak_labels.get(
@@ -525,13 +657,23 @@ a:hover{color:var(--paper)}
   letter-spacing:-.028em;
   color:var(--paper);
   margin:1.5rem auto .5rem;
-  max-width:12ch;
+  max-width:14ch;
 }
 .hdr h1 em{
   font-style:italic;
   font-variation-settings:"opsz" 144,"SOFT" 100;
   font-weight:300;
   color:var(--azure);
+}
+.hdr h1 .hdr-sec{
+  font-weight:300;
+  font-style:normal;
+  font-variation-settings:"opsz" 144,"SOFT" 100;
+  color:var(--paper-3);
+  font-size:.55em;
+  letter-spacing:.08em;
+  text-transform:uppercase;
+  vertical-align:.12em;
 }
 .hdr .sub{
   font-family:'Fraunces',serif;font-style:italic;font-weight:400;
@@ -1449,15 +1591,19 @@ function numberAppendices(){
 }
 
 document.addEventListener('DOMContentLoaded', () => {
-  // Header / masthead
-  document.getElementById('pageTitle').textContent = DATA.meta.title + ' — Monte Carlo';
+  // Header / masthead — name on top, year · section below (big)
+  const sec = DATA.meta.section || '';
+  const fullTitle = DATA.meta.name + (sec ? ' \u2014 ' + sec : '');
+  document.getElementById('pageTitle').textContent = fullTitle + ' \u2014 Monte Carlo';
 
-  // Split "2026 FIDE Candidates" into "FIDE Candidates" + italic year
   const titleEl = document.getElementById('hdr-title');
-  const m = DATA.meta.title.match(/^(\d{4})\s+(.*)$/);
-  titleEl.innerHTML = m
-    ? `${m[2]} <em>${m[1]}</em>`
-    : DATA.meta.title;
+  let line2 = '';
+  if (DATA.meta.year) line2 += `<em>${DATA.meta.year}</em>`;
+  if (sec){
+    if (line2) line2 += ' <span class="hdr-sec">\u00b7</span> ';
+    line2 += `<span class="hdr-sec">${sec}</span>`;
+  }
+  titleEl.innerHTML = DATA.meta.name + (line2 ? '<br>' + line2 : '');
 
   // Volume line: roman numeral year
   const volEl = document.getElementById('hdr-vol');
@@ -2014,6 +2160,8 @@ function updateTitleRace(round){
   if (remaining <= 0){ card.style.display = 'none'; return; }
   card.style.display = '';
 
+  const elim = round.eliminated || {};
+
   const sorted = [...DATA.players].sort((a,b) => {
     const sa = round.actual_scores[a.key]??0, sb = round.actual_scores[b.key]??0;
     if (sb !== sa) return sb - sa;
@@ -2028,7 +2176,7 @@ function updateTitleRace(round){
     return {
       key:p.key, short:p.short, color:p.color,
       score, maxAdd:remaining, wp,
-      eliminated: score + remaining < leaderScore
+      eliminated: elim[p.key]
     };
   });
 
@@ -2061,7 +2209,7 @@ function updateTitleRace(round){
   // Contender detail: remaining games for alive players
   const detail = document.getElementById('titleRaceDetail');
   const contenders = titleRaceData.filter(d => !d.eliminated);
-  const elim = titleRaceData.length - contenders.length;
+  const elimCount = titleRaceData.length - contenders.length;
 
   if (contenders.length > 0 && contenders.length < titleRaceData.length && remaining > 0){
     const lines = contenders.map(d => {
@@ -2104,8 +2252,8 @@ function updateTitleRace(round){
   document.getElementById('titleRaceNote').textContent =
     `${remaining} round${remaining!==1?'s':''} remaining. `+
     `${contenders.length} player${contenders.length!==1?'s':''} mathematically alive`+
-    (elim > 0 ? `, ${elim} eliminated` : '')+
-    `. Dashed line = leader\u2019s current score \u2014 players whose maximum cannot reach it are eliminated.`;
+    (elimCount > 0 ? `, ${elimCount} eliminated` : '')+
+    `. Dashed line = leader\u2019s current score \u2014 eliminated players cannot finish first in any remaining-game scenario.`;
 
   // Show/hide scenario button
   const sBtn = document.getElementById('showScenariosBtn');
@@ -2161,24 +2309,13 @@ function initScenarioExplorer(){
     return;
   }
 
-  // Determine contenders: mathematically alive players
+  // Determine contenders via DFS: players who can still finish first
+  const elim = round.eliminated || {};
   const scores = {};
   DATA.players.forEach(p => { scores[p.key] = round.actual_scores[p.key] ?? 0; });
-  const leaderScore = Math.max(...DATA.players.map(p => scores[p.key]));
-
-  // Count ALL remaining games per player (played + unplayed from this viewpoint)
-  const gamesLeft = {};
-  DATA.players.forEach(p => { gamesLeft[p.key] = 0; });
-  DATA.all_games.forEach(ag => {
-    if (ag.round_num <= lastPlayed) return;
-    ag.games.forEach(g => {
-      if (gamesLeft[g.white] !== undefined) gamesLeft[g.white]++;
-      if (gamesLeft[g.black] !== undefined) gamesLeft[g.black]++;
-    });
-  });
 
   _seContenders = DATA.players
-    .filter(p => scores[p.key] + gamesLeft[p.key] >= leaderScore)
+    .filter(p => !elim[p.key])
     .sort((a,b) => scores[b.key] - scores[a.key]);
 
   if (_seContenders.length <= 1){
@@ -2690,10 +2827,15 @@ function _seRenderSvg(){
         '<div style="font-size:1.1rem;font-weight:700">'+focus.tied.map(function(p){return '<span style="color:'+p.color+'">'+p.short+'</span>';}).join(' \u00b7 ')+'</div>' +
         '<div style="font-family:\'JetBrains Mono\',monospace;font-size:.85rem;color:var(--paper-2);margin-top:.3rem">Tied at '+focus.scores[focus.tied[0].key]+' points</div></div>';
     }
-    html += '<div style="margin-top:.8rem">' + sorted.map(function(p){
-      return '<div style="display:flex;align-items:center;gap:.5rem;margin-bottom:.25rem;font-family:\'JetBrains Mono\',monospace;font-size:.8rem">' +
-        '<span style="color:'+p.color+';font-weight:600;width:80px;text-align:right">'+p.short+'</span>' +
-        '<span style="color:var(--paper-2)">'+focus.scores[p.key]+' pts</span></div>';
+    const maxScore = Math.max(...sorted.map(function(p){return focus.scores[p.key];}));
+    html += '<div style="margin-top:.8rem;display:flex;flex-direction:column;gap:.4rem;font-family:\'JetBrains Mono\',monospace;font-size:.8rem">' + sorted.map(function(p){
+      var sc = focus.scores[p.key];
+      var barW = maxScore > 0 ? (sc / maxScore * 100) : 0;
+      return '<div style="display:flex;align-items:center;gap:.5rem">' +
+        '<span style="color:'+p.color+';font-weight:600;min-width:6em;text-align:right;flex-shrink:0">'+p.short+'</span>' +
+        '<div style="flex:1;height:8px;background:var(--rule);border-radius:2px;overflow:hidden">' +
+          '<div style="width:'+barW+'%;height:100%;background:'+p.color+';border-radius:2px"></div></div>' +
+        '<span style="color:var(--paper-2);min-width:3em;flex-shrink:0">'+sc+' pts</span></div>';
     }).join('') + '</div></div>';
     wrap.innerHTML = html;
     return;
@@ -3412,7 +3554,8 @@ function buildHparams(){
 // ═══════════════════════════════════════════════
 function buildTournamentPlayers(){
   const meta = document.getElementById('tournMeta');
-  meta.textContent = `${DATA.meta.title} · ${DATA.meta.total_rounds} rounds · ${DATA.meta.gpr} games/round · Tiebreak: ${DATA.meta.tiebreak}`;
+  const tn = DATA.meta.name + (DATA.meta.section ? ' — ' + DATA.meta.section : '') + (DATA.meta.year ? ' ' + DATA.meta.year : '');
+  meta.textContent = `${tn} · ${DATA.meta.total_rounds} rounds · ${DATA.meta.gpr} games/round · Tiebreak: ${DATA.meta.tiebreak}`;
   renderTournamentPlayers();
 }
 

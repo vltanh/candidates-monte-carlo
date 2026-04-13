@@ -20,5 +20,14 @@
   { "fide_id": 14204118, "name": "Abdusattorov, Nodirbek", "alias": "Nordibek A" },
   { "fide_id": 5072786, "name": "Aravindh, Chithambaram VR.", "alias": "Aravindh" },
   { "fide_id": 14203987, "name": "Yakubboev, Nodirbek", "alias": "Nordibek Y" },
-  { "fide_id": 14204223, "name": "Vokhidov, Shamsiddin", "alias": "Vokhidov" }
+  { "fide_id": 14204223, "name": "Vokhidov, Shamsiddin", "alias": "Vokhidov" },
+  // Women
+  {"fide_id": 8608059, "name": "Zhu, Jiner", "alias": "Zhu Jiner"},
+  {"fide_id": 8603642, "name": "Tan, Zhongyi", "alias": "Tan Zhongyi"},
+  {"fide_id": 4147103, "name": "Goryachkina, Aleksandra", "alias": "Goryachkina"},
+  {"fide_id": 14111330, "name": "Muzychuk, Anna", "alias": "Myzychuk"},
+  {"fide_id": 13708694, "name": "Assaubayeva, Bibisara", "alias": "Bibisara"},
+  {"fide_id": 35006916, "name": "Divya Deshmukh", "alias": "Divya"},
+  {"fide_id": 14109336, "name": "Lagno, Kateryna", "alias": "Kateryna"},
+  {"fide_id": 5091756, "name": "Vaishali, Rameshbabu", "alias": "Vaishali"}
 ]

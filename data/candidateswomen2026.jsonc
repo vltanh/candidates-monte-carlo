@@ -1,0 +1,182 @@
+{
+  "gpr": 4,
+  "tiebreak": "fide2026",
+  "players": [
+    {
+      "fide_id": 8608059,
+      "name": "Zhu, Jiner",
+      "rating": 2554,
+      "rapid_rating": 2479,
+      "blitz_rating": 2411,
+      "history": [2579, 2579, 2579, 2578, 2578, 2554],
+      "games_played": [6, 0, 0, 4, 0, 9],
+      "rapid_history": [2435, 2435, 2479, 2479, 2479, 2479],
+      "rapid_games_played": [0, 0, 23, 0, 0, 0],
+      "blitz_history": [2425, 2425, 2411, 2411, 2411, 2411],
+      "blitz_games_played": [0, 0, 20, 0, 0, 0]
+    },
+    {
+      "fide_id": 8603642,
+      "name": "Tan, Zhongyi",
+      "rating": 2535,
+      "rapid_rating": 2502,
+      "blitz_rating": 2424,
+      "history": [2524, 2524, 2524, 2535, 2535, 2535],
+      "games_played": [4, 0, 0, 7, 0, 0],
+      "rapid_history": [2507, 2507, 2502, 2502, 2502, 2502],
+      "rapid_games_played": [0, 0, 11, 0, 0, 0],
+      "blitz_history": [2457, 2457, 2424, 2424, 2424, 2424],
+      "blitz_games_played": [0, 0, 15, 0, 0, 0]
+    },
+    {
+      "fide_id": 4147103,
+      "name": "Goryachkina, Aleksandra",
+      "rating": 2534,
+      "rapid_rating": 2499,
+      "blitz_rating": 2424,
+      "history": [2540, 2534, 2534, 2534, 2534, 2534],
+      "games_played": [6, 9, 0, 0, 0, 0],
+      "rapid_history": [2505, 2505, 2512, 2499, 2499, 2499],
+      "rapid_games_played": [0, 0, 11, 9, 0, 0],
+      "blitz_history": [2439, 2439, 2444, 2424, 2424, 2424],
+      "blitz_games_played": [0, 0, 17, 18, 0, 0]
+    },
+    {
+      "fide_id": 14111330,
+      "name": "Muzychuk, Anna",
+      "rating": 2522,
+      "rapid_rating": 2398,
+      "blitz_rating": 2400,
+      "history": [2518, 2518, 2522, 2522, 2522, 2522],
+      "games_played": [6, 0, 1, 0, 0, 0],
+      "rapid_history": [2398, 2398, 2398, 2398, 2398, 2398],
+      "rapid_games_played": [0, 0, 21, 0, 0, 0],
+      "blitz_history": [2397, 2397, 2400, 2400, 2400, 2400],
+      "blitz_games_played": [0, 0, 33, 0, 0, 0]
+    },
+    {
+      "fide_id": 13708694,
+      "name": "Assaubayeva, Bibisara",
+      "rating": 2516,
+      "rapid_rating": 2439,
+      "blitz_rating": 2457,
+      "history": [2513, 2497, 2497, 2497, 2516, 2516],
+      "games_played": [0, 4, 0, 0, 13, 0],
+      "rapid_history": [2461, 2461, 2439, 2439, 2439, 2439],
+      "rapid_games_played": [0, 0, 21, 0, 0, 0],
+      "blitz_history": [2439, 2428, 2457, 2457, 2457, 2457],
+      "blitz_games_played": [0, 2, 22, 0, 0, 0]
+    },
+    {
+      "fide_id": 35006916,
+      "name": "Divya Deshmukh",
+      "rating": 2510,
+      "rapid_rating": 2416,
+      "blitz_rating": 2351,
+      "history": [2505, 2497, 2497, 2497, 2497, 2510],
+      "games_played": [6, 2, 0, 0, 0, 9],
+      "rapid_history": [2419, 2419, 2422, 2416, 2416, 2416],
+      "rapid_games_played": [0, 0, 11, 9, 0, 0],
+      "blitz_history": [2387, 2387, 2374, 2351, 2351, 2351],
+      "blitz_games_played": [0, 0, 15, 18, 0, 0]
+    },
+    {
+      "fide_id": 14109336,
+      "name": "Lagno, Kateryna",
+      "rating": 2508,
+      "rapid_rating": 2435,
+      "blitz_rating": 2415,
+      "history": [2517, 2508, 2508, 2508, 2508, 2508],
+      "games_played": [0, 9, 0, 0, 0, 0],
+      "rapid_history": [2452, 2452, 2421, 2435, 2435, 2435],
+      "rapid_games_played": [0, 0, 23, 9, 0, 0],
+      "blitz_history": [2448, 2448, 2445, 2415, 2415, 2415],
+      "blitz_games_played": [0, 0, 17, 18, 0, 0]
+    },
+    {
+      "fide_id": 5091756,
+      "name": "Vaishali, Rameshbabu",
+      "rating": 2470,
+      "rapid_rating": 2387,
+      "blitz_rating": 2371,
+      "history": [2473, 2473, 2470, 2470, 2470, 2470],
+      "games_played": [0, 0, 9, 0, 0, 0],
+      "rapid_history": [2359, 2359, 2392, 2387, 2387, 2387],
+      "rapid_games_played": [0, 0, 11, 9, 0, 0],
+      "blitz_history": [2401, 2401, 2372, 2371, 2371, 2371],
+      "blitz_games_played": [0, 0, 15, 18, 0, 0]
+    }
+  ],
+  "schedule": [
+    // Round 1
+    { "white": 35006916, "black": 14111330, "round": 1, "result": "1/2-1/2" }, // Divya vs Myzychuk
+    { "white": 5091756, "black": 13708694, "round": 1, "result": "1/2-1/2" }, // Vaishali vs Bibisara
+    { "white": 4147103, "black": 14109336, "round": 1, "result": "1/2-1/2" }, // Goryachkina vs Kateryna
+    { "white": 8608059, "black": 8603642, "round": 1, "result": "1/2-1/2" }, // Zhu Jiner vs Tan Zhongyi
+    // Round 2
+    { "white": 14111330, "black": 8603642, "round": 2, "result": "1/2-1/2" }, // Myzychuk vs Tan Zhongyi
+    { "white": 14109336, "black": 8608059, "round": 2, "result": "1/2-1/2" }, // Kateryna vs Zhu Jiner
+    { "white": 13708694, "black": 4147103, "round": 2, "result": "1/2-1/2" }, // Bibisara vs Goryachkina
+    { "white": 35006916, "black": 5091756, "round": 2, "result": "1/2-1/2" }, // Divya vs Vaishali
+    // Round 3
+    { "white": 5091756, "black": 14111330, "round": 3, "result": "1/2-1/2" }, // Vaishali vs Myzychuk
+    { "white": 4147103, "black": 35006916, "round": 3, "result": "1/2-1/2" }, // Goryachkina vs Divya
+    { "white": 8608059, "black": 13708694, "round": 3, "result": "0-1" }, // Zhu Jiner vs Bibisara
+    { "white": 8603642, "black": 14109336, "round": 3, "result": "0-1" }, // Tan Zhongyi vs Kateryna
+    // Round 4
+    { "white": 14111330, "black": 14109336, "round": 4, "result": "1-0" }, // Myzychuk vs Kateryna
+    { "white": 13708694, "black": 8603642, "round": 4, "result": "1/2-1/2" }, // Bibisara vs Tan Zhongyi
+    { "white": 35006916, "black": 8608059, "round": 4, "result": "0-1" }, // Divya vs Zhu Jiner
+    { "white": 5091756, "black": 4147103, "round": 4, "result": "1/2-1/2" }, // Vaishali vs Goryachkina
+    // Round 5
+    { "white": 4147103, "black": 14111330, "round": 5, "result": "1/2-1/2" }, // Goryachkina vs Myzychuk
+    { "white": 8608059, "black": 5091756, "round": 5, "result": "1-0" }, // Zhu Jiner vs Vaishali
+    { "white": 8603642, "black": 35006916, "round": 5, "result": "1/2-1/2" }, // Tan Zhongyi vs Divya
+    { "white": 14109336, "black": 13708694, "round": 5, "result": "1-0" }, // Kateryna vs Bibisara
+    // Round 6
+    { "white": 8608059, "black": 14111330, "round": 6, "result": "0-1" }, // Zhu Jiner vs Myzychuk
+    { "white": 8603642, "black": 4147103, "round": 6, "result": "1/2-1/2" }, // Tan Zhongyi vs Goryachkina
+    { "white": 14109336, "black": 5091756, "round": 6, "result": "0-1" }, // Kateryna vs Vaishali
+    { "white": 13708694, "black": 35006916, "round": 6, "result": "0-1" }, // Bibisara vs Divya
+    // Round 7
+    { "white": 14111330, "black": 13708694, "round": 7, "result": "1/2-1/2" }, // Myzychuk vs Bibisara
+    { "white": 35006916, "black": 14109336, "round": 7, "result": "1/2-1/2" }, // Divya vs Kateryna
+    { "white": 5091756, "black": 8603642, "round": 7, "result": "1-0" }, // Vaishali vs Tan Zhongyi
+    { "white": 4147103, "black": 8608059, "round": 7, "result": "1/2-1/2" }, // Goryachkina vs Zhu Jiner
+    // Round 8
+    { "white": 14111330, "black": 35006916, "round": 8, "result": "0-1" }, // Myzychuk vs Divya
+    { "white": 13708694, "black": 5091756, "round": 8, "result": "1/2-1/2" }, // Bibisara vs Vaishali
+    { "white": 14109336, "black": 4147103, "round": 8, "result": "1-0" }, // Kateryna vs Goryachkina
+    { "white": 8603642, "black": 8608059, "round": 8, "result": "0-1" }, // Tan Zhongyi vs Zhu Jiner
+    // Round 9
+    { "white": 8603642, "black": 14111330, "round": 9, "result": "1/2-1/2" }, // Tan Zhongyi vs Myzychuk
+    { "white": 8608059, "black": 14109336, "round": 9, "result": "1-0" }, // Zhu Jiner vs Kateryna
+    { "white": 4147103, "black": 13708694, "round": 9, "result": "1/2-1/2" }, // Goryachkina vs Bibisara
+    { "white": 5091756, "black": 35006916, "round": 9, "result": "1-0" }, // Vaishali vs Divya
+    // Round 10
+    { "white": 14111330, "black": 5091756, "round": 10, "result": "1/2-1/2" }, // Myzychuk vs Vaishali
+    { "white": 35006916, "black": 4147103, "round": 10, "result": "0-1" }, // Divya vs Goryachkina
+    { "white": 13708694, "black": 8608059, "round": 10, "result": "1-0" }, // Bibisara vs Zhu Jiner
+    { "white": 14109336, "black": 8603642, "round": 10, "result": "1/2-1/2" }, // Kateryna vs Tan Zhongyi
+    // Round 11
+    { "white": 14109336, "black": 14111330, "round": 11, "result": "1/2-1/2" }, // Kateryna vs Myzychuk
+    { "white": 8603642, "black": 13708694, "round": 11, "result": "1/2-1/2" }, // Tan Zhongyi vs Bibisara
+    { "white": 8608059, "black": 35006916, "round": 11, "result": "1/2-1/2" }, // Zhu Jiner vs Divya
+    { "white": 4147103, "black": 5091756, "round": 11, "result": "0-1" }, // Goryachkina vs Vaishali
+    // Round 12
+    { "white": 14111330, "black": 4147103, "round": 12, "result": "1/2-1/2" }, // Myzychuk vs Goryachkina
+    { "white": 5091756, "black": 8608059, "round": 12, "result": "0-1" }, // Vaishali vs Zhu Jiner
+    { "white": 35006916, "black": 8603642, "round": 12, "result": "0-1" }, // Divya vs Tan Zhongyi
+    { "white": 13708694, "black": 14109336, "round": 12, "result": "1-0" }, // Bibisara vs Kateryna
+    // Round 13
+    { "white": 13708694, "black": 14111330, "round": 13 }, // Bibisara vs Myzychuk
+    { "white": 14109336, "black": 35006916, "round": 13 }, // Kateryna vs Divya
+    { "white": 8603642, "black": 5091756, "round": 13 }, // Tan Zhongyi vs Vaishali
+    { "white": 8608059, "black": 4147103, "round": 13 }, // Zhu Jiner vs Goryachkina
+    // Round 14
+    { "white": 14111330, "black": 8608059, "round": 14 }, // Myzychuk vs Zhu Jiner
+    { "white": 4147103, "black": 8603642, "round": 14 }, // Goryachkina vs Tan Zhongyi
+    { "white": 5091756, "black": 14109336, "round": 14 }, // Vaishali vs Kateryna
+    { "white": 35006916, "black": 13708694, "round": 14 } // Divya vs Bibisara
+  ]
+}
