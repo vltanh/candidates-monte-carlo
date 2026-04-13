@@ -242,7 +242,9 @@ def build_rounds(
             for g in sched_idx.get(r, []):
                 rem_games.append((g["white"], g["black"]))
         round_label = "Before R1" if rn == 1 else f"After R{rn - 1}"
-        eliminated = compute_eliminated(players, actual, rem_games, label=round_label)
+        eliminated, win_paths = compute_eliminated(
+            players, actual, rem_games, label=round_label
+        )
 
         result.append(
             {
@@ -254,6 +256,7 @@ def build_rounds(
                 "actual_scores": actual,
                 "upcoming_games": upcoming,
                 "eliminated": eliminated,
+                "win_paths": win_paths,
             }
         )
     return result
@@ -438,14 +441,81 @@ def compute_eliminated(
             uncertain.append(p)
 
     phase1_elim = [p for p in players if can_win[p] is False]
-    print(f"    Phase 1 (points): {len(phase1_elim)} eliminated"
-          + (f" — {', '.join(phase1_elim)}" if phase1_elim else "")
-          + f", {len(uncertain)} uncertain")
+    print(
+        f"    Phase 1 (points): {len(phase1_elim)} eliminated"
+        + (f" — {', '.join(phase1_elim)}" if phase1_elim else "")
+        + f", {len(uncertain)} uncertain"
+    )
 
     if not uncertain:
         return {p: True for p in players}
 
+    # Phase 1b: pigeonhole — total points after all games = sum(scores) + n.
+    # The max over N players sharing that total is ≥ total/N,
+    # rounded up to the nearest half-point.
+    import math
+
+    total_final = sum(scores.values()) + n
+    pigeonhole = math.ceil(total_final / len(players) * 2) / 2
+    if pigeonhole > leader:
+        newly_elim = []
+        for p in list(uncertain):
+            if scores[p] + games_left[p] < pigeonhole:
+                can_win[p] = False
+                uncertain.remove(p)
+                newly_elim.append(p)
+        print(
+            f"    Phase 1b (pigeonhole): guaranteed top ≥ {pigeonhole}"
+            + (
+                f", {len(newly_elim)} eliminated — {', '.join(newly_elim)}"
+                if newly_elim
+                else ", 0 eliminated"
+            )
+        )
+
+        if not uncertain:
+            eliminated = {p: can_win[p] is not True for p in players}
+            total_elim = sum(1 for v in eliminated.values() if v)
+            print(
+                f"    Result: {total_elim} eliminated, {len(players)-total_elim} alive"
+            )
+            return eliminated, {}
+
+    # Phase 1c: per-game floor — for each remaining game, the max of the two
+    # players' post-game scores is at least min over {W,D,L} of max(w+dw, b+db).
+    guaranteed_top = max(leader, pigeonhole)
+    for w, b in remaining_games:
+        sw, sb = scores[w], scores[b]
+        g = min(max(sw + 1, sb), max(sw + 0.5, sb + 0.5), max(sw, sb + 1))
+        if g > guaranteed_top:
+            guaranteed_top = g
+
+    if guaranteed_top > max(leader, pigeonhole):
+        newly_elim = []
+        for p in list(uncertain):
+            if scores[p] + games_left[p] < guaranteed_top:
+                can_win[p] = False
+                uncertain.remove(p)
+                newly_elim.append(p)
+        print(
+            f"    Phase 1c (per-game): guaranteed top ≥ {guaranteed_top}"
+            + (
+                f", {len(newly_elim)} eliminated — {', '.join(newly_elim)}"
+                if newly_elim
+                else ", 0 eliminated"
+            )
+        )
+
+        if not uncertain:
+            eliminated = {p: can_win[p] is not True for p in players}
+            total_elim = sum(1 for v in eliminated.values() if v)
+            print(
+                f"    Result: {total_elim} eliminated, {len(players)-total_elim} alive"
+            )
+            return eliminated, {}
+
     deltas = [(1.0, 0.0), (0.5, 0.5), (0.0, 1.0)]
+    win_paths: dict[str, dict[str, int]] = {}  # player -> {game_key: outcome_idx}
 
     def check_winners(sc: dict[str, float]) -> list[str]:
         mx = max(sc.values())
@@ -456,12 +526,20 @@ def compute_eliminated(
     sc = dict(scores)
     samples_used = 0
     for samples_used in range(1, max_samples + 1):
+        choices = []
         for w, b in remaining_games:
-            dw, db = random.choice(deltas)
+            ci = random.randrange(3)
+            dw, db = deltas[ci]
             sc[w] += dw
             sc[b] += db
+            choices.append(ci)
         for k in check_winners(sc):
-            can_win[k] = True
+            if can_win[k] is not True:
+                can_win[k] = True
+                win_paths[k] = {
+                    f"{w}|{b}": ci
+                    for (w, b), ci in zip(remaining_games, choices)
+                }
         for p in players:
             sc[p] = scores[p]
         if all(can_win[k] is True for k in uncertain):
@@ -470,16 +548,22 @@ def compute_eliminated(
 
     phase2_alive = [p for p in uncertain if can_win[p] is True]
     phase2_still = [p for p in uncertain if can_win[p] is not True]
-    print(f"    Phase 2 (sampling): {samples_used:,} samples, {t1-t0:.3f}s → "
-          f"{len(phase2_alive)} proven alive"
-          + (f", {len(phase2_still)} still uncertain — {', '.join(phase2_still)}"
-             if phase2_still else ", all resolved"))
+    print(
+        f"    Phase 2 (sampling): {samples_used:,} samples, {t1-t0:.3f}s → "
+        f"{len(phase2_alive)} proven alive"
+        + (
+            f", {len(phase2_still)} still uncertain — {', '.join(phase2_still)}"
+            if phase2_still
+            else ", all resolved"
+        )
+    )
 
     # Phase 3: exhaustive DFS for still-uncertain players
     still_uncertain = [k for k in uncertain if can_win[k] is not True]
     if still_uncertain:
         t2 = time.time()
         dfs_leaves = 0
+        dfs_path: list[int] = [0] * n  # scratch buffer for current path
 
         def dfs(idx: int) -> None:
             nonlocal dfs_leaves
@@ -488,11 +572,16 @@ def compute_eliminated(
                 for k in check_winners(sc):
                     if can_win[k] is not True:
                         can_win[k] = True
+                        win_paths[k] = {
+                            f"{remaining_games[i][0]}|{remaining_games[i][1]}": dfs_path[i]
+                            for i in range(n)
+                        }
                 return
             if all(can_win[k] is True for k in still_uncertain):
                 return
             w, b = remaining_games[idx]
-            for dw, db in deltas:
+            for di, (dw, db) in enumerate(deltas):
+                dfs_path[idx] = di
                 sc[w] += dw
                 sc[b] += db
                 dfs(idx + 1)
@@ -506,14 +595,18 @@ def compute_eliminated(
 
         phase3_alive = [p for p in still_uncertain if can_win[p] is True]
         phase3_elim = [p for p in still_uncertain if can_win[p] is not True]
-        print(f"    Phase 3 (DFS): {dfs_leaves:,} leaves, {t3-t2:.3f}s → "
-              f"{len(phase3_alive)} proven alive, {len(phase3_elim)} eliminated"
-              + (f" — {', '.join(phase3_elim)}" if phase3_elim else ""))
+        print(
+            f"    Phase 3 (DFS): {dfs_leaves:,} leaves, {t3-t2:.3f}s → "
+            f"{len(phase3_alive)} proven alive, {len(phase3_elim)} eliminated"
+            + (f" — {', '.join(phase3_elim)}" if phase3_elim else "")
+        )
 
-    result = {p: can_win[p] is not True for p in players}
-    total_elim = [p for p in players if result[p]]
-    print(f"    Result: {len(total_elim)} eliminated, {len(players)-len(total_elim)} alive")
-    return result
+    eliminated = {p: can_win[p] is not True for p in players}
+    total_elim = [p for p in players if eliminated[p]]
+    print(
+        f"    Result: {len(total_elim)} eliminated, {len(players)-len(total_elim)} alive"
+    )
+    return eliminated, win_paths
 
 
 # ── main data assembly ────────────────────────────────────────────────────────
@@ -923,6 +1016,7 @@ tbody tr:nth-child(even){background:rgba(120,180,255,.012)}
   font-family:'JetBrains Mono',monospace;
   font-feature-settings:"tnum";
   color:var(--paper-2);font-size:.85rem;font-weight:500;
+  width:4em;text-align:right;flex-shrink:0;
 }
 .winpct.hi{color:var(--azure);font-weight:700}
 .bar-mini{display:none}
@@ -2285,6 +2379,7 @@ let _sePath = [];
 let _seGames = [];
 let _seContenders = [];
 let _seRandomTarget = null;  // null = any, or player key
+let _seWinPaths = {};  // precomputed winning paths from Python: {playerKey: {gameKey: outcome_idx}}
 let _seOrphaned = [];  // steps lost after breadcrumb edit: [{round,ws,bs,k,actual}]
 const SE_NS = 'http://www.w3.org/2000/svg';
 
@@ -2317,6 +2412,7 @@ function initScenarioExplorer(){
 
   // Determine contenders via DFS: players who can still finish first
   const elim = round.eliminated || {};
+  _seWinPaths = round.win_paths || {};
   const scores = {};
   DATA.players.forEach(p => { scores[p.key] = round.actual_scores[p.key] ?? 0; });
 
@@ -2539,6 +2635,31 @@ function _seRandom(){
       if (nd.tied && nd.tied.some(function(p){return p.key===targetKey;})){
         _seDfsWarning = 'Win probability for '+pName+' is very low. No path found in '+MAX_TRIES.toLocaleString()+' weighted samples; found via uniform random sampling after '+(t+1).toLocaleString()+' tries.';
         _sePath = path; _seRenderAll(); return;
+      }
+    }
+    // Try precomputed winning path from Python
+    if (_seWinPaths[targetKey]){
+      const precomp = _seWinPaths[targetKey];
+      const path = []; let nd = _seTree; let valid = true;
+      while (!nd.leaf){
+        _seGenChildren(nd);
+        if (!nd.ch || !nd.ch.length){ valid = false; break; }
+        const gi0 = nd.ch[0].gi;
+        const g = _seGames[gi0];
+        const gk = g.white + '|' + g.black;
+        if (!(gk in precomp)){ valid = false; break; }
+        const oi = precomp[gk];
+        const outs = []; nd.ch.forEach(function(c,i){ if (c.gi === gi0) outs.push({c:c,i:i}); });
+        if (oi >= outs.length){ valid = false; break; }
+        path.push(outs[oi].i); nd = outs[oi].c.child;
+      }
+      if (valid && nd.leaf){
+        const wins = (nd.winner && nd.winner.key === targetKey) ||
+          (nd.tied && nd.tied.some(function(p){return p.key===targetKey;}));
+        if (wins){
+          _seDfsWarning = 'Win probability for '+pName+' is extremely low. No path found in '+MAX_TRIES.toLocaleString()+' weighted + '+MAX_TRIES.toLocaleString()+' uniform samples; resolved via precomputed path.';
+          _sePath = path; _seRenderAll(); return;
+        }
       }
     }
     // Deterministic DFS fallback
