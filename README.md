@@ -518,3 +518,7 @@ After each round, both strength estimates are updated via:
 Win probability is the White player's strength divided by the total; draw probability is the draw parameter times the geometric mean of both players' strengths divided by the total; loss probability is the Black player's strength divided by the total. The draw parameter is scaled per game by:
 - **Style multiplier**: baseline decisive-game rate divided by this pairing's expected decisive-game rate; aggressive pairings shrink the draw band.
 - **Standings multiplier**: average of both players' motivation (points deficit divided by rounds remaining); players needing roughly one extra win per four remaining rounds peak in desperation, near-eliminated players widen the draw band.
+
+## Acknowledgements
+
+This project is inspired by [Thomas Dondorf](https://github.com/thomasdondorf)'s Reddit posts.
