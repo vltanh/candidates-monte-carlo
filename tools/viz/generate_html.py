@@ -1613,8 +1613,13 @@ document.addEventListener('DOMContentLoaded', () => {
   const latest = DATA.rounds[DATA.rounds.length-1];
   const latestNum = latest.round_num;
   const totalR = DATA.meta.total_rounds;
+  const allPlayed = latest.upcoming_games?.every(g => g.result !== null) ?? false;
+  const isFinished = latestNum > totalR || (latestNum === totalR && allPlayed);
+  const statusBadge = isFinished
+    ? `<span class="badge">Final</span>`
+    : `<span class="badge live">Round ${latestNum} · Live</span>`;
   badges.innerHTML = `
-    <span class="badge live">Round ${latestNum} · Live</span>
+    ${statusBadge}
     <span class="badge">${totalR} Rounds · ${DATA.meta.gpr}/Round</span>
     <span class="badge">Tiebreak · ${DATA.meta.tiebreak}</span>`;
   document.getElementById('totalRounds').textContent = totalR;
@@ -1786,7 +1791,10 @@ function updateStandings(round){
   const sorted = [...DATA.players].sort((a,b) => {
     const va = valFn(a), vb = valFn(b);
     if (typeof va === 'string') return standingsSort.dir * va.localeCompare(vb);
-    return standingsSort.dir * (va - vb);
+    const d = standingsSort.dir * (va - vb);
+    if (d !== 0) return d;
+    // tiebreak by win probability descending
+    return (round.winner_probs[b.key]??0) - (round.winner_probs[a.key]??0);
   });
 
   const tbl = document.getElementById('tStandings');
@@ -2217,13 +2225,11 @@ function updateTitleRace(round){
       DATA.all_games.forEach(ag => {
         if (ag.round_num <= lastPlayed) return;
         ag.games.forEach(g => {
-          if (g.result) return;
           let opp = null, clr = '';
           if (g.white === d.key){ opp = g.black; clr = 'W'; }
           else if (g.black === d.key){ opp = g.white; clr = 'B'; }
           if (opp){
             const os = P_MAP[opp]?.short ?? opp;
-            // Highlight if opponent is also a contender
             const isRival = contenders.some(c => c.key === opp);
             const tag = isRival
               ? `<strong style="color:${P_MAP[opp]?.color??'var(--paper)'}">${os}</strong>`
@@ -2815,7 +2821,41 @@ function _seRenderSvg(){
   // Leaf: verdict
   if (focus.leaf){
     const sorted = [..._seContenders].sort((a,b) => focus.scores[b.key] - focus.scores[a.key]);
-    let html = '<div style="animation:'+animName+' .3s ease-out both">';
+    let html = '<div style="animation:'+animName+' .3s ease-out both;display:flex;gap:1.5rem;align-items:flex-start">';
+    // Last round games panel
+    if (pastChain.length > 0){
+      const lastRound = pastChain[pastChain.length - 1].game.round;
+      const lastRoundSteps = [];
+      for (let i = pastChain.length - 1; i >= 0; i--){
+        if (pastChain[i].game.round === lastRound) lastRoundSteps.unshift({step:pastChain[i], depth:i});
+        else break;
+      }
+      const oClr = {W:'#00e676', D:'#8494be', L:'#ff5252'};
+      const oLbl = {W:'1\u20130', D:'\u00bd\u2013\u00bd', L:'0\u20131'};
+      const GOLD = '#ffd54f';
+      html += '<div style="flex-shrink:0;min-width:140px">';
+      html += '<div style="font-family:\'JetBrains Mono\',monospace;font-size:.6rem;color:#4e5f8a;text-transform:uppercase;letter-spacing:.1em;margin-bottom:.5rem;font-weight:600">Round '+lastRound+'</div>';
+      lastRoundSteps.forEach(function(s){
+        const g = s.step.game, e = s.step.edge;
+        const rc = oClr[e.k];
+        const isActual = g.actual !== null && ['W','D','L'][g.actual] === e.k;
+        const nodeClr = isActual ? GOLD : rc;
+        const bg = isActual ? 'rgba(255,213,79,.08)' : 'rgba(120,180,255,.04)';
+        const border = isActual ? GOLD+'50' : 'rgba(120,180,255,.15)';
+        html += '<div onclick="_seNav('+s.depth+')" style="cursor:pointer;padding:6px 10px;margin-bottom:4px;border-radius:5px;border:1px solid '+border+';background:'+bg+';transition:background .15s,border-color .15s" '+
+          'onmouseenter="this.style.background=\'rgba(120,180,255,.12)\';this.style.borderColor=\'rgba(120,180,255,.3)\'" '+
+          'onmouseleave="this.style.background=\''+bg+'\';this.style.borderColor=\''+border+'\'">';
+        html += '<div style="font-family:\'JetBrains Mono\',monospace;font-size:.7rem;display:flex;align-items:center;gap:6px">';
+        html += '<span style="color:var(--paper-2)">'+g.ws+'</span>';
+        html += '<span style="color:'+nodeClr+';font-weight:700">'+oLbl[e.k]+'</span>';
+        html += '<span style="color:var(--paper-2)">'+g.bs+'</span>';
+        if (isActual) html += '<span style="color:'+GOLD+';font-size:.55rem;margin-left:auto">\u2713</span>';
+        html += '</div></div>';
+      });
+      html += '</div>';
+    }
+    // Verdict card
+    html += '<div style="flex:1;min-width:0">';
     if (focus.winner){
       html += '<div style="text-align:center;padding:1.5rem;background:rgba(0,230,118,.06);border:1px solid rgba(0,230,118,.25);border-radius:8px">' +
         '<div style="font-size:.65rem;color:var(--paper-3);text-transform:uppercase;letter-spacing:.14em;margin-bottom:.4rem">All contender games decided</div>' +
@@ -2832,11 +2872,11 @@ function _seRenderSvg(){
       var sc = focus.scores[p.key];
       var barW = maxScore > 0 ? (sc / maxScore * 100) : 0;
       return '<div style="display:flex;align-items:center;gap:.5rem">' +
-        '<span style="color:'+p.color+';font-weight:600;min-width:6em;text-align:right;flex-shrink:0">'+p.short+'</span>' +
+        '<span style="color:'+p.color+';font-weight:600;width:8em;text-align:right;flex-shrink:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+p.short+'</span>' +
         '<div style="flex:1;height:8px;background:var(--rule);border-radius:2px;overflow:hidden">' +
           '<div style="width:'+barW+'%;height:100%;background:'+p.color+';border-radius:2px"></div></div>' +
-        '<span style="color:var(--paper-2);min-width:3em;flex-shrink:0">'+sc+' pts</span></div>';
-    }).join('') + '</div></div>';
+        '<span style="color:var(--paper-2);width:4.5em;text-align:right;flex-shrink:0">'+sc+' pts</span></div>';
+    }).join('') + '</div></div></div>';
     wrap.innerHTML = html;
     return;
   }
@@ -2886,7 +2926,7 @@ function _seRenderSvg(){
 
   // Past trail: group by round, show last 2 rounds
   const MAX_PAST_ROUNDS = 2;
-  const PAST_W = 115, PAST_ITEM_H = 28, PAST_ITEM_VS = 4, PAST_HS = 35;
+  const PAST_W = 145, PAST_ITEM_H = 28, PAST_ITEM_VS = 4, PAST_HS = 35;
   const TRUNC_W = 18;
 
   // Group past steps by round
@@ -3004,9 +3044,12 @@ function _seRenderSvg(){
         rt.setAttribute('x',px+PAST_W/2); rt.setAttribute('y',iy+PAST_ITEM_H/2+3);
         rt.setAttribute('text-anchor','middle'); rt.setAttribute('fill',nodeClr);
         rt.setAttribute('font-family',"'JetBrains Mono',monospace");
-        rt.setAttribute('font-size','8'); rt.setAttribute('font-weight','600');
+        rt.setAttribute('font-size','7.5'); rt.setAttribute('font-weight','600');
         rt.setAttribute('opacity',baseOp.toFixed(2));
-        rt.textContent = (isActual?'\u2713 ':'')+step.game.ws+' '+rl+' '+step.game.bs;
+        const pastLabel = (isActual?'\u2713 ':'')+step.game.ws+' '+rl+' '+step.game.bs;
+        rt.textContent = pastLabel;
+        if (pastLabel.length > 22) rt.setAttribute('textLength', PAST_W - 12);
+        rt.setAttribute('lengthAdjust','spacingAndGlyphs');
         svg.appendChild(rt);
 
         // Click overlay
@@ -3137,7 +3180,7 @@ function _seRenderSvg(){
     svg.appendChild(hl);
 
     const sy = fy - FOCUS_H/2 + 26, lh = FOCUS_LH;
-    _seContenders.forEach(function(p,i){
+    sorted.forEach(function(p,i){
       const sc = focus.scores[p.key], ty = sy + i*lh;
       const al = focus.alive.has(p.key), ld = p.key === sorted[0].key;
       const bw = (sc / DATA.meta.total_rounds) * (FOCUS_W-8);
@@ -3212,7 +3255,7 @@ function _seRenderSvg(){
 
       const sy = y - defaultCH_H/2 + 24;
       const lh = CH_LH;
-      _seContenders.forEach(function(p,i){
+      sorted.forEach(function(p,i){
         const sc = c.child.scores[p.key], ty = sy + i*lh;
         const al = c.child.alive.has(p.key), ld = p.key === sorted[0].key;
         const changed = sc !== focus.scores[p.key];
