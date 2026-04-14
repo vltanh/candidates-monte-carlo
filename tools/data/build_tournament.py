@@ -422,11 +422,20 @@ def write_jsonc(
     name_map: dict[int, str],
     path: Path,
     tiebreak: str = "shared",
+    name: str | None = None,
+    year: int | None = None,
+    section: str | None = None,
 ) -> None:
     """Write tournament data as formatted JSONC."""
     gpr = len(players) // 2
     lines = ["{"]
 
+    if name:
+        lines.append(f'  "name": {json.dumps(name)},')
+    if year:
+        lines.append(f'  "year": {year},')
+    if section:
+        lines.append(f'  "section": {json.dumps(section)},')
     lines.append(f'  "gpr": {gpr},')
     lines.append(f'  "tiebreak": "{tiebreak}",')
 
@@ -647,6 +656,22 @@ def main():
             'Use "fide2026" for Rapid mini-match → Blitz → sudden-death knockout.'
         ),
     )
+    parser.add_argument(
+        "--name",
+        default=None,
+        help='Tournament name (e.g. "FIDE Candidates")',
+    )
+    parser.add_argument(
+        "--year",
+        type=int,
+        default=None,
+        help="Tournament year (e.g. 2026)",
+    )
+    parser.add_argument(
+        "--section",
+        default=None,
+        help='Tournament section (e.g. "Open", "Women")',
+    )
     args = parser.parse_args()
 
     cache_dir = Path(args.cache_dir) if args.cache_dir else None
@@ -662,7 +687,13 @@ def main():
     )
 
     out = Path(args.output)
-    write_jsonc(players, schedule, name_map, out, tiebreak=args.tiebreak)
+    write_jsonc(
+        players, schedule, name_map, out,
+        tiebreak=args.tiebreak,
+        name=args.name,
+        year=args.year,
+        section=args.section,
+    )
     print(f"\nWrote {len(players)} players, {len(schedule)} games → {out}")
 
 
