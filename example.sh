@@ -12,22 +12,22 @@ python tools/tuning/tune.py configs/default_hparams.jsonc data/candidates2024.js
 python tools/tuning/tune.py configs/default_hparams.jsonc data/candidates2022.jsonc data/candidates2024.jsonc --db db/tuning_22_24.db --trials 10000
 
 # Pareto front
-python tools/tuning/pareto_front.py db/tuning_22.db --save results/pareto/tuning_22.png
-python tools/tuning/pareto_front.py db/tuning_24.db --save results/pareto/tuning_24.png
-python tools/tuning/pareto_front.py db/tuning_22_24.db --save results/pareto/tuning_22_24.png
+python tools/tuning/pareto_front.py db/tuning_22.db --save imgs/pareto/tuning_22.png
+python tools/tuning/pareto_front.py db/tuning_24.db --save imgs/pareto/tuning_24.png
+python tools/tuning/pareto_front.py db/tuning_22_24.db --save imgs/pareto/tuning_22_24.png
 
 # Evaluate
 python tools/tuning/evaluate.py configs/best_hparams_22_24.jsonc data/candidates2022.jsonc data/candidates2024.jsonc data/candidates2026.jsonc
 
 # Run simulations
-python tools/viz/generate_rounds.py configs/best_hparams_22_24.jsonc data/candidates2026.jsonc results/candidates2026/rounds/ --rounds 15
-python tools/viz/generate_rounds.py configs/best_hparams_22_24.jsonc data/candidates2024.jsonc results/candidates2024/rounds/ --rounds 15
-python tools/viz/generate_rounds.py configs/best_hparams_22_24.jsonc data/candidates2022.jsonc results/candidates2022/rounds/ --rounds 15
+python tools/viz/generate_rounds.py configs/best_hparams_22_24.jsonc data/candidates2026.jsonc results/candidates2026/ --rounds 15
+python tools/viz/generate_rounds.py configs/best_hparams_22_24.jsonc data/candidates2024.jsonc results/candidates2024/ --rounds 15
+python tools/viz/generate_rounds.py configs/best_hparams_22_24.jsonc data/candidates2022.jsonc results/candidates2022/ --rounds 15
 
 # Visualize
-for i in {1..15}; do python tools/viz/visualize_timeline.py results/candidates2026/rounds -k $i -o results/candidates2026/r${i}.png -t data/candidates2026.jsonc; done
-for i in {1..15}; do python tools/viz/visualize_timeline.py results/candidates2024/rounds -k $i -o results/candidates2024/r${i}.png -t data/candidates2024.jsonc; done
-for i in {1..15}; do python tools/viz/visualize_timeline.py results/candidates2022/rounds -k $i -o results/candidates2022/r${i}.png -t data/candidates2022.jsonc; done
+for i in {1..15}; do python tools/viz/visualize_timeline.py results/candidates2026 -k $i -o imgs/candidates2026/r${i}.png -t data/candidates2026.jsonc; done
+for i in {1..15}; do python tools/viz/visualize_timeline.py results/candidates2024 -k $i -o imgs/candidates2024/r${i}.png -t data/candidates2024.jsonc; done
+for i in {1..15}; do python tools/viz/visualize_timeline.py results/candidates2022 -k $i -o imgs/candidates2022/r${i}.png -t data/candidates2022.jsonc; done
 
 # Dashboard
-python tools/viz/generate_html.py --tournament data/candidates2026.jsonc --rounds results/candidates2026/rounds/ --hparams configs/best_hparams_22_24.jsonc --db db/tuning_22_24.db --output /home/vltanh/Documents/vltanh.github.io/assets/chess/candidates2026.html
+python tools/viz/generate_html.py --tournament data/candidates2026.jsonc --rounds results/candidates2026/ --hparams configs/best_hparams_22_24.jsonc --db db/tuning_22_24.db --output /home/vltanh/Documents/vltanh.github.io/assets/chess/candidates2026.html

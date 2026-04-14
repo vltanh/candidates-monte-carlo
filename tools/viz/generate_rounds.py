@@ -4,9 +4,9 @@ Generate JSON state files for Monte Carlo visualization.
 Runs the C++ engine for each round and saves the output to a specified directory.
 
 Usage:
-    python tools/viz/generate_rounds.py configs/hyperparameters.json data/candidates2024.jsonc results/candidates2024/rounds/
-    python tools/viz/generate_rounds.py configs/hyperparameters.json data/candidates2024.jsonc results/candidates2024/rounds/ --rounds 9 9
-    python tools/viz/generate_rounds.py configs/hyperparameters.json data/candidates2024.jsonc results/candidates2024/rounds/ --rounds 9 12
+    python tools/viz/generate_rounds.py configs/hyperparameters.json data/candidates2024.jsonc results/candidates2024/
+    python tools/viz/generate_rounds.py configs/hyperparameters.json data/candidates2024.jsonc results/candidates2024/ --rounds 9 9
+    python tools/viz/generate_rounds.py configs/hyperparameters.json data/candidates2024.jsonc results/candidates2024/ --rounds 9 12
 """
 
 import argparse

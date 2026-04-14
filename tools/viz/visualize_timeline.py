@@ -8,9 +8,9 @@ Reads all round{N}.txt or round{N}.json files in a directory and produces a dash
   - Per-round match prediction breakdowns (actual results highlighted in gold)
 
 Usage:
-    python tools/viz/visualize_timeline.py results/candidates2026/rounds/
-    python tools/viz/visualize_timeline.py results/candidates2026/rounds/ -o my_output.png
-    python tools/viz/visualize_timeline.py results/candidates2026/rounds/ -k 5 -t data/candidates2026.jsonc
+    python tools/viz/visualize_timeline.py results/candidates2026/
+    python tools/viz/visualize_timeline.py results/candidates2026/ -o my_output.png
+    python tools/viz/visualize_timeline.py results/candidates2026/ -k 5 -t data/candidates2026.jsonc
 """
 
 import json
@@ -394,9 +394,11 @@ ax_legend.legend(
 
 plt.subplots_adjust(bottom=0.06)
 
-output_filename = (
-    args.output if args.output else os.path.join(input_dir, f"round{max_k}.png")
-)
+if args.output:
+    output_filename = args.output
+else:
+    tournament_name = os.path.basename(os.path.normpath(input_dir))
+    output_filename = os.path.join("imgs", tournament_name, f"round{max_k}.png")
 os.makedirs(os.path.dirname(os.path.abspath(output_filename)), exist_ok=True)
 plt.savefig(output_filename, dpi=300, bbox_inches="tight")
 print(

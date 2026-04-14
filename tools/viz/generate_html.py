@@ -7,7 +7,7 @@ Examples
 # 2026 (ongoing) with full model info:
 python tools/viz/generate_html.py \\
     --tournament data/candidates2026.jsonc \\
-    --rounds    results/candidates2026/rounds/ \\
+    --rounds    results/candidates2026/ \\
     --hparams   configs/best_hparams_22_24.jsonc \\
     --db        db/tuning_22_24.db \\
     --output    vltanh.github.io/assets/chess/candidates2026.html
@@ -15,7 +15,7 @@ python tools/viz/generate_html.py \\
 # 2024 (historical), predictions only:
 python tools/viz/generate_html.py \\
     --tournament data/candidates2024.jsonc \\
-    --rounds    results/candidates2024/rounds/ \\
+    --rounds    results/candidates2024/ \\
     --output    vltanh.github.io/assets/chess/candidates2024.html
 """
 
